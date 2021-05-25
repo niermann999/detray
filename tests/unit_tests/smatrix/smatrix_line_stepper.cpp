@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/algebra/eigen_container.hpp"
-#include "tests/common/tools_propagator.inl"
+#include "plugins/algebra/smatrix_container.hpp"
+#include "tests/common/tools_line_stepper.inl"
