@@ -241,7 +241,7 @@ class unified_index_geometry {
         _objects.reserve(_objects.size() + surfaces.size());
         _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());
 
-        volume.set_range({offset, _objects.size()});
+        volume.update_range({offset, _objects.size()});
     }
 
     /** Add objects (surfaces/portals) to the geometry (pre-built)

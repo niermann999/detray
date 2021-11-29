@@ -229,6 +229,19 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
             const auto intersection_trace = shoot_ray(d, ori, dir);
 
+            /*std::cout << "\nNew ray" << std::endl;
+            for (size_t rec = 0; rec < intersection_trace.size(); rec++) {
+                auto entry = intersection_trace.at(rec);
+                std::cout << "vol_id: \t" << entry.second.index << std::endl;
+                std::cout << "obj_id: \t" << entry.first << std::endl;
+                std::cout << "obj_lk: \t" << entry.second.link << std::endl;
+                std::cout << "path: \t\t" << entry.second.path << std::endl;
+                std::cout << "x: \t\t" << entry.second.p3[0] << std::endl;
+                std::cout << "y: \t\t" << entry.second.p3[1] << std::endl;
+                std::cout << "z: \t\t" << entry.second.p3[2] << std::endl;
+                std::cout << std::endl;
+            }*/
+
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way
             track<detray_context> ray;
@@ -255,11 +268,19 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             }
             // Check every single recorded intersection
             if constexpr (std::is_same_v<detray_inspector, object_tracer<1>>) {
-                ASSERT_EQ(n_state.inspector().object_trace.size(),
+                EXPECT_EQ(n_state.inspector().object_trace.size(),
                           intersection_trace.size());
                 for (std::size_t intr_idx = 0;
                      intr_idx < intersection_trace.size(); ++intr_idx) {
-                    ASSERT_EQ(n_state.inspector().object_trace[intr_idx],
+                    if (n_state.inspector().object_trace[intr_idx] !=
+                              intersection_trace[intr_idx].first) {
+                        // Intersection record at portal bound was flipped
+                        if (n_state.inspector().object_trace[intr_idx] == intersection_trace[intr_idx + 1].first and n_state.inspector().object_trace[intr_idx + 1] == intersection_trace[intr_idx].first) { 
+                            intr_idx ++;
+                            continue;
+                        }
+                    }
+                    EXPECT_EQ(n_state.inspector().object_trace[intr_idx],
                               intersection_trace[intr_idx].first);
                 }
             }

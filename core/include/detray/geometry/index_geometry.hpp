@@ -276,14 +276,14 @@ class index_geometry {
             _surfaces.reserve(_surfaces.size() + objects.size());
             _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());
 
-            volume.template set_range<object_registry_type::id::e_surface>(
+            volume.template update_range<object_registry_type::id::e_surface>(
                 {offset, _surfaces.size()});
         } else {
             const auto offset = _portals.size();
             _portals.reserve(_portals.size() + objects.size());
             _portals.insert(_portals.end(), objects.begin(), objects.end());
 
-            volume.template set_range<object_registry_type::id::e_portal>(
+            volume.template update_range<object_registry_type::id::e_portal>(
                 {offset, _portals.size()});
         }
     }
