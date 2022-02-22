@@ -13,8 +13,8 @@ namespace detray {
 /// test kernel function to fill the output vector with is_inside function
 /// return values
 __global__ void mask_test_kernel(
-    mask_store_data<mask_store<thrust::tuple, dvector, rectangle, trapezoid,
-                               ring, cylinder, single, annulus>>
+    mask_store_data<mask_store<thrust::tuple, dvector, darray, rectangle,
+                               trapezoid, ring, cylinder, single, annulus>>
         store_data,
     vecmem::data::vector_view<point2> input_point2_data,
     vecmem::data::vector_view<point3> input_point3_data,
@@ -23,8 +23,8 @@ __global__ void mask_test_kernel(
     using cartesian2 = __plugin::cartesian2<detray::scalar>;
 
     /** get mask store **/
-    mask_store<thrust::tuple, vecmem::device_vector, rectangle, trapezoid, ring,
-               cylinder, single, annulus>
+    mask_store<thrust::tuple, vecmem::device_vector, darray, 0, rectangle,
+               trapezoid, ring, cylinder, single, annulus>
         store(store_data);
 
     /** get mask objects **/
