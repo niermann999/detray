@@ -52,12 +52,12 @@ class mask_store {
      */
     using mask_tuple = tuple_t<storage_type<mask_types>...>;
     /** data type for mask_store_data **/
-    using vecmem_data_view_t = tuple_t<typename data_view<mask_types>::type...>;
+    using mask_tuple_data = tuple_t<typename data_view<mask_types>::type...>;
     using link_type = array_t<dindex, 2>;
     using range_type = tuple_t<std::size_t, darray<dindex, 2>>;
 
     /** data type for mask_store_data **/
-    using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
+    //using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
 
     /**
      * tuple_type for mask_tuple makes an illegal memory access error
@@ -237,12 +237,12 @@ class mask_store {
     /**
      * Get vecmem::data::vector_view objects
      */
-    // template <std::size_t... ints>
-    // DETRAY_HOST vecmem_data_view_t unroll_data(std::index_sequence<ints...>
-    // /*seq*/) {
-    //     return detail::make_tuple<tuple_t>(
-    //         data_view<mask_types>::get_data((detail::get<ints>(_mask_tuple)))...);
-    // }
+    template <std::size_t... ints>
+    DETRAY_HOST mask_tuple_data data(std::index_sequence<ints...> /*seq*/) {
+        return detail::make_tuple<tuple_t>(
+            vecmem::data::vector_view<mask_types>(
+                vecmem::get_data(detail::get<ints>(_mask_tuple)))...);
+    }
 
     /**
      * Get vecmem::device_vector objects

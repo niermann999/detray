@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <iostream>
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
@@ -94,4 +95,7 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(ring_masks.size() == 4);
     ASSERT_TRUE(single_masks.size() == 0);
     ASSERT_TRUE(trapezoid_masks.size() == 1);
+
+    const auto test_data = get_data(store);
+    std::cout << detail::get<0>(test_data._data).size() << std::endl;
 }
