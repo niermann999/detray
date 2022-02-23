@@ -292,6 +292,13 @@ struct mask_store_data {
      *
      * @param store is the mask store from host
      **/
+    DETRAY_HOST mask_store_data(mask_tuple_data_t &&data)
+        : _data(std::move(data)) {}
+
+    /** Constructor from mask store
+     *
+     * @param store is the mask store from host
+     **/
     template <std::size_t... ints>
     DETRAY_HOST mask_store_data(mask_store_t &store,
                                 std::index_sequence<ints...> seq)
@@ -308,9 +315,11 @@ template <template <typename...> class tuple_t,
           std::size_t MAX_ARRAY_DIM, typename... mask_types>
 inline auto get_data(mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM,
                                 mask_types...> &store) {
-    return mask_store_data<
+    /*return mask_store_data<
         mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>>(
-        store, std::make_index_sequence<sizeof...(mask_types)>{});
+        store, std::make_index_sequence<sizeof...(mask_types)>{});*/
+    return mask_store_data<mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>>(store.get_data());
+
     // return store.get_data();
 }
 
