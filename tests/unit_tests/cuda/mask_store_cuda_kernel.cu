@@ -14,7 +14,7 @@ namespace detray {
 /// return values
 __global__ void mask_test_kernel(
     mask_store<thrust::tuple, dvector, darray, 0, rectangle,
-                               trapezoid, ring, cylinder, single, annulus>::mask_tuple_data
+                               trapezoid, ring, cylinder, single, annulus>::data_viewer
         store_data,
     vecmem::data::vector_view<point2> input_point2_data,
     vecmem::data::vector_view<point3> input_point3_data,
@@ -56,7 +56,7 @@ __global__ void mask_test_kernel(
 }
 
 void mask_test(
-    mask_store<thrust::tuple, dvector, darray, 0, rectangle, trapezoid, ring, cylinder, single, annulus>::mask_tuple_data& store_data,
+    mask_store<thrust::tuple, dvector, darray, 0, rectangle, trapezoid, ring, cylinder, single, annulus>::data_viewer& store_data,
     vecmem::data::vector_view<point2>& input_point2_data,
     vecmem::data::vector_view<point3>& input_point3_data,
     vecmem::data::jagged_vector_view<intersection_status>& output_data) {

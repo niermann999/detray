@@ -32,7 +32,10 @@ template <typename data_t>
 struct data_view<data_t, typename data_t::vecmem_data_view> {
     using type = typename data_t::vecmem_data_view;
 
-    static type get_data(data_t &&data) { return data.get_data(); }
+    ///template<template <typename...> class vector_t>
+    static type get_data(/*const*/ vecmem::vector<data_t> &data) { 
+        return data.get_data();
+    }
 };
 
 
@@ -56,17 +59,43 @@ class mask_store {
     using mask_tuple = vtuple::tuple<vector_t<mask_types>...>;
     //using mask_tuple = tuple_t<storage_type<mask_types>...>;
     /** data type for mask_store_data **/
-    using mask_tuple_data = tuple_t<typename data_view<mask_types>::type...>;
     using link_type = std::array<dindex, 2>;
     using range_type = tuple_t<std::size_t, darray<dindex, 2>>;
-
-    /** data type for mask_store_data **/
-    //using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
 
     /**
      * tuple_type for mask_tuple makes an illegal memory access error
      */
     // using mask_tuple = tuple_type<vector_type<mask_types>...>;
+    /*template <template <typename...> class dev_tuple_t = thrust::tuple,
+              template <typename...> class dev_vector_t = vecmem::device_vector,
+              template <typename, std::size_t> class dev_array_t = darray>*/
+    struct data_viewer {
+        using host_type = mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>;
+        using view_type = tuple_t<typename data_view<mask_types>::type...>;
+
+        //using device_type = mask_store<dev_tuple_t, dev_vector_t, dev_array_t, MAX_ARRAY_DIM, mask_types...>;
+
+        DETRAY_HOST data_viewer(host_type &store)
+            : _data(store.unroll_data()) {}
+
+        /**
+        * Get vecmem::device_vector objects
+        */
+        template <std::size_t... ints>
+        DETRAY_DEVICE mask_tuple unroll_data(view_type &data,
+                                        std::index_sequence<ints...> /*seq*/) {
+            return vtuple::make_tuple(
+                vector_t<mask_types>(detail::get<ints>(data))...);
+        }
+
+        mask_tuple device_type() {
+            return unroll_data(_data, std::make_index_sequence<sizeof...(mask_types)>{});
+        }
+
+        view_type _data;
+    };
+
+    using mask_tuple_data = typename data_viewer::view_type;
 
     /** Default constructor **/
     mask_store() = delete;
@@ -90,6 +119,23 @@ class mask_store {
     DETRAY_DEVICE mask_store(mask_tuple_data &store_data)
         : _mask_tuple(unroll_data(
               store_data, std::make_index_sequence<sizeof...(mask_types)>{})) {}
+
+    DETRAY_DEVICE mask_store(data_viewer &view)
+        : _mask_tuple(view.device_type()) {}
+
+    template <std::size_t... ints>
+    DETRAY_HOST mask_tuple_data unroll_data(mask_tuple &tuple,std::index_sequence<ints...> /*seq*/) {
+       return detail::make_tuple<tuple_t>(
+            (data_view<mask_types>::get_data(detail::get<ints>(tuple)))...);
+    }
+
+    DETRAY_HOST mask_tuple_data unroll_data() {
+        return unroll_data(_mask_tuple, std::make_index_sequence<sizeof...(mask_types)>{});
+    }
+
+    DETRAY_HOST data_viewer get_data() {
+        return data_viewer{*this};
+    }
 
     /** Size : Contextual STL like API
      *
@@ -249,48 +295,6 @@ class mask_store {
     }
 
 
-    template <std::size_t... ints>
-    DETRAY_HOST mask_tuple_data unroll_data(mask_tuple &tuple,std::index_sequence<ints...> /*seq*/) {
-       return detail::make_tuple<tuple_t>(
-            (data_view<mask_types>::get_data(detail::get<ints>(tuple)))...);
-    }
-
-    /**
-     * Get vecmem::device_vector objects
-     */
-    template <std::size_t... ints>
-    DETRAY_DEVICE mask_tuple unroll_data(mask_tuple_data &data,
-                                    std::index_sequence<ints...> /*seq*/) {
-        return vtuple::make_tuple(
-            vector_t<mask_types>(detail::get<ints>(data))...);
-    }
-
-    DETRAY_HOST mask_tuple_data get_data() {
-        return unroll_data(_mask_tuple, std::make_index_sequence<sizeof...(mask_types)>{});
-    }
-
-    template <template <typename...> class dev_tuple_t = thrust::tuple,
-              template <typename...> class dev_vector_t = vecmem::device_vector,
-              template <typename, std::size_t> class dev_array_t = darray>
-    struct data_viewer {
-        using host_type = mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>;
-
-        using device_type = mask_store<dev_tuple_t, dev_vector_t, dev_array_t, MAX_ARRAY_DIM, mask_types...>;
-
-        DETRAY_HOST data_viewer(host_type &store)
-            : _data(store.get_data()) {}
-
-        DETRAY_HOST data_viewer(mask_tuple_data &&data)
-            : _data(std::move(data)) {}
-
-        device_type create_device_t() {
-            return device_type(_data);
-        }
-
-        mask_tuple_data _data;
-    };
-
-
     /**
      * Get vecmem::data::vector_view objects
      */
@@ -370,7 +374,7 @@ inline auto get_new_data(mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM,
         mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>>(
         store, std::make_index_sequence<sizeof...(mask_types)>{});*/
     //return mask_store_data<mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>>(store.get_data());
-    return store.get_data();
+    return store.unroll_data();
 
     // return store.get_data();
 }

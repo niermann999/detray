@@ -53,7 +53,7 @@ enum mask_ids : unsigned int {
 /// test function for mask store
 void mask_test(
     mask_store<thrust::tuple, dvector, darray, 0, rectangle,
-                               trapezoid, ring, cylinder, single, annulus>::mask_tuple_data&
+                               trapezoid, ring, cylinder, single, annulus>::data_viewer&
         store_data,
     vecmem::data::vector_view<point2>& input_point2_data,
     vecmem::data::vector_view<point3>& input_point3_data,
