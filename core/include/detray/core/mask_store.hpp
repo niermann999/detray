@@ -73,7 +73,13 @@ class mask_store {
         : _mask_tuple(vector_t<mask_types>{&resource}...) {}
 
     /** Constructor with mask_store_data **/
-    DETRAY_DEVICE mask_store(mask_tuple_data &store_data)
+    template <
+        typename mask_store_data_t,
+        std::enable_if_t<
+            !std::is_base_of_v<vecmem::memory_resource, mask_store_data_t> &&
+                !std::is_same_v<mask_store, mask_store_data_t>,
+            bool> = true>
+    DETRAY_DEVICE mask_store(mask_store_data_t &store_data)
         : _mask_tuple(device(
               store_data, std::make_index_sequence<sizeof...(mask_types)>{})) {}
 
@@ -234,6 +240,15 @@ class mask_store {
         }
     }
 
+    //template <std::size_t... ints>
+    //DETRAY_HOST mask_tuple_data unroll_data(std::index_sequence<ints...> /*seq*/) {
+    //    return detail::make_tuple<tuple_t>(
+    //        data_view<mask_types>::get_data(detail::get<ints>(_mask_tuple))...);
+    //}
+    //DETRAY_HOST mask_tuple_data get_data() {
+    //    return unroll_data(std::make_index_sequence<sizeof...(mask_types)>{});
+    //}
+
     /**
      * Get vecmem::data::vector_view objects
      */
@@ -247,11 +262,11 @@ class mask_store {
     /**
      * Get vecmem::device_vector objects
      */
-    template <std::size_t... ints>
-    DETRAY_DEVICE mask_tuple device(mask_tuple_data &data,
+    template <typename mask_store_data_t, std::size_t... ints>
+    DETRAY_DEVICE mask_tuple device(mask_store_data_t &data,
                                     std::index_sequence<ints...> /*seq*/) {
         return vtuple::make_tuple(
-            vector_t<mask_types>(detail::get<ints>(data))...);
+            vector_t<mask_types>(detail::get<ints>(data._data))...);
     }
 
     private:
