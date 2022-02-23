@@ -97,7 +97,7 @@ TEST(mask_store_cuda, mask_store) {
 
     auto input_point2_data = vecmem::get_data(input_point2);
     auto input_point3_data = vecmem::get_data(input_point3);
-    auto store_data = get_data(store);
+    auto store_data = get_new_data(store);
 
     /** run the kernel **/
     mask_test(store_data, input_point2_data, input_point3_data, output_buffer);

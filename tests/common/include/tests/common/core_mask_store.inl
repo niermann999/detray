@@ -96,8 +96,8 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(single_masks.size() == 0);
     ASSERT_TRUE(trapezoid_masks.size() == 1);
 
-    const auto test_data = get_data(store);
+    const auto test_data = get_new_data(store);
     const auto test_data2 = store.get_data();
-    std::cout << detail::get<0>(test_data._data).size() << std::endl;
+    std::cout << detail::get<0>(test_data).size() << std::endl;
     std::cout << detail::get<0>(test_data2).size() << std::endl;
 }

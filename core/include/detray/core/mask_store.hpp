@@ -357,6 +357,20 @@ inline auto get_data(mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM,
         mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>>(
         store, std::make_index_sequence<sizeof...(mask_types)>{});*/
     return mask_store_data<mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>>(store.get_data());
+    // return store.get_data();
+}
+
+template <template <typename...> class tuple_t,
+          template <typename...> class vector_t,
+          template <typename, std::size_t> class array_t,
+          std::size_t MAX_ARRAY_DIM, typename... mask_types>
+inline auto get_new_data(mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM,
+                                mask_types...> &store) {
+    /*return mask_store_data<
+        mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>>(
+        store, std::make_index_sequence<sizeof...(mask_types)>{});*/
+    //return mask_store_data<mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>>(store.get_data());
+    return store.get_data();
 
     // return store.get_data();
 }
