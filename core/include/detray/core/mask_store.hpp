@@ -82,6 +82,7 @@ class mask_store {
     };
 
     using mask_tuple_data = typename data_view::type;
+    using view_type = typename data_view::type;
 
     /** Default constructor **/
     mask_store() = delete;

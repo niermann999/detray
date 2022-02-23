@@ -6,8 +6,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <iostream>
 
+#include <iostream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/mask_store.hpp"

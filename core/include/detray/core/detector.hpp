@@ -490,7 +490,7 @@ struct detector_data {
     detector_data(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
           _surfaces_data(vecmem::get_data(det.surfaces())),
-          _masks_data(get_data(det.mask_store())),
+          _masks_data(get_data(det.mask_store())._data),
           _transforms_data(get_data(det.transform_store())),
           _volume_finder_data(
               get_data(det.volume_search_grid(), *det.resource())),
@@ -500,7 +500,7 @@ struct detector_data {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    typename mask_container_t::data_view _masks_data;
+    typename mask_container_t::view_type _masks_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
     surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
@@ -530,7 +530,7 @@ struct detector_view {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    typename mask_container_t::data_view _masks_data;
+    typename mask_container_t::view_type _masks_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
     surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;
