@@ -18,46 +18,51 @@
 
 namespace detray {
 
-template <typename data_t, typename = void>
+template<typename data_t, typename = void>
 struct data_view {
     using type = vecmem::data::vector_view<data_t>;
 
-    static type get_data(data_t &data) { return vecmem::get_data(data); }
+    static type get_data(data_t& data) {
+        return vecmem::get_data(data);
+    }
 };
 
-template <typename data_t>
-struct data_view<data_t, typename data_t::vecmem_data_view> {
+template<typename data_t>
+struct data_view<data_t, typename data_t::vecmem_data_view>{
     using type = typename data_t::vecmem_data_view;
 
-    static type get_data(data_t &data) { return data.get_data(); }
+    static type get_data(data_t& data) {
+        return data.get_data();
+    }
 };
+
 
 /** A mask store that provides the correct mask containers to client classes. */
 template <template <typename...> class tuple_t = vtuple::tuple,
           template <typename...> class vector_t = dvector,
           template <typename, std::size_t> class array_t = darray,
-          std::size_t MAX_ARRAY_DIM = 0, typename... mask_types>
+          std::size_t MAX_ARRAY_DIM = 0,
+          typename... mask_types>
 class mask_store {
 
     public:
     template <typename T, std::size_t DIM = MAX_ARRAY_DIM>
-    using storage_type =
-        typename std::conditional<MAX_ARRAY_DIM == 0, vector_t<T>,
-                                  array_t<T, DIM>>::type;
-
+    using storage_type = typename std::conditional<MAX_ARRAY_DIM == 0, vector_t<T>, array_t<T, DIM>>::type;
+    
     /**
      * mask_tuple is the only member which does not follow the tuple_type.
      * vtuple has different types based on the file location 1) std::tuple in
      * cpp/hpp; 2) thrust::tuple in cu
      */
-    using mask_tuple = tuple_t<storage_type<mask_types>...>;
+    using mask_tuple = vtuple::tuple<vector_t<mask_types>...>;
+    //using mask_tuple = tuple_t<storage_type<mask_types>...>;
     /** data type for mask_store_data **/
-    using mask_tuple_data = tuple_t<typename data_view<mask_types>::type...>;
-    using link_type = array_t<dindex, 2>;
+    using vecmem_data_view = tuple_t<typename data_view<mask_types>::type...>;
+    using link_type = std::array<dindex, 2>;
     using range_type = tuple_t<std::size_t, darray<dindex, 2>>;
 
     /** data type for mask_store_data **/
-    //using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
+    using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
 
     /**
      * tuple_type for mask_tuple makes an illegal memory access error
@@ -240,22 +245,14 @@ class mask_store {
         }
     }
 
-    //template <std::size_t... ints>
-    //DETRAY_HOST mask_tuple_data unroll_data(std::index_sequence<ints...> /*seq*/) {
-    //    return detail::make_tuple<tuple_t>(
-    //        data_view<mask_types>::get_data(detail::get<ints>(_mask_tuple))...);
-    //}
-    //DETRAY_HOST mask_tuple_data get_data() {
-    //    return unroll_data(std::make_index_sequence<sizeof...(mask_types)>{});
-    //}
-
     /**
      * Get vecmem::data::vector_view objects
      */
     template <std::size_t... ints>
     DETRAY_HOST mask_tuple_data data(std::index_sequence<ints...> /*seq*/) {
         return detail::make_tuple<tuple_t>(
-                vecmem::get_data(detail::get<ints>(_mask_tuple))...);
+            vecmem::data::vector_view<mask_types>(
+                vecmem::get_data(detail::get<ints>(_mask_tuple)))...);
     }
 
     /**
@@ -297,16 +294,6 @@ struct mask_store_data {
     mask_tuple_data_t _data;
 };
 
-/** Get mask_store_data
- **/
-/*template <template <typename...> class tuple_t,
-          template <typename...> class vector_t, typename... mask_types>
-inline mask_store_data<mask_store<tuple_t, vector_t, mask_types...>> get_data(
-    mask_store<tuple_t, vector_t, mask_types...> &store) {
-    return mask_store_data<mask_store<tuple_t, vector_t, mask_types...>>(
-        store, std::make_index_sequence<sizeof...(mask_types)>{});
-}*/
-
 template <template <typename...> class tuple_t,
           template <typename...> class vector_t,
           template <typename, std::size_t> class array_t,
@@ -318,5 +305,6 @@ inline auto get_data(mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM,
         store, std::make_index_sequence<sizeof...(mask_types)>{});
     // return store.get_data();
 }
+
 
 }  // namespace detray
