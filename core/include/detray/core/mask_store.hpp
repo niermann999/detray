@@ -255,8 +255,7 @@ class mask_store {
     template <std::size_t... ints>
     DETRAY_HOST mask_tuple_data data(std::index_sequence<ints...> /*seq*/) {
         return detail::make_tuple<tuple_t>(
-            vecmem::data::vector_view<mask_types>(
-                vecmem::get_data(detail::get<ints>(_mask_tuple)))...);
+                vecmem::get_data(detail::get<ints>(_mask_tuple))...);
     }
 
     /**
