@@ -87,6 +87,10 @@ class mask_store {
         : _mask_tuple(device(
               store_data, std::make_index_sequence<sizeof...(mask_types)>{})) {}
 
+    DETRAY_DEVICE mask_store(mask_tuple_data &store_data)
+        : _mask_tuple(unroll_data(
+              store_data, std::make_index_sequence<sizeof...(mask_types)>{})) {}
+
     /** Size : Contextual STL like API
      *
      * @tparam mask_id the index for the mask_type
@@ -244,14 +248,48 @@ class mask_store {
         }
     }
 
+
     template <std::size_t... ints>
-    DETRAY_HOST mask_tuple_data unroll_data(std::index_sequence<ints...> /*seq*/) {
+    DETRAY_HOST mask_tuple_data unroll_data(mask_tuple &tuple,std::index_sequence<ints...> /*seq*/) {
        return detail::make_tuple<tuple_t>(
-            (data_view<mask_types>::get_data(detail::get<ints>(_mask_tuple)))...);
+            (data_view<mask_types>::get_data(detail::get<ints>(tuple)))...);
     }
+
+    /**
+     * Get vecmem::device_vector objects
+     */
+    template <std::size_t... ints>
+    DETRAY_DEVICE mask_tuple unroll_data(mask_tuple_data &data,
+                                    std::index_sequence<ints...> /*seq*/) {
+        return vtuple::make_tuple(
+            vector_t<mask_types>(detail::get<ints>(data))...);
+    }
+
     DETRAY_HOST mask_tuple_data get_data() {
-        return unroll_data(std::make_index_sequence<sizeof...(mask_types)>{});
+        return unroll_data(_mask_tuple, std::make_index_sequence<sizeof...(mask_types)>{});
     }
+
+    template <template <typename...> class dev_tuple_t = thrust::tuple,
+              template <typename...> class dev_vector_t = vecmem::device_vector,
+              template <typename, std::size_t> class dev_array_t = darray>
+    struct data_viewer {
+        using host_type = mask_store<tuple_t, vector_t, array_t, MAX_ARRAY_DIM, mask_types...>;
+
+        using device_type = mask_store<dev_tuple_t, dev_vector_t, dev_array_t, MAX_ARRAY_DIM, mask_types...>;
+
+        DETRAY_HOST data_viewer(host_type &store)
+            : _data(store.get_data()) {}
+
+        DETRAY_HOST data_viewer(mask_tuple_data &&data)
+            : _data(std::move(data)) {}
+
+        device_type create_device_t() {
+            return device_type(_data);
+        }
+
+        mask_tuple_data _data;
+    };
+
 
     /**
      * Get vecmem::data::vector_view objects
