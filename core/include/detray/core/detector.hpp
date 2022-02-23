@@ -500,7 +500,7 @@ struct detector_data {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    typename mask_container_t::data_viewer _masks_data;
+    typename mask_container_t::data_view _masks_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
     surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
@@ -530,7 +530,7 @@ struct detector_view {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    typename mask_container_t::data_viewer _masks_data;
+    typename mask_container_t::data_view _masks_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
     surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;
