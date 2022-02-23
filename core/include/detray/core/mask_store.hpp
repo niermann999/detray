@@ -18,22 +18,21 @@
 
 namespace detray {
 
-template<typename data_t, typename = void>
+template <typename data_t, typename = void>
 struct data_view {
     using type = vecmem::data::vector_view<data_t>;
 
-    static type get_data(data_t& data) {
-        return vecmem::get_data(data);
+    ///template<template <typename...> class vector_t>
+    static type get_data(/*const*/ vecmem::vector<data_t> &data) { 
+        return vecmem::get_data(data); 
     }
 };
 
-template<typename data_t>
-struct data_view<data_t, typename data_t::vecmem_data_view>{
+template <typename data_t>
+struct data_view<data_t, typename data_t::vecmem_data_view> {
     using type = typename data_t::vecmem_data_view;
 
-    static type get_data(data_t& data) {
-        return data.get_data();
-    }
+    static type get_data(data_t &&data) { return data.get_data(); }
 };
 
 
@@ -57,12 +56,12 @@ class mask_store {
     using mask_tuple = vtuple::tuple<vector_t<mask_types>...>;
     //using mask_tuple = tuple_t<storage_type<mask_types>...>;
     /** data type for mask_store_data **/
-    using vecmem_data_view = tuple_t<typename data_view<mask_types>::type...>;
+    using mask_tuple_data = tuple_t<typename data_view<mask_types>::type...>;
     using link_type = std::array<dindex, 2>;
     using range_type = tuple_t<std::size_t, darray<dindex, 2>>;
 
     /** data type for mask_store_data **/
-    using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
+    //using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
 
     /**
      * tuple_type for mask_tuple makes an illegal memory access error
@@ -243,6 +242,15 @@ class mask_store {
         if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return append_masks<current_id + 1>(other);
         }
+    }
+
+    template <std::size_t... ints>
+    DETRAY_HOST mask_tuple_data unroll_data(std::index_sequence<ints...> /*seq*/) {
+       return detail::make_tuple<tuple_t>(
+            (data_view<mask_types>::get_data(detail::get<ints>(_mask_tuple)))...);
+    }
+    DETRAY_HOST mask_tuple_data get_data() {
+        return unroll_data(std::make_index_sequence<sizeof...(mask_types)>{});
     }
 
     /**
