@@ -107,8 +107,8 @@ class PropagatorWithRkStepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // geomery navigation configurations
-    constexpr unsigned int theta_steps{50};
-    constexpr unsigned int phi_steps{50};
+    constexpr unsigned int theta_steps{500};
+    constexpr unsigned int phi_steps{500};
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
@@ -125,13 +125,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using navigator_t = navigator<decltype(d)>;
     using b_field_t = constant_magnetic_field<>;
     using track_t = free_track_parameters;
-    using constraints_t = constrained_step<>;
-    using policy_t = stepper_default_policy;
-    using stepper_t = rk_stepper<b_field_t, track_t, constraints_t, policy_t>;
-    using actor_chain_t =
-        actor_chain<dtuple, helix_inspector, propagation::print_inspector,
-                    pathlimit_aborter>;
-    using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
+    using stepper_t = rk_stepper<b_field_t, track_t>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Test parameters
     const vector3 B = std::get<0>(GetParam());
@@ -146,51 +141,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
-        // Genrate second track state used for propagation with pathlimit
-        track_t lim_track(track);
 
         track.set_overstep_tolerance(overstep_tol);
-        lim_track.set_overstep_tolerance(overstep_tol);
-
-        // Build actor states: the helix inspector can be shared
-        helix_inspector::state helix_insp_state{detail::helix{track, &B}};
-        propagation::print_inspector::state print_insp_state{};
-        propagation::print_inspector::state lim_print_insp_state{};
-        pathlimit_aborter::state unlimted_aborter_state{};
-        pathlimit_aborter::state pathlimit_aborter_state{path_limit};
-
-        // Create actor states tuples
-        actor_chain_t::state actor_states = std::tie(
-            helix_insp_state, print_insp_state, unlimted_aborter_state);
-        actor_chain_t::state lim_actor_states = std::tie(
-            helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
 
         // Init propagator states
-        propagator_t::state state(track, actor_states);
-        propagator_t::state lim_state(lim_track, lim_actor_states);
-
-        // Set step constraints
-        state._stepping.template set_constraint<step::constraint::e_accuracy>(
-            step_constr);
-        lim_state._stepping
-            .template set_constraint<step::constraint::e_accuracy>(step_constr);
-
-        // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state))
-            << print_insp_state.to_string() << std::endl;
-        //<< state._navigation.inspector().to_string() << std::endl;
-
-        // Propagate with path limit
-        ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, epsilon);
-        ASSERT_FALSE(p.propagate(lim_state))
-            << lim_print_insp_state.to_string() << std::endl;
-        //<< lim_state._navigation.inspector().to_string() << std::endl;
-
-        ASSERT_TRUE(lim_state._stepping.path_length() <
-                    std::abs(path_limit) + epsilon)
-            << "path length: " << lim_state._stepping.path_length()
-            << ", path limit: " << path_limit << std::endl;
-        //<< state._navigation.inspector().to_string() << std::endl;
+        propagator_t::state state(track);
+        p.propagate(state);
     }
 }
 
@@ -205,7 +161,7 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
+/*INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              __plugin::vector3<scalar>{0. * unit_constants::T,
                                                        1. * unit_constants::T,
@@ -227,4 +183,4 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
                                                        1. * unit_constants::T,
                                                        1. * unit_constants::T},
                              -10. * unit_constants::um,
-                             5. * unit_constants::mm)));
+                             5. * unit_constants::mm)));*/
