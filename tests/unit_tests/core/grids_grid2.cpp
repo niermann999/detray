@@ -37,8 +37,8 @@ TEST(grids, grid2_replace_populator) {
 
     // Test the initialization
     test::point2<detray::scalar> p = {-4.5f, -4.5f};
-    for (unsigned int ib0 = 0u; ib0 < 10u; ++ib0) {
-        for (unsigned int ib1 = 0u; ib1 < 10u; ++ib1) {
+    for (dindex ib0 = 0u; ib0 < 10u; ++ib0) {
+        for (dindex ib1 = 0u; ib1 < 10u; ++ib1) {
             p = {-4.5f + static_cast<scalar>(ib0),
                  -4.5f + static_cast<scalar>(ib1)};
             EXPECT_EQ(g2.bin(p), std::numeric_limits<dindex>::max());
@@ -51,13 +51,13 @@ TEST(grids, grid2_replace_populator) {
     EXPECT_EQ(g2.bin(p), 3u);
 
     // Fill and read two times, fill first 0-99, then 100-199
-    for (unsigned int il = 0u; il < 2u; ++il) {
-        unsigned int counter = il * 100u;
-        for (unsigned int ib0 = 0u; ib0 < 10u; ++ib0) {
-            for (unsigned int ib1 = 0; ib1 < 10u; ++ib1) {
+    for (dindex il = 0u; il < 2u; ++il) {
+        dindex counter = il * 100u;
+        for (dindex ib0 = 0u; ib0 < 10u; ++ib0) {
+            for (dindex ib1 = 0; ib1 < 10u; ++ib1) {
                 p = {-4.5f + static_cast<scalar>(ib0),
                      -4.5f + static_cast<scalar>(ib1)};
-                g2.populate(p, counter);
+                g2.populate(p, std::move(counter));
                 EXPECT_EQ(g2.bin(p), counter++);
             }
         }
@@ -87,7 +87,7 @@ TEST(grids, grid2_replace_populator) {
     typename grid2cc::axis_p1_type closed{5u, 0.f, 5.f, host_mr};
 
     grid2cc g2cc(std::move(circular), std::move(closed), host_mr);
-    unsigned int counter = 0u;
+    dindex counter = 0u;
     for (unsigned icl = 0u; icl < 5u; ++icl) {
         for (unsigned ici = 0u; ici < 4u; ++ici) {
             p = {-1.5f + static_cast<scalar>(ici),
@@ -121,8 +121,8 @@ TEST(grids, grid2_complete_populator) {
     test::point2<detray::scalar> p = {-0.5f, -0.5f};
     grid2r::populator_type::store_value invalid = {
         dindex_invalid, dindex_invalid, dindex_invalid};
-    for (unsigned int ib0 = 0u; ib0 < 2u; ++ib0) {
-        for (unsigned int ib1 = 0u; ib1 < 2u; ++ib1) {
+    for (dindex ib0 = 0u; ib0 < 2u; ++ib0) {
+        for (dindex ib1 = 0u; ib1 < 2u; ++ib1) {
             p = {-0.5f + static_cast<scalar>(ib0),
                  -0.5f + static_cast<scalar>(ib1)};
             EXPECT_EQ(g2.bin(p), invalid);
@@ -193,8 +193,8 @@ TEST(grids, grid2_attach_populator) {
     // Test the initialization
     test::point2<detray::scalar> p = {-0.5f, -0.5f};
     grid2r::populator_type::store_value invalid = {};
-    for (unsigned int ib0 = 0u; ib0 < 2u; ++ib0) {
-        for (unsigned int ib1 = 0u; ib1 < 2u; ++ib1) {
+    for (dindex ib0 = 0u; ib0 < 2u; ++ib0) {
+        for (dindex ib1 = 0u; ib1 < 2u; ++ib1) {
             p = {-0.5f + static_cast<scalar>(ib0),
                  -0.5f + static_cast<scalar>(ib1)};
             EXPECT_EQ(g2.bin(p), invalid);

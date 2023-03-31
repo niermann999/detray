@@ -373,7 +373,8 @@ class detector {
 
         // Update max objects per volume
         _n_max_objects_per_volume =
-            std::max(_n_max_objects_per_volume, surfaces_per_vol.size());
+            std::max(_n_max_objects_per_volume,
+                     static_cast<dindex>(surfaces_per_vol.size()));
     }
 
     /// Add a new full set of detector components (e.g. transforms or volumes)
@@ -431,8 +432,8 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto update_n_max_objects_per_volume(std::size_t n_surfaces)
         -> void {
-        _n_max_objects_per_volume =
-            std::max(_n_max_objects_per_volume, n_surfaces);
+        _n_max_objects_per_volume = std::max(_n_max_objects_per_volume,
+                                             static_cast<dindex>(n_surfaces));
     }
 
     /// @returns the maximum number of surfaces (sensitive + passive + portal)

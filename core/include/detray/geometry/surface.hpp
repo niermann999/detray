@@ -58,10 +58,8 @@ class surface {
         : _mask(std::move(mask)),
           _material(std::move(material)),
           _trf(std::move(trf)),
-          _src(std::move(src)) {
-
-        m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
-    }
+          _src(std::move(src)),
+          m_barcode{geometry::barcode{}.set_volume(volume).set_id(sf_id)} {}
 
     /// Constructor with full arguments - copy semantics
     ///
@@ -74,9 +72,11 @@ class surface {
     constexpr surface(const transform_link trf, const mask_link &mask,
                       const material_link &material, const dindex volume,
                       const source_link &src, surface_id sf_id)
-        : _mask(mask), _material(material), _trf(trf), _src(src) {
-        m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
-    }
+        : _mask(mask),
+          _material(material),
+          _trf(trf),
+          _src(src),
+          m_barcode{geometry::barcode{}.set_volume(volume).set_id(sf_id)} {}
 
     /// Portal vs module decision must be made explicitly
     constexpr surface() = default;
@@ -182,11 +182,11 @@ class surface {
     }
 
     private:
-    geometry::barcode m_barcode{};
     mask_link _mask{};
     material_link _material{};
     transform_link_t _trf{};
     source_link_t _src{};
+    geometry::barcode m_barcode{};
 };
 
 }  // namespace detray

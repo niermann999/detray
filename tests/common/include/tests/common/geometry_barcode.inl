@@ -9,7 +9,12 @@
 
 // Detray include(s)
 #include "detray/definitions/detail/bit_encoder.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/barcode.hpp"
+#include "detray/geometry/surface.hpp"
+
+// System include(s)
+#include <iostream>
 
 using namespace detray;
 
@@ -51,4 +56,16 @@ TEST(geometry, barcode) {
     EXPECT_FALSE(bcd.is_invalid());
     bcd.set_extra((1UL << 8) - 1UL);
     EXPECT_FALSE(bcd.is_invalid());
+}
+
+/// Test retrieval of surface from collection using brute force searching
+TEST(geometry, surface_descriptor) {
+
+    auto ti = detail::dtyped_index<>{};
+    ti.set_index(3);
+    std::cout << ti.index() << std::endl;
+
+    auto sf = surface<detail::dtyped_index<>, detail::dtyped_index<>>{};
+
+    std::cout << sizeof(sf) << std::endl;
 }

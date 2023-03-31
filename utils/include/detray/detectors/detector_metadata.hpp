@@ -228,7 +228,7 @@ struct toy_metadata {
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = dindex;
+    using source_link = uint32_t;
     using surface_type =
         surface<mask_link, material_link, transform_link, source_link>;
 

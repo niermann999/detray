@@ -62,10 +62,18 @@ class bit_encoder {
     /// Extract the bit shift necessary to access the masked values.
     ///
     /// @note undefined behaviour for mask == 0 which we should not have.
-    DETRAY_HOST_DEVICE
-    static constexpr int extract_shift(value_t mask) noexcept {
+    /// @{
+    template <typename T = value_t,
+              std::enable_if_t<sizeof(T) >= sizeof(unsigned long), bool> = true>
+    DETRAY_HOST_DEVICE static constexpr int extract_shift(T mask) noexcept {
         return __builtin_ctzll(mask);
     }
+    template <typename T = value_t,
+              std::enable_if_t<sizeof(T) <= sizeof(unsigned int), bool> = true>
+    DETRAY_HOST_DEVICE static constexpr int extract_shift(T mask) noexcept {
+        return __builtin_ctz(mask);
+    }
+    /// @}
 };
 
 }  // namespace detray::detail

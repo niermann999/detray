@@ -236,7 +236,7 @@ __global__ void grid_collection_test_kernel(
 /// grid_collection_test implementation
 void grid_collection_test(
     grid_collection<n_own_host_grid2_attach>::view_type grid_coll_view,
-    vecmem::data::vector_view<dindex> n_bins_view,
+    vecmem::data::vector_view<std::size_t> n_bins_view,
     vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view,
     std::size_t n_grids, std::size_t dim_x, std::size_t dim_y,
     std::size_t dim_z) {

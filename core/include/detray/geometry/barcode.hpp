@@ -34,7 +34,6 @@ class barcode {
 
     public:
     using value_t = uint64_t;
-    using encoder = detail::bit_encoder<value_t>;
 
     /// Construct from an already encoded value.
     DETRAY_HOST_DEVICE
@@ -110,6 +109,8 @@ class barcode {
     }
 
     private:
+    using encoder = detail::bit_encoder<value_t>;
+
     // clang-format off
     static constexpr value_t k_volume_mask = 0xfff0000000000000; // (2^12)-1 = 4095 volumes 
     static constexpr value_t k_id_mask     = 0x000f000000000000; // (2^4)-1 = 15 surface categories 
