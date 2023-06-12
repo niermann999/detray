@@ -177,12 +177,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // detector configuration
     constexpr std::size_t n_brl_layers{4u};
-    constexpr std::size_t n_edc_layers{7u};
+    constexpr std::size_t n_edc_layers{3u};
     vecmem::host_memory_resource host_mr;
 
     // Construct the constant magnetic field.
-    using b_field_t = decltype(
-        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers))::bfield_type;
+    using b_field_t = decltype(create_toy_geometry(host_mr, n_brl_layers,
+                                                   n_edc_layers))::bfield_type;
     const vector3 B = std::get<0>(GetParam());
 
     const auto d = create_toy_geometry(
@@ -255,7 +255,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
-        // << state._navigation.inspector().to_string() << std::endl;
+        //<< state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
@@ -296,21 +296,21 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T},
-                                      -10.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm)));
+                                      -800.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max())));
 
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation3, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(test::vector3{1.f * unit<scalar>::T,
                                                     0.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T},
-                                      -10.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm)));
+                                      -800.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max())));
 
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation4, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(test::vector3{1.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T},
-                                      -10.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm)));
+                                      -800.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max())));

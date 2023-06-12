@@ -565,26 +565,28 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_full) {
             return navigation._heartbeat;
         }
-        // Otherwise: did we run into a portal?
-        if (navigation.status() == navigation::status::e_on_portal) {
-            // Set volume index to the next volume provided by the portal
-            navigation.set_volume(navigation.current()->volume_link);
+        do {
+            // Otherwise: did we run into a portal?
+            if (navigation.status() == navigation::status::e_on_portal) {
+                // Set volume index to the next volume provided by the portal
+                navigation.set_volume(navigation.current()->volume_link);
 
-            // Navigation reached the end of the detector world
-            if (is_invalid_value(navigation.volume())) {
-                navigation.exit();
-                return navigation._heartbeat;
+                // Navigation reached the end of the detector world
+                if (is_invalid_value(navigation.volume())) {
+                    navigation.exit();
+                    return navigation._heartbeat;
+                }
+                // Run inspection when needed (keep for debugging)
+                if constexpr (not std::is_same_v<inspector_t,
+                                                 navigation::void_inspector>) {
+                    navigation.run_inspector("Volume switch: ");
+                }
             }
-            // Run inspection when needed (keep for debugging)
-            /*if constexpr (not std::is_same_v<inspector_t,
-                                         navigation::void_inspector>) {
-                navigation.run_inspector("Volume switch: ");
-            }*/
-        }
-        // If no trust could be restored for the current state, (local)
-        // navigation might be exhausted or we switched volumes:
-        // re-initialize volume
-        navigation._heartbeat &= init(propagation);
+            // If no trust could be restored for the current state, (local)
+            // navigation might be exhausted or we switched volumes:
+            // re-initialize volume
+            navigation._heartbeat &= init(propagation);
+        } while (navigation.trust_level() != navigation::trust_level::e_full);
 
         // Sanity check: Should never be the case after complete update call
         if (navigation.trust_level() != navigation::trust_level::e_full or

@@ -253,6 +253,48 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         n_step_trials++;
     }
 
+    const auto check_divergence = [&](const scalar h) -> bool {
+        auto dir = stepping().dir();
+        // Check that the track is not diverging too much from the straight line
+        // the navigator assumes
+        const auto d = vector::normalize(
+            dir + h * static_cast<scalar>(1. / 6.) *
+                      (sd.k1 + 2.f * (sd.k2 + sd.k3) + sd.k4));
+        error_estimate = 10000.0f * std::abs(vector::dot(dir, d));
+
+        // printf("dist2 %f, stepsize %f\n", error_estimate, h);
+
+        return (9999.99 < error_estimate);
+    };
+
+    n_step_trials = 0;
+    while (!check_divergence(stepping._step_size)) {
+
+        stepping._step_size *= 0.5f;
+
+        // If step size becomes too small the particle remains at the
+        // initial place
+        if (std::abs(stepping._step_size) <
+            std::abs(stepping._step_size_cutoff)) {
+            // Not moving due to too low momentum needs an aborter
+            return navigation.abort();
+        }
+
+        // If the parameter is off track too much or given step_size is not
+        // appropriate
+        if (n_step_trials > stepping._max_rk_step_trials) {
+            // Too many trials, have to abort
+            return navigation.abort();
+        }
+
+        propagation._navigation.set_no_trust();
+        n_step_trials++;
+    }
+
+    // if (stepping._step_size >= 20.0f)
+    // printf("final dist2 %f, stepsize %f\n", error_estimate,
+    // stepping._step_size);
+
     // Update navigation direction
     const step::direction step_dir = stepping._step_size >= 0.f
                                          ? step::direction::e_forward
