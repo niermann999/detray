@@ -61,7 +61,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
      * local 2D cartesian point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
-                                  const vector3 & /*d*/) const {
+                                  const vector3 & = {}) const {
         return trf.point_to_local(p);
     }
 
@@ -75,7 +75,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     /// @returns the vector @param v in local coordinates
     DETRAY_HOST_DEVICE
     inline vector3 vector_to_local(const transform3_t &trf, const vector3 &v,
-                                   const vector3 & /*d*/) const {
+                                   const vector3 & = {}) const {
         return trf.vector_to_local(v);
     }
 

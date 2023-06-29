@@ -13,6 +13,9 @@
 // GTest include(s).
 #include <gtest/gtest.h>
 
+// System include(s)
+#include <cmath>
+
 using namespace detray;
 
 using point2 = test::point2;
@@ -32,12 +35,13 @@ GTEST_TEST(detray_coordinates, cylindrical3) {
     const point3 t = {2.f, 3.f, 4.f};
     const transform3 trf(t, z, x);
     const cylindrical3<transform3> c3;
-    const point3 global1 = {3.4142136f, 4.4142136f, 9.f};
-    const vector3 mom = {1.f, 2.f, 3.f};
-    const vector3 d = vector::normalize(mom);
+    const point3 global1 = {2.f + constant<scalar>::sqrt2,
+                            3.f + constant<scalar>::sqrt2, 9.f};
+    const vector3 glob_vec = {2.f + constant<scalar>::sqrt2,
+                              3.f + constant<scalar>::sqrt2, 9.f};
 
     // Global to local transformation
-    const point3 local = c3.global_to_local(trf, global1, d);
+    const point3 local = c3.global_to_local(trf, global1);
 
     // Check if the local position is correct
     ASSERT_NEAR(local[0], 2.f, isclose);
@@ -51,4 +55,19 @@ GTEST_TEST(detray_coordinates, cylindrical3) {
     ASSERT_NEAR(global1[0], global2[0], isclose);
     ASSERT_NEAR(global1[1], global2[1], isclose);
     ASSERT_NEAR(global1[2], global2[2], isclose);
+
+    // Vector to local transformation
+    const vector3 loc_vec = c3.vector_to_local(trf, glob_vec);
+
+    // Check if the local vector is correct
+    ASSERT_NEAR(loc_vec[0], std::hypot(glob_vec[0], glob_vec[1]), isclose);
+    ASSERT_NEAR(loc_vec[1], std::atan2(glob_vec[1], glob_vec[0]), isclose);
+
+    // Vector to global transformation
+    const vector3 glob_vec2 = c3.vector_to_global(trf, loc_vec);
+
+    // Check if the same global vector is obtained
+    ASSERT_NEAR(glob_vec[0], glob_vec2[0], isclose);
+    ASSERT_NEAR(glob_vec[1], glob_vec2[1], isclose);
+    ASSERT_NEAR(glob_vec[2], glob_vec2[2], isclose);
 }

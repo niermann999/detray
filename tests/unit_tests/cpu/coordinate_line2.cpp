@@ -37,6 +37,7 @@ GTEST_TEST(detray_coordinates, line2_case1) {
     const transform3 trf(t, z, x);
     const line2<transform3> l2;
     const point3 global1 = {1.f, 1.5f, 0.5f};
+    const vector3 glob_vec = {1.f, 1.5f, 0.5f};
     const vector3 mom = {0.f, 1.f, 1.f};
     const vector3 d = vector::normalize(mom);
     const scalar time{0.1f};
@@ -59,6 +60,21 @@ GTEST_TEST(detray_coordinates, line2_case1) {
     ASSERT_NEAR(global1[1], global2[1], isclose);
     ASSERT_NEAR(global1[2], global2[2], isclose);
 
+    // Vector to local transformation
+    const vector3 loc_vec = l2.vector_to_local(trf, glob_vec, d);
+
+    // Check if the local vector is correct
+    ASSERT_NEAR(loc_vec[0], -constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(loc_vec[1], std::sqrt(3.f), isclose);
+
+    // Vector to global transformation
+    const vector3 loc_vec2 = l2.vector_to_global(trf, loc_vec);
+
+    // Check if the same global vector is obtained
+    ASSERT_NEAR(glob_vec[0], loc_vec2[0], isclose);
+    ASSERT_NEAR(glob_vec[1], loc_vec2[1], isclose);
+    ASSERT_NEAR(glob_vec[2], loc_vec2[2], isclose);
+
     // Free track parameter
     const free_track_parameters<transform3> free_params(global1, time, mom,
                                                         charge);
@@ -70,9 +86,8 @@ GTEST_TEST(detray_coordinates, line2_case1) {
     const matrix_operator m;
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), -constant<scalar>::inv_sqrt2,
-                isclose);
-    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), std::sqrt(3.f), isclose);
+    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), local[0], isclose);
+    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), local[1], isclose);
     ASSERT_NEAR(m.element(bound_vec, 2u, 0u), constant<scalar>::pi_2, isclose);
     ASSERT_NEAR(m.element(bound_vec, 3u, 0u), constant<scalar>::pi_4, isclose);
     ASSERT_NEAR(m.element(bound_vec, 4u, 0u), -constant<scalar>::inv_sqrt2,

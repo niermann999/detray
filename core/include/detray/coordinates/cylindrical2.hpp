@@ -65,7 +65,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
      * local 2D cylindrical point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
-                                  const vector3 & /*d*/) const {
+                                  const vector3 & = {}) const {
         const auto local3 = trf.point_to_local(p);
 
         return {getter::perp(local3) * getter::phi(local3), local3[2],
@@ -89,7 +89,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
     DETRAY_HOST_DEVICE
     inline vector3 vector_to_local(const transform3_t &trf, const vector3 &v,
                                    const vector3 & = {}) const {
-        const auto local3 = trf.vector_to_local(v);
+        const vector3 local3 = trf.vector_to_local(v);
 
         return {getter::perp(local3) * getter::phi(local3), local3[2],
                 getter::perp(local3)};
@@ -104,7 +104,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         const scalar_type y{r * math_ns::sin(phi)};
         const scalar_type z{v[1]};
 
-        return trf.vector_to_global(point3{x, y, z});
+        return trf.vector_to_global(vector3{x, y, z});
     }
 
     /** This method transform from a local 2D cylindrical point to a point

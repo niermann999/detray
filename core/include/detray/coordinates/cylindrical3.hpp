@@ -43,7 +43,7 @@ struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
      * local 3D cylindrical point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
-                                  const vector3 & /*d*/) const {
+                                  const vector3 & = {}) const {
         const auto local3 = trf.point_to_local(p);
         return {getter::perp(local3), getter::phi(local3), local3[2]};
     }
@@ -62,22 +62,17 @@ struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
     DETRAY_HOST_DEVICE
     inline vector3 vector_to_local(const transform3_t &trf, const vector3 &v,
                                    const vector3 & = {}) const {
-        const auto local3 = trf.vector_to_local(v);
-
-        return {getter::perp(local3) * getter::phi(local3), local3[2],
-                getter::perp(local3)};
+        const vector3 local3 = trf.vector_to_local(v);
+        return {getter::perp(local3), getter::phi(local3), local3[2]};
     }
 
     /// @returns the local vector @param v in global coordinates
     DETRAY_HOST_DEVICE inline vector3 vector_to_global(const transform3_t &trf,
                                                        const vector3 &v) const {
-        const scalar_type r{v[2]};
-        const scalar_type phi{v[0] / r};
-        const scalar_type x{r * math_ns::cos(phi)};
-        const scalar_type y{r * math_ns::sin(phi)};
-        const scalar_type z{v[1]};
+        const scalar_type x{v[0] * math_ns::cos(v[1])};
+        const scalar_type y{v[0] * math_ns::sin(v[1])};
 
-        return trf.vector_to_global(point3{x, y, z});
+        return trf.vector_to_global(vector3{x, y, v[2]});
     }
 
 };  // struct cylindrical3

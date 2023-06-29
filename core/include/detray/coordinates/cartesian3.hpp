@@ -40,7 +40,7 @@ struct cartesian3 final : public coordinate_base<cartesian3, transform3_t> {
     /// @returns the point @param p in local coordinates
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
-                                  const vector3 & /*d*/) const {
+                                  const vector3 & = {}) const {
         return trf.point_to_local(p);
     }
 

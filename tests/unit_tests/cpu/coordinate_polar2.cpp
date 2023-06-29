@@ -35,15 +35,15 @@ GTEST_TEST(detray_coordinates, polar2) {
     const transform3 trf(t, z, x);
     const polar2<transform3> p2;
     const point3 global1 = {4.f, 7.f, 4.f};
+    const vector3 glob_vec = {4.f, 7.f, 4.f};
     const vector3 mom = {1.f, 2.f, 3.f};
-    const vector3 d = vector::normalize(mom);
     const scalar time{0.1f};
     const scalar charge{-1.};
     struct dummy_mask {
     } mask;
 
     // Global to local transformation
-    const point3 local = p2.global_to_local(trf, global1, d);
+    const point3 local = p2.global_to_local(trf, global1);
 
     // Check if the local position is correct
     ASSERT_NEAR(local[0], std::sqrt(20.f), isclose);
@@ -57,6 +57,21 @@ GTEST_TEST(detray_coordinates, polar2) {
     ASSERT_NEAR(global1[1], global2[1], isclose);
     ASSERT_NEAR(global1[2], global2[2], isclose);
 
+    // Vector to local transformation
+    const vector3 loc_vec = p2.vector_to_local(trf, glob_vec);
+
+    // Check if the local vector is correct
+    ASSERT_NEAR(loc_vec[0], std::sqrt(65.f), isclose);
+    ASSERT_NEAR(loc_vec[1], std::atan2(7.f, 4.f), isclose);
+
+    // Vector to global transformation
+    const vector3 glob_vec2 = p2.vector_to_global(trf, loc_vec);
+
+    // Check if the same global vector is obtained
+    ASSERT_NEAR(glob_vec[0], glob_vec2[0], isclose);
+    ASSERT_NEAR(glob_vec[1], glob_vec2[1], isclose);
+    ASSERT_NEAR(glob_vec[2], glob_vec2[2], isclose);
+
     // Free track parameter
     const free_track_parameters<transform3> free_params(global1, time, mom,
                                                         charge);
@@ -68,8 +83,8 @@ GTEST_TEST(detray_coordinates, polar2) {
     const matrix_operator m;
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), std::sqrt(20.f), isclose);
-    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), std::atan2(4.f, 2.f), isclose);
+    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), local[0], isclose);
+    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), local[1], isclose);
     ASSERT_NEAR(m.element(bound_vec, 2u, 0u), 1.1071487f,
                 isclose);  // atan(2)
     ASSERT_NEAR(m.element(bound_vec, 3u, 0u), 0.64052231f,
