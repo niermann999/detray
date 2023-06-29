@@ -60,16 +60,29 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     /** This method transform from a point from global cartesian 3D frame to a
      * local 2D cartesian point */
     DETRAY_HOST_DEVICE
-    inline point3 global_to_local(const transform3_t &trf3, const point3 &p,
+    inline point3 global_to_local(const transform3_t &trf, const point3 &p,
                                   const vector3 & /*d*/) const {
-        return trf3.point_to_local(p);
+        return trf.point_to_local(p);
     }
 
     /** This method transform from a local 2D cartesian point to a point global
      * cartesian 3D frame*/
-    DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf3,
+    DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,
                                                      const point3 &p) const {
-        return trf3.point_to_global(p);
+        return trf.point_to_global(p);
+    }
+
+    /// @returns the vector @param v in local coordinates
+    DETRAY_HOST_DEVICE
+    inline vector3 vector_to_local(const transform3_t &trf, const vector3 &v,
+                                   const vector3 & /*d*/) const {
+        return trf.vector_to_local(v);
+    }
+
+    /// @returns the local vector @param v in global coordinates
+    DETRAY_HOST_DEVICE inline vector3 vector_to_global(const transform3_t &trf,
+                                                       const vector3 &v) const {
+        return trf.vector_to_global(v);
     }
 
     /** This method transform from a local 2D cartesian point to a point global

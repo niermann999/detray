@@ -92,6 +92,39 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         return trf.point_to_global(local);
     }
 
+    /// @returns the vector @param v in local coordinates
+    DETRAY_HOST_DEVICE
+    inline vector3 vector_to_local(const transform3_t &trf, const vector3 &v,
+                                   const vector3 &d) const {
+        const auto local3 = trf.vector_to_local(v);
+
+        // Line direction
+        const vector3 z = trf.z();
+
+        // Line center
+        const point3 t = trf.translation();
+
+        // Radial vector
+        const vector3 r = vector::cross(z, d);
+
+        // Assign the sign depending on the position w.r.t line
+        // Right: -1
+        // Left: 1
+        const scalar_type sign = vector::dot(r, t - v) > 0.f ? -1.f : 1.f;
+
+        return {sign * getter::perp(local3), local3[2], getter::phi(local3)};
+    }
+
+    /// @returns the local vector @param v in global coordinates
+    DETRAY_HOST_DEVICE inline vector3 vector_to_global(const transform3_t &trf,
+                                                       const vector3 &v) const {
+        const scalar_type R = std::abs(v[0]);
+        const vector3 local = {R * math_ns::cos(v[2]), R * math_ns::sin(v[2]),
+                               v[1]};
+
+        return trf.vector_to_global(local);
+    }
+
     /** This method transform from a local 2D line point to a point global
      * cartesian 3D frame*/
     template <typename mask_t>

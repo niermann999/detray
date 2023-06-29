@@ -78,6 +78,24 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         return trf.point_to_global(point3{x, y, p[2]});
     }
 
+    /// @returns the vector @param v in local coordinates
+    DETRAY_HOST_DEVICE
+    inline vector3 vector_to_local(const transform3_t &trf, const vector3 &v,
+                                   const vector3 & = {}) const {
+        const auto local3 = trf.vector_to_local(v);
+
+        return {getter::perp(local3), getter::phi(local3), local3[2]};
+    }
+
+    /// @returns the local vector @param v in global coordinates
+    DETRAY_HOST_DEVICE inline vector3 vector_to_global(const transform3_t &trf,
+                                                       const vector3 &v) const {
+        const scalar_type x = v[0] * math_ns::cos(v[1]);
+        const scalar_type y = v[0] * math_ns::sin(v[1]);
+
+        return trf.vector_to_global(point3{x, y, v[2]});
+    }
+
     /** This method transform from a local 2D polar point to a point global
      * cartesian 3D frame*/
     template <typename mask_t>

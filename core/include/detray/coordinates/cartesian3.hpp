@@ -37,19 +37,30 @@ struct cartesian3 final : public coordinate_base<cartesian3, transform3_t> {
 
     /// @}
 
-    /** This method transform from a point from global cartesian 3D frame to a
-     * local 3D cartesian point */
+    /// @returns the point @param p in local coordinates
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
                                   const vector3 & /*d*/) const {
         return trf.point_to_local(p);
     }
 
-    /** This method transform from a local 3D cartesian point to a point global
-     * cartesian 3D frame*/
+    /// @returns the local point @param p in global coordinates
     DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,
                                                      const point3 &p) const {
         return trf.point_to_global(p);
+    }
+
+    /// @returns the vector @param v in local coordinates
+    DETRAY_HOST_DEVICE
+    inline vector3 vector_to_local(const transform3_t &trf, const vector3 &v,
+                                   const vector3 & = {}) const {
+        return trf.vector_to_local(v);
+    }
+
+    /// @returns the local vector @param v in global coordinates
+    DETRAY_HOST_DEVICE inline vector3 vector_to_global(const transform3_t &trf,
+                                                       const vector3 &v) const {
+        return trf.vector_to_global(v);
     }
 
 };  // struct cartesian3
