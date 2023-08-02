@@ -53,11 +53,9 @@ using actor_chain_t =
 using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
 /// Propagation tutorial function
-void propagation(
-    typename detector_host_t::detector_view_type det_data,
-    const vecmem::data::vector_view<
-        free_track_parameters<detray::tutorial::transform3>>
-        tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> candidates_data);
+void propagation(typename detector_host_t::detector_view_type det_data,
+                 const vecmem::data::vector_view<
+                     free_track_parameters<detray::tutorial::transform3>>
+                     tracks_data);
 
 }  // namespace detray::tutorial

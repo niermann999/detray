@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/utils/ranges.hpp"
@@ -65,10 +66,12 @@ struct intersection_initialize {
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
         typename is_container_t::value_type &&sfi,
-        is_container_t &intersections) const {
+        is_container_t &inters) const {
         bool is_inside = (sfi.status == intersection::status::e_inside);
         if (is_inside) {
-            intersections.push_back(sfi);
+            const auto itr =
+                detail::upper_bound(inters.begin(), inters.end(), sfi);
+            inters.insert(itr, sfi);
         }
         return is_inside;
     }
@@ -76,12 +79,14 @@ struct intersection_initialize {
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
         std::array<typename is_container_t::value_type, 2> &&solutions,
-        is_container_t &intersections) const {
+        is_container_t &inters) const {
         bool is_valid = false;
         for (auto &sfi : solutions) {
             bool is_inside = (sfi.status == intersection::status::e_inside);
             if (is_inside) {
-                intersections.push_back(sfi);
+                const auto itr =
+                    detail::upper_bound(inters.begin(), inters.end(), sfi);
+                inters.insert(itr, sfi);
             }
             is_valid |= is_inside;
         }

@@ -62,7 +62,7 @@ TEST(navigator_cuda, navigator) {
         stepper_t stepper;
 
         prop_state<navigator_host_t::state> propagation{
-            stepper_t::state{track}, navigator_host_t::state(det, mng_mr)};
+            stepper_t::state{track}, navigator_host_t::state(det)};
 
         navigator_host_t::state& navigation = propagation._navigation;
         stepper_t::state& stepping = propagation._stepping;
@@ -111,14 +111,9 @@ TEST(navigator_cuda, navigator) {
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks_device);
 
-    // Create navigator candidates buffer
-    auto candidates_buffer =
-        create_candidates_buffer(det, theta_steps * phi_steps, dev_mr, &mng_mr);
-    copy.setup(candidates_buffer);
-
     // Run navigator test
-    navigator_test(det_data, tracks_data, candidates_buffer,
-                   volume_records_buffer, position_records_buffer);
+    navigator_test(det_data, tracks_data, volume_records_buffer,
+                   position_records_buffer);
 
     // Copy volume record buffer into volume & position records device
     copy(volume_records_buffer, volume_records_device);

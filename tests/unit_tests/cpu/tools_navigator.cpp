@@ -58,7 +58,8 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_TRUE(state.status() == navigation::status::e_on_module or
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
-    ASSERT_TRUE(std::abs(state()) > state.tolerance());
+    ASSERT_TRUE(std::abs(state()) > state.tolerance())
+        << state.inspector().to_string();
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.n_candidates(), n_candidates);
     ASSERT_EQ(state.barcode().volume(), vol_id);
@@ -110,7 +111,6 @@ GTEST_TEST(detray_navigator, toy_geometry) {
     using namespace detray;
     using namespace detray::navigation;
     using transform3 = test::transform3;
-
     vecmem::host_memory_resource host_mr;
 
     /// Tolerance for tests
@@ -135,7 +135,7 @@ GTEST_TEST(detray_navigator, toy_geometry) {
     navigator_t nav;
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
-        stepper_t::state{traj}, navigator_t::state(toy_det, host_mr)};
+        stepper_t::state{traj}, navigator_t::state(toy_det)};
     navigator_t::state &navigation = propagation._navigation;
     stepper_t::state &stepping = propagation._stepping;
 
@@ -294,7 +294,7 @@ GTEST_TEST(detray_navigator, wire_chamber) {
     navigator_t nav;
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
-        stepper_t::state{traj}, navigator_t::state(wire_det, host_mr)};
+        stepper_t::state{traj}, navigator_t::state(wire_det)};
     navigator_t::state &navigation = propagation._navigation;
     stepper_t::state &stepping = propagation._stepping;
 

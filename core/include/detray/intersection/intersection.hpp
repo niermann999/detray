@@ -54,7 +54,7 @@ struct intersection2D {
     using nav_link_type = typename surface_descr_t::navigation_link;
 
     /// Descriptor of the surface this intersection belongs to
-    surface_descr_t sf_desc;
+    surface_descr_t sf_desc{};
 
     /// Local position of the intersection on the surface
     point3 local{detail::invalid_value<scalar_type>(),

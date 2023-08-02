@@ -338,6 +338,7 @@ class detector {
     DETRAY_HOST_DEVICE
     constexpr auto surface(geometry::barcode bcd) const
         -> const surface_type & {
+        assert(bcd.index() < _surface_lookup.size());
         return _surface_lookup[bcd.index()];
     }
 

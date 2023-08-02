@@ -65,7 +65,7 @@ DETRAY_HOST_DEVICE inline auto find_if(RandomIt first, RandomIt last,
 /// @brief lower_bound implementation for device
 template <class ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
-                                           Value value) {
+                                           const Value& value) {
 #if defined(__CUDACC__)
     return thrust::lower_bound(thrust::seq, first, last, value);
 #elif !defined(__CUDACC__)
@@ -76,7 +76,7 @@ DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
 /// @brief upper_bound implementation for device
 template <class ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto upper_bound(ForwardIt first, ForwardIt last,
-                                           Value value) {
+                                           const Value& value) {
 #if defined(__CUDACC__)
     return thrust::upper_bound(thrust::seq, first, last, value);
 #elif !defined(__CUDACC__)

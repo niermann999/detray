@@ -13,7 +13,6 @@ namespace detray {
 __global__ void navigator_test_kernel(
     typename detector_host_t::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     vecmem::data::jagged_vector_view<dindex> volume_records_data,
     vecmem::data::jagged_vector_view<point3> position_records_data) {
 
@@ -22,7 +21,6 @@ __global__ void navigator_test_kernel(
     detector_device_t det(det_data);
     vecmem::device_vector<free_track_parameters<transform3>> tracks(
         tracks_data);
-    vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
     vecmem::jagged_device_vector<dindex> volume_records(volume_records_data);
     vecmem::jagged_device_vector<point3> position_records(
         position_records_data);
@@ -37,8 +35,7 @@ __global__ void navigator_test_kernel(
     stepper_t stepper;
 
     prop_state<navigator_device_t::state> propagation{
-        stepper_t::state{traj},
-        navigator_device_t::state(det, candidates.at(gid))};
+        stepper_t::state{traj}, navigator_device_t::state(det)};
 
     navigator_device_t::state& navigation = propagation._navigation;
     stepper_t::state& stepping = propagation._stepping;
@@ -65,7 +62,6 @@ __global__ void navigator_test_kernel(
 void navigator_test(
     typename detector_host_t::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data) {
 
@@ -74,8 +70,7 @@ void navigator_test(
 
     // run the test kernel
     navigator_test_kernel<<<block_dim, thread_dim>>>(
-        det_data, tracks_data, candidates_data, volume_records_data,
-        position_records_data);
+        det_data, tracks_data, volume_records_data, position_records_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

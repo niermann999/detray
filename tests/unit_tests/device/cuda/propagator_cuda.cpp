@@ -109,11 +109,6 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks_device);
 
-    // Create navigator candidates buffer
-    auto candidates_buffer =
-        create_candidates_buffer(det, theta_steps * phi_steps, mng_mr);
-    copy.setup(candidates_buffer);
-
     // Create vector buffer for track recording
     std::vector<std::size_t> capacities;
     capacities.reserve(theta_steps * phi_steps);
@@ -133,9 +128,8 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     copy.setup(jac_transports_buffer);
 
     // Run the propagator test for GPU device
-    propagator_test(det_data, tracks_data, candidates_buffer,
-                    path_lengths_buffer, positions_buffer,
-                    jac_transports_buffer);
+    propagator_test(det_data, tracks_data, path_lengths_buffer,
+                    positions_buffer, jac_transports_buffer);
 
     vecmem::jagged_vector<scalar> device_path_lengths(&mng_mr);
     vecmem::jagged_vector<vector3> device_positions(&mng_mr);

@@ -104,7 +104,7 @@ struct print_inspector {
         debug_stream << "Surface candidates: " << std::endl;
 
         using geo_ctx_t = typename state_type::detector_type::geometry_context;
-        for (const auto &sf_cand : state.candidates()) {
+        for (const auto &sf_cand : state) {
             const auto &local = sf_cand.local;
             const auto pos =
                 surface{*state.detector(), sf_cand.sf_desc}.local_to_global(

@@ -13,7 +13,6 @@ namespace detray {
 __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     const propagate_option opt) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -21,7 +20,6 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     detector_device_type det(det_data);
     vecmem::device_vector<free_track_parameters<transform3>> tracks(
         tracks_data);
-    vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
 
     if (gid >= tracks.size()) {
         return;
@@ -44,8 +42,8 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     auto actor_states =
         tie(transporter_state, interactor_state, resetter_state);
     // Create the propagator state
-    propagator_device_type::state p_state(tracks.at(gid), det.get_bfield(), det,
-                                          candidates.at(gid));
+    propagator_device_type::state p_state(tracks.at(gid), det.get_bfield(),
+                                          det);
 
     // Run propagation
     if (opt == propagate_option::e_unsync) {
@@ -58,7 +56,6 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
 void propagator_benchmark(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     const propagate_option opt) {
 
     constexpr int thread_dim = 256;
@@ -66,8 +63,8 @@ void propagator_benchmark(
         static_cast<int>(tracks_data.size() + thread_dim - 1) / thread_dim;
 
     // run the test kernel
-    propagator_benchmark_kernel<<<block_dim, thread_dim>>>(
-        det_data, tracks_data, candidates_data, opt);
+    propagator_benchmark_kernel<<<block_dim, thread_dim>>>(det_data,
+                                                           tracks_data, opt);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

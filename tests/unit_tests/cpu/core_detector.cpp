@@ -776,10 +776,6 @@ GTEST_TEST(detray_tools, detector_builder) {
     EXPECT_TRUE(vol1.transform() == trf);
     EXPECT_TRUE(d.transform_store()[4u] == trf);
 
-    // Check the acceleration data structure link (indirectly)
-    EXPECT_EQ(vol0.n_max_candidates(), 3u);
-    EXPECT_EQ(vol1.n_max_candidates(), 6u);
-
     EXPECT_EQ(d.surface_lookup().size(), 9u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);

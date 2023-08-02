@@ -13,7 +13,6 @@ namespace detray {
 __global__ void propagator_test_kernel(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     vecmem::data::jagged_vector_view<scalar> path_lengths_data,
     vecmem::data::jagged_vector_view<vector3> positions_data,
     vecmem::data::jagged_vector_view<free_matrix> jac_transports_data) {
@@ -23,7 +22,6 @@ __global__ void propagator_test_kernel(
     detector_device_type det(det_data);
     vecmem::device_vector<free_track_parameters<transform3>> tracks(
         tracks_data);
-    vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
     vecmem::jagged_device_vector<scalar> path_lengths(path_lengths_data);
     vecmem::jagged_device_vector<vector3> positions(positions_data);
     vecmem::jagged_device_vector<free_matrix> jac_transports(
@@ -57,8 +55,7 @@ __global__ void propagator_test_kernel(
         ::detray::tie(insp_state, aborter_state, transporter_state,
                       interactor_state, resetter_state);
     // Create the propagator state
-    propagator_device_type::state state(tracks[gid], B_field, det,
-                                        candidates.at(gid));
+    propagator_device_type::state state(tracks[gid], B_field, det);
 
     state._stepping.set_tolerance(rk_tolerance);
 
@@ -72,7 +69,6 @@ __global__ void propagator_test_kernel(
 void propagator_test(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
     vecmem::data::jagged_vector_view<vector3>& positions_data,
     vecmem::data::jagged_vector_view<free_matrix>& jac_transports_data) {
@@ -82,8 +78,8 @@ void propagator_test(
 
     // run the test kernel
     propagator_test_kernel<<<block_dim, thread_dim>>>(
-        det_data, tracks_data, candidates_data, path_lengths_data,
-        positions_data, jac_transports_data);
+        det_data, tracks_data, path_lengths_data, positions_data,
+        jac_transports_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

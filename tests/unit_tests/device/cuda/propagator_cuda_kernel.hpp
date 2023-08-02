@@ -15,7 +15,6 @@ namespace detray {
 void propagator_test(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> &tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
     vecmem::data::jagged_vector_view<scalar> &path_lengths_data,
     vecmem::data::jagged_vector_view<vector3> &positions_data,
     vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data);

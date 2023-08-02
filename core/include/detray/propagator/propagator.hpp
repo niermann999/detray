@@ -67,38 +67,34 @@ struct propagator {
         /// @param t_in the track state to be propagated
         /// @param actor_states tuple that contains references to actor states
         /// @param candidates buffer for intersections in the navigator
-        DETRAY_HOST_DEVICE state(
-            const free_track_parameters_type &t_in, const detector_type &det,
-            vector_type<intersection_type> &&candidates = {})
+        DETRAY_HOST_DEVICE state(const free_track_parameters_type &t_in,
+                                 const detector_type &det)
             : _stepping(t_in),
-              _navigation(det, std::move(candidates)),
+              _navigation(det),
               m_param_type(parameter_type::e_free) {}
 
         template <typename field_t>
-        DETRAY_HOST_DEVICE state(
-            const free_track_parameters_type &t_in,
-            const field_t &magnetic_field, const detector_type &det,
-            vector_type<intersection_type> &&candidates = {})
+        DETRAY_HOST_DEVICE state(const free_track_parameters_type &t_in,
+                                 const field_t &magnetic_field,
+                                 const detector_type &det)
             : _stepping(t_in, magnetic_field),
-              _navigation(det, std::move(candidates)),
+              _navigation(det),
               m_param_type(parameter_type::e_free) {}
 
         /// Construct the propagation state with bound parameter
-        DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type &param, const detector_type &det,
-            vector_type<intersection_type> &&candidates = {})
+        DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
+                                 const detector_type &det)
             : _stepping(param, det),
-              _navigation(det, std::move(candidates)),
+              _navigation(det),
               m_param_type(parameter_type::e_bound) {}
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
-        DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type &param,
-            const field_t &magnetic_field, const detector_type &det,
-            vector_type<intersection_type> &&candidates = {})
+        DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
+                                 const field_t &magnetic_field,
+                                 const detector_type &det)
             : _stepping(param, magnetic_field, det),
-              _navigation(det, std::move(candidates)),
+              _navigation(det),
               m_param_type(parameter_type::e_bound) {}
 
         DETRAY_HOST_DEVICE

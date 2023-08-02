@@ -50,7 +50,7 @@ GTEST_TEST(toy_geometry, straight_line_navigation) {
         object_tracer<intersection_t, dvector, status::e_on_module,
                       status::e_on_portal>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
+    using navigator_t = navigator<detector_t, inspector_t>;
     using stepper_t =
         line_stepper<transform3_t, unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
@@ -147,7 +147,7 @@ GTEST_TEST(toy_geometry, helix_navigation) {
         object_tracer<intersection_t, dvector, status::e_on_module,
                       status::e_on_portal>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
+    using navigator_t = navigator<detector_t, inspector_t>;
     using constraints_t = unconstrained_step;
     using stepper_t =
         rk_stepper<b_field_t::view_t, transform3_t, constraints_t>;
@@ -249,7 +249,7 @@ GTEST_TEST(wire_chamber, straight_line_navigation) {
         object_tracer<intersection_t, dvector, status::e_on_module,
                       status::e_on_portal>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
+    using navigator_t = navigator<detector_t, inspector_t>;
     using stepper_t =
         line_stepper<transform3_t, unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
@@ -340,7 +340,7 @@ GTEST_TEST(wire_chamber, helix_navigation) {
         object_tracer<intersection_t, dvector, status::e_on_module,
                       status::e_on_portal>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
+    using navigator_t = navigator<detector_t, inspector_t>;
     using constraints_t = unconstrained_step;
     using stepper_t =
         rk_stepper<b_field_t::view_t, transform3_t, constraints_t>;
