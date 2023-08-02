@@ -403,6 +403,10 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto next() -> candidate_itr_t & { return m_next; }
 
+        /// @returns last valid candidate (by position in the cache) - const
+        DETRAY_HOST_DEVICE
+        inline auto last() -> candidate_itr_t { return m_last; }
+
         /// Updates the iterator position of the last valid candidate
         DETRAY_HOST_DEVICE
         inline void set_next(candidate_itr_t &&new_next) {
@@ -655,7 +659,7 @@ class navigator {
                     cand_itr->path = std::numeric_limits<scalar_type>::max();
                 }
             }
-            detail::sequential_sort(candidates.begin(), candidates.end());
+            detail::sequential_sort(candidates.begin(), navigation.last());
             // Take the nearest (sorted) candidate first
             navigation.set_next(candidates.begin());
             // Ignore unreachable elements (needed to determine exhaustion)
