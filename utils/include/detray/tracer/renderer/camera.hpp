@@ -90,9 +90,21 @@ class camera {
             return {get_ray(x, y, image)};
         } else {
 
+            vector3D pitch_x = m_horizontal;
+            vector3D pitch_y = m_vertical;
+            pitch_x[0] /= image.width();
+            pitch_y[1] /= image.height();
+
             std::array<detail::ray<transform3D>, SAMPLES> rays;
             for (std::size_t i_s = 0u; i_s < SAMPLES; ++i_s) {
                 rays[i_s] = get_ray(x, y, image);
+                auto &ray = rays[i_s];
+
+                // Random modification of the ray direction
+                const scalar_t px{-0.5f + rand_gen(0.f, 1.f)};
+                const scalar_t py{-0.5f + rand_gen(0.f, 1.f)};
+
+                ray.set_dir(ray.dir() + px * pitch_x + py * pitch_y);
             }
 
             return rays;

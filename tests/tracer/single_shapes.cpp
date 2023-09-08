@@ -125,7 +125,7 @@ int main() {
     using vector3D_v = dvector3D<algebra_v<scalar>>;
 
     constexpr std::size_t simd_size{dscalar<algebra_v<scalar>>::size()};
-    constexpr std::size_t n_samples{4ul};
+    constexpr std::size_t n_samples{100ul};
 
     // Affine transform matrix to place the shapes
 

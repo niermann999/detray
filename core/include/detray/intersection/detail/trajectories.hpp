@@ -71,8 +71,11 @@ class ray {
         return _pos + s * _dir;
     }
 
-    /// @param position new position on the ray
+    /// @param pos new origin of the ray
     DETRAY_HOST_DEVICE void set_pos(point3 pos) { _pos = pos; }
+
+    /// @param dir new direction of the ray
+    DETRAY_HOST_DEVICE void set_dir(vector3 dir) { _dir = dir; }
 
     /// @returns direction of the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE vector3 dir() const { return _dir; }
