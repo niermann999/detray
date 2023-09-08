@@ -13,6 +13,7 @@
 #include "detray/tracer/definitions/colors.hpp"
 #include "detray/tracer/texture/color.hpp"
 #include "detray/tracer/texture/detail/material_color_helper.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -25,11 +26,14 @@ struct material_shader : public detray::actor {
                                        scene_handle_t &sc) const {
         using color_depth = typename decltype(sc.m_pixel)::color_depth;
 
-        if (intr_state.m_is_inside) {
-            auto c = texture::detail::material_color_helper<color_depth>(
-                intr_state.material());
+        for (const std::size_t ray_idx :
+             detray::views::iota(0ul, sc.rays().size())) {
+            if (intr_state.m_is_inside[ray_idx]) {
+                auto c = texture::detail::material_color_helper<color_depth>(
+                    *(intr_state.material()[ray_idx]));
 
-            sc.m_pixel.set_color(c);
+                sc.m_pixel += c;
+            }
         }
     }
 };

@@ -14,6 +14,7 @@
 // System include(s)
 #include <array>
 #include <iostream>
+#include <type_traits>
 
 namespace detray::texture {
 
@@ -43,6 +44,15 @@ struct pixelD {
     constexpr pixelD(const std::array<data_t, D>& coord, const color_t& c)
         : m_color{c}, m_coord{coord} {}
 
+    DETRAY_HOST_DEVICE
+    operator pixelD<D, data_t, std::uint8_t>() {
+        return pixelD<D, data_t, std::uint8_t>{
+            m_coord, texture::color<std::uint8_t>{
+                         static_cast<std::uint8_t>(m_color[0]),
+                         static_cast<std::uint8_t>(m_color[1]),
+                         static_cast<std::uint8_t>(m_color[2])}};
+    }
+
     /// Equality operator: Only considers exact match
     DETRAY_HOST_DEVICE
     constexpr data_t operator==(const pixelD& other) {
@@ -65,14 +75,29 @@ struct pixelD {
     DETRAY_HOST_DEVICE
     constexpr const color_t& color() const { return m_color; }
 
+    /// @returns the color of the pixel
+    DETRAY_HOST_DEVICE
+    constexpr color_t& color() { return m_color; }
+
     /// Set the color of the pixel to @param c
     DETRAY_HOST_DEVICE
     constexpr void set_color(const color_t& c) { m_color = c; }
 
-    /// Mixes the by averaging their positions and mixing their colors
+    /// Mixes by adding their colors
     DETRAY_HOST_DEVICE
-    template <uint, typename, typename>
-    friend constexpr pixelD operator+(const pixelD&, const pixelD&);
+    constexpr pixelD operator+=(const color_t& c) {
+        m_color = m_color + c;
+        return *this;
+    }
+
+    /// Scale the pixel color
+    DETRAY_HOST_DEVICE
+    template <typename scalar_t,
+              std::enable_if_t<std::is_arithmetic_v<scalar_t>, bool> = true>
+    constexpr pixelD operator*=(const scalar_t scalor) {
+        m_color = m_color * scalor;
+        return *this;
+    }
 
     /// Print the pixel data to stdout
     DETRAY_HOST
@@ -87,20 +112,6 @@ template <uint D, typename data_t, typename depth>
 std::ostream& operator<<(std::ostream& os, const pixelD<D, data_t, depth>& px) {
     return os << "pix: " << static_cast<uint>(px[0]) << ", "
               << static_cast<uint>(px[1]) << ", " << px.color();
-}
-
-template <uint D, typename data_t, typename depth>
-constexpr pixelD<D, data_t, depth> operator+(
-    const pixelD<D, data_t, depth>& left,
-    const pixelD<D, data_t, depth>& right) {
-    pixelD<D, data_t, depth> new_px;
-    new_px.set_color(left.color() + right.color());
-
-    for (uint i{0u}; i < pixelD<D, data_t, depth>::Dim; ++i) {
-        new_px[i] = (left[i] + right[i]) / 2u;
-    }
-
-    return new_px;
 }
 
 }  // namespace detail

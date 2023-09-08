@@ -13,6 +13,7 @@
 #include "detray/tracer/renderer/raw_image.hpp"
 
 // System include(s)
+#include <limits>
 #include <ratio>
 
 namespace detray {
@@ -42,6 +43,13 @@ class camera {
             m_origin - 0.5f * av - vector3D{0.f, 0.f, focal_length};
     }
 
+    /// @brief Shoot a single ray per pixel
+    ///
+    /// @param x x coordinate of the pixel
+    /// @param y y coordinate of the pixel
+    /// @param image the raw image
+    ///
+    /// @returns a ray, that passes the pixel
     DETRAY_HOST_DEVICE
     template <typename color_depth>
     constexpr detail::ray<transform3D> get_ray(
@@ -59,6 +67,36 @@ class camera {
         ray.set_overstep_tolerance(-std::numeric_limits<T>::max());
 
         return ray;
+    }
+
+    /// @brief Shoot multiple rays to shade a single pixel
+    ///
+    /// @param x x coordinate of the pixel
+    /// @param y y coordinate of the pixel
+    /// @param rand_x x coordinate of the pixel
+    /// @param rand_y y coordinate of the pixel
+    /// @param image the raw image
+    ///
+    /// @returns a range of rays, that pass the pixel and its neighbors in
+    /// random places
+    DETRAY_HOST_DEVICE
+    template <std::size_t SAMPLES, typename color_depth, typename generator_t>
+    constexpr std::array<detail::ray<transform3D>, SAMPLES> get_rays(
+        const scalar_t x, const scalar_t y,
+        [[maybe_unused]] generator_t &rand_gen,
+        const raw_image<color_depth> &image) const {
+
+        if constexpr (SAMPLES == 1ul) {
+            return {get_ray(x, y, image)};
+        } else {
+
+            std::array<detail::ray<transform3D>, SAMPLES> rays;
+            for (std::size_t i_s = 0u; i_s < SAMPLES; ++i_s) {
+                rays[i_s] = get_ray(x, y, image);
+            }
+
+            return rays;
+        }
     }
 
     private:

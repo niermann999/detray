@@ -154,8 +154,8 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
 
     // Use deterministic random number generator for testing
     using uniform_gen_t =
-        random_numbers<scalar, std::uniform_real_distribution<scalar>,
-                       std::seed_seq>;
+        detail::random_numbers<scalar, std::uniform_real_distribution<scalar>,
+                               std::seed_seq>;
 
     // Tolerance depends on sample size
     constexpr scalar tol{0.05f};
@@ -231,7 +231,8 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
 
     // Use deterministic random number generator for testing
     using normal_gen_t =
-        random_numbers<scalar, std::normal_distribution<scalar>, std::seed_seq>;
+        detail::random_numbers<scalar, std::normal_distribution<scalar>,
+                               std::seed_seq>;
 
     // Tolerance depends on sample size
     constexpr scalar tol{0.05f};

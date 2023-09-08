@@ -12,16 +12,18 @@
 
 // System include(s)
 #include <array>
-#include <cmath>
 #include <iostream>
+#include <limits>
 
 namespace detray::texture {
 
 /// @brief holds rgb and alpha values for color shading
 ///
 /// @tparam data_t how to store the rgb data: single color or soa
-template <typename data_t = uint8_t>
+template <typename data_t = std::uint8_t>
 struct color {
+
+    static constexpr auto max_I{std::numeric_limits<data_t>::max()};
 
     /// Default constructor
     constexpr color() = default;
@@ -30,17 +32,8 @@ struct color {
     /// and @param alpha values
     DETRAY_HOST_DEVICE
     constexpr color(const data_t r, const data_t g, const data_t b,
-                    const data_t alpha = {255u})
-        : m_data{static_cast<data_t>(r % 256u), static_cast<data_t>(g % 256u),
-                 static_cast<data_t>(b % 256u),
-                 static_cast<data_t>(alpha % 256u)} {}
-
-    /// Construct from hex @param hex and @param alpha value
-    /*DETRAY_HOST_DEVICE
-    constexpr color(const data_t hex, const data_t alpha = {255u})
-        : m_data{static_cast<data_t>(__builtin_ctz(256u)hex % 256u),
-    static_cast<data_t>(g % 256u), static_cast<data_t>(b % 256u),
-                 static_cast<data_t>(alpha % 256u)} {}*/
+                    const data_t alpha = {max_I - 1u})
+        : m_data{r, g, b, alpha} {}
 
     /// Equality operator: Only considers exact match
     DETRAY_HOST_DEVICE
@@ -65,6 +58,11 @@ struct color {
     template <typename>
     friend constexpr color operator+(const color& left, const color& right);
 
+    /// Scale the color by a normalization factor @param scalor
+    DETRAY_HOST_DEVICE
+    template <typename, typename scalar_t>
+    friend constexpr color operator*(const color& left, const scalar_t scalor);
+
     /// Print the color data to stdout
     DETRAY_HOST
     template <typename>
@@ -75,9 +73,10 @@ struct color {
 
 template <typename data_t>
 std::ostream& operator<<(std::ostream& os, const color<data_t>& c) {
-    return os << "rgba: (" << static_cast<data_t>(c[0]) << ", "
-              << static_cast<data_t>(c[1]) << ", " << static_cast<data_t>(c[2])
-              << ", " << static_cast<data_t>(c[3]) << ")";
+    return os << "rgba: (" << static_cast<std::size_t>(c[0]) << ", "
+              << static_cast<std::size_t>(c[1]) << ", "
+              << static_cast<std::size_t>(c[2]) << ", "
+              << static_cast<std::size_t>(c[3]) << ")";
 }
 
 template <typename data_t>
@@ -85,10 +84,23 @@ constexpr color<data_t> operator+(const color<data_t>& left,
                                   const color<data_t>& right) {
     color<data_t> new_color;
 
-    new_color[0] = static_cast<data_t>((left[0] + right[0]) % 256u);
-    new_color[1] = static_cast<data_t>((left[1] + right[1]) % 256u);
-    new_color[2] = static_cast<data_t>((left[2] + right[2]) % 256u);
-    new_color[3] = static_cast<data_t>((left[3] + right[3]) % 256u);
+    new_color[0] = left[0] + right[0];
+    new_color[1] = left[1] + right[1];
+    new_color[2] = left[2] + right[2];
+    new_color[3] = left[3] + right[3];
+
+    return new_color;
+}
+
+template <typename data_t, typename scalar_t>
+constexpr color<data_t> operator*(const color<data_t>& left,
+                                  const scalar_t& scalor) {
+    color<data_t> new_color;
+
+    new_color[0] = static_cast<data_t>(left[0] * scalor);
+    new_color[1] = static_cast<data_t>(left[1] * scalor);
+    new_color[2] = static_cast<data_t>(left[2] * scalor);
+    new_color[3] = static_cast<data_t>(left[3] * scalor);
 
     return new_color;
 }

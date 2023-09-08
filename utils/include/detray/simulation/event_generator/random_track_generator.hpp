@@ -12,53 +12,14 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/utils/random_numbers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)
 #include <algorithm>
 #include <cmath>
-#include <random>
 
 namespace detray {
-
-/// Wrapper for random number generatrion for the @c random_track_generator
-template <typename scalar_t = scalar,
-          typename distribution_t = std::uniform_real_distribution<scalar_t>,
-          typename generator_t = std::random_device,
-          typename engine_t = std::mt19937_64>
-struct random_numbers {
-
-    random_numbers(random_numbers&& other) : engine(std::move(other.engine)) {}
-
-    generator_t gen;
-    engine_t engine;
-
-    template <
-        typename T = generator_t,
-        std::enable_if_t<std::is_same_v<T, std::random_device>, bool> = true>
-    random_numbers() : gen{}, engine{gen()} {}
-
-    template <typename T = generator_t,
-              std::enable_if_t<std::is_same_v<T, std::seed_seq>, bool> = true>
-    random_numbers() : gen{42u}, engine{gen} {}
-
-    template <typename T = distribution_t,
-              std::enable_if_t<
-                  std::is_same_v<T, std::uniform_real_distribution<scalar_t>>,
-                  bool> = true>
-    DETRAY_HOST auto operator()(const scalar_t min, const scalar_t max) {
-        return distribution_t(min, max)(engine);
-    }
-
-    template <
-        typename T = distribution_t,
-        std::enable_if_t<std::is_same_v<T, std::normal_distribution<scalar_t>>,
-                         bool> = true>
-    DETRAY_HOST auto operator()(const scalar_t min, const scalar_t max) {
-        scalar_t mu{min + 0.5f * (max - min)};
-        return distribution_t(mu, 0.5f / 3.0f * (max - min))(engine);
-    }
-};
 
 /// @brief Generates track states with random momentum directions.
 ///
@@ -73,7 +34,7 @@ struct random_numbers {
 /// generator, which must not be invalidated during the iteration.
 /// @note the random numbers are clamped to fit the phi/theta ranges. This can
 /// effect distribution mean etc.
-template <typename track_t, typename generator_t = random_numbers<>>
+template <typename track_t, typename generator_t = detail::random_numbers<>>
 class random_track_generator
     : public detray::ranges::view_interface<random_track_generator<track_t>> {
     public:

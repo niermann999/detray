@@ -12,6 +12,7 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracer/definitions/colors.hpp"
 #include "detray/tracer/texture/color.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -24,20 +25,23 @@ struct sf_normal_shader : public detray::actor {
                                        scene_handle_t &sc) const {
         using color_depth = typename decltype(sc.m_pixel)::color_depth;
 
-        if (intr_state.m_is_inside) {
+        for (const auto &[r_idx, ray] : detray::views::enumerate(sc.rays())) {
+            if (intr_state.m_is_inside[r_idx]) {
 
-            const auto &intr = intr_state.m_intersections[0];
-            auto normal = sc.geometry().mask().local_frame().normal(
-                sc.geometry().transform(), intr.local);
+                const auto &intr = intr_state.m_intersection[r_idx];
+                auto normal = sc.geometry().mask()[r_idx].local_frame().normal(
+                    sc.geometry().transform()[r_idx], intr.local);
 
-            normal = normal + decltype(normal){1.f, 1.f, 1.f};
-            normal = 255.99f * 0.5f * normal;
+                normal = normal + decltype(normal){1.f, 1.f, 1.f};
+                normal = 255.99f * 0.5f * normal;
 
-            // Of the masks that were tested, get the closest one that was hit
-            const auto idx = intr_state.closest_solution();
-            sc.m_pixel.set_color({static_cast<color_depth>(normal[0][idx]),
-                                  static_cast<color_depth>(normal[1][idx]),
-                                  static_cast<color_depth>(normal[2][idx])});
+                // Of the masks that were tested, get the closest one that was
+                // hit
+                const auto idx = intr_state.closest_solution(r_idx);
+                sc.m_pixel += {static_cast<color_depth>(normal[0][idx]),
+                               static_cast<color_depth>(normal[1][idx]),
+                               static_cast<color_depth>(normal[2][idx])};
+            }
         }
     }
 };

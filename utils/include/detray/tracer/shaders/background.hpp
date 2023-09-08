@@ -16,6 +16,7 @@
 #include "detray/tracer/definitions/colors.hpp"
 #include "detray/tracer/texture/color.hpp"
 #include "detray/tracer/texture/pixel.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -95,9 +96,11 @@ struct background_shader : public detray::actor {
         using color_depth = typename decltype(sc.m_pixel)::color_depth;
 
         // Set only pixels that are not part of an object in the scene
-        if (not intr_state.m_is_inside) {
-            sc.m_pixel.set_color(
-                image_background_t::template get<color_depth>(sc.ray()));
+        for (const auto &[r_idx, ray] : detray::views::enumerate(sc.rays())) {
+            if (not intr_state.m_is_inside[r_idx]) {
+                sc.m_pixel +=
+                    image_background_t::template get<color_depth>(ray);
+            }
         }
     }
 };

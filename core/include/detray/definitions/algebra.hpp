@@ -69,7 +69,7 @@ struct get_algebra<
 }  // namespace detail
 
 template <template <typename> class A, typename T>
-using dsimd = typename A<float>::simd<T>;
+using dsimd = typename A<float>::template simd<T>;
 
 template <typename A = detray::scalar>
 using dscalar = typename detail::get_scalar<A>::scalar;

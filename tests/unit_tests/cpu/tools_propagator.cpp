@@ -58,9 +58,9 @@ struct helix_inspector : actor {
         const auto& navigation = prop_state._navigation;
         const auto& stepping = prop_state._stepping;
 
-        using geo_cxt_t =
-            typename propagator_state_t::detector_type::geometry_context;
-        const geo_cxt_t ctx{};
+        // using geo_cxt_t =
+        //     typename propagator_state_t::detector_type::geometry_context;
+        // const geo_cxt_t ctx{};
 
         inspector_state._nav_status.push_back(navigation.status());
 

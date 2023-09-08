@@ -25,8 +25,8 @@
 namespace detray {
 
 /// Calculates the color of a pixel. Starting point of the shader pipeline
-template <typename T, template <typename> class algebra_t, typename mask_t,
-          typename material_t = material_slab<T>>
+template <typename T, template <typename> class algebra_t, std::size_t SAMPLES,
+          typename mask_t, typename material_t = material_slab<T>>
 struct single_shape : detray::actor {
 
     using link_t = dsimd<algebra_t, std::uint_least16_t>;
@@ -68,28 +68,30 @@ struct single_shape : detray::actor {
         state(const T min = 0.f, const T max = std::numeric_limits<T>::max())
             : m_interval{min, max} {}
 
-        const material_t &material() const { return *m_material; }
+        const std::array<const material_t *, SAMPLES> &material() const {
+            return m_material;
+        }
 
         /// From potentialliy multiple intersected surfaces in the intersection,
         /// get the index of the closest one
-        std::size_t closest_solution() const {
+        std::size_t closest_solution(std::size_t ray_idx) const {
             // AoS?
-            if constexpr (std::is_same_v<decltype(m_intersection.status),
-                                         bool>) {
+            if constexpr (std::is_same_v<
+                              decltype(m_intersection[ray_idx].status), bool>) {
                 return 0;
             } else {
                 // Should be handled by the surface links
-                return m_intersection.status.firstOne();
+                return m_intersection[ray_idx].status.firstOne();
             }
         }
 
         std::array<T, 2> m_interval;
         /// Resulting intersection
-        intersection_t m_intersection{};
+        std::array<intersection_t, SAMPLES> m_intersection{};
         /// Pointer to the material of the surface
-        const material_t *m_material{nullptr};
+        std::array<const material_t *, SAMPLES> m_material{nullptr};
         /// Flag to the obseving colorizer/shaders that the surface was hit
-        bool m_is_inside = false;
+        std::array<bool, SAMPLES> m_is_inside{false};
     };
 
     /// Intersect the ray with the mask. The closest intersection is in front of
@@ -100,15 +102,22 @@ struct single_shape : detray::actor {
         // In this special case, the geometry will be this actor's global_state
         const global_state &geo = sc.geometry();
 
-        // Perform the intersection on every mask in the geometry
-        for (const auto &[idx, mask] : detray::views::enumerate(geo.mask())) {
-            if (place_in_collection(
-                    mask.template intersector<intersection_t>()(
-                        sc.ray(), surface_t{}, mask, geo.transform()[idx]),
-                    loc_st.m_intersection)) {
-                const auto mat_idx = idx + loc_st.closest_solution();
-                loc_st.m_material = std::addressof(geo.material()[mat_idx]);
-                loc_st.m_is_inside |= true;
+        // Find the intersection information for every ray
+        for (const auto &[r_idx, ray] : detray::views::enumerate(sc.rays())) {
+            // Perform the intersection on every mask in the geometry
+            for (const auto &[m_idx, mask] :
+                 detray::views::enumerate(geo.mask())) {
+                if (place_in_collection(
+                        mask.template intersector<intersection_t>()(
+                            ray, surface_t{}, mask, geo.transform()[m_idx]),
+                        loc_st.m_intersection[r_idx])) {
+
+                    const auto mat_idx = m_idx + loc_st.closest_solution(r_idx);
+                    loc_st.m_material[r_idx] =
+                        std::addressof(geo.material()[mat_idx]);
+
+                    loc_st.m_is_inside[r_idx] = true;
+                }
             }
         }
     }

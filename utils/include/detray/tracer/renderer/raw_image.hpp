@@ -66,7 +66,7 @@ class raw_image {
 
     /// Set a particular pixel in the image to @param px
     DETRAY_HOST_DEVICE
-    constexpr void set_pixel(texture::pixel<std::uint64_t, depth>& px) {
+    constexpr void set_pixel(texture::pixel<std::uint64_t, depth> px) {
         set_pixel(px[0], px[1], px.color());
     }
 
