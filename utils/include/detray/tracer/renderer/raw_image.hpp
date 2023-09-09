@@ -35,7 +35,9 @@ class raw_image {
               height * static_cast<double>(aspect_ratio::num) /
               static_cast<double>(aspect_ratio::den))},
           m_height{height},
-          m_data{m_height * m_width, c} {}
+          m_data{m_height * m_width, c} {
+        m_data.resize(m_height * m_width);
+    }
 
     /// @returns image width in pixels
     DETRAY_HOST_DEVICE

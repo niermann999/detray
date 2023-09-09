@@ -85,13 +85,23 @@ struct single_shape : detray::actor {
             }
         }
 
+        /// @returns @c true if any ray has hit a surface
+        bool has_hit() const {
+            // AoS?
+            bool is_hit = false;
+            for (std::size_t i = 0u; i < SAMPLES; ++i) {
+                is_hit &= m_missed[i];
+            }
+            return is_hit;
+        }
+
         std::array<T, 2> m_interval;
         /// Resulting intersection
         std::array<intersection_t, SAMPLES> m_intersection{};
         /// Pointer to the material of the surface
         std::array<const material_t *, SAMPLES> m_material{nullptr};
         /// Flag to the obseving colorizer/shaders that the surface was hit
-        std::array<bool, SAMPLES> m_is_inside{false};
+        std::array<bool, SAMPLES> m_missed{false};
     };
 
     /// Intersect the ray with the mask. The closest intersection is in front of
@@ -104,19 +114,30 @@ struct single_shape : detray::actor {
 
         // Find the intersection information for every ray
         for (const auto &[r_idx, ray] : detray::views::enumerate(sc.rays())) {
+
+            // This is a background ray: No further intersections needed
+            if (loc_st.m_missed[r_idx]) {
+                return;
+            }
+
+            // Reset to test intersection again
+            loc_st.m_missed[r_idx] = true;
+            loc_st.m_material[r_idx] = nullptr;
+
             // Perform the intersection on every mask in the geometry
             for (const auto &[m_idx, mask] :
                  detray::views::enumerate(geo.mask())) {
+
                 if (place_in_collection(
                         mask.template intersector<intersection_t>()(
                             ray, surface_t{}, mask, geo.transform()[m_idx]),
                         loc_st.m_intersection[r_idx])) {
 
+                    loc_st.m_missed[r_idx] = false;
+
                     const auto mat_idx = m_idx + loc_st.closest_solution(r_idx);
                     loc_st.m_material[r_idx] =
                         std::addressof(geo.material()[mat_idx]);
-
-                    loc_st.m_is_inside[r_idx] = true;
                 }
             }
         }

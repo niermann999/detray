@@ -30,8 +30,7 @@ struct scene_handle {
 
     struct config {};
 
-    template <typename geometry_t, typename color_depth, typename pixel_coord,
-              std::size_t SAMPLES>
+    template <typename geometry_t, typename color_depth, std::size_t SAMPLES>
     struct state {
 
         using transform3D = typename geometry_t::transform3D;
@@ -41,9 +40,10 @@ struct scene_handle {
         state(const geometry_t &geo, const raw_image<color_depth> &im,
               const std::array<
                   detail::ray<dtransform3D<ALGEBRA_PLUGIN<detray::scalar>>>,
-                  SAMPLES> &ray,
-              const pixel_coord x, const pixel_coord y)
-            : m_geo{&geo}, m_image{&im}, m_ray{&ray}, m_pixel{{x, y}} {}
+                  SAMPLES> &ray)
+            : m_geo{&geo}, m_image{&im}, m_ray{&ray} {
+            m_colors.fill(texture::color<detray::scalar>{1});
+        }
 
         /// Threadsafe interface
         /// @{
@@ -57,17 +57,16 @@ struct scene_handle {
         const raw_image<color_depth> *m_image;
         /// The ray handle
         const std::array<ray_t, SAMPLES> *m_ray;
-        /// The pixel for this ray (save with enough memory for color mixing)
-        texture::pixel<pixel_coord, color_depth> m_pixel{};
+        /// The color for this ray (save with enough memory for color mixing)
+        std::array<texture::color<detray::scalar>, SAMPLES> m_colors;
     };
 
 #if __clang__
-    template <typename geometry_t, typename color_depth, typename pixel_coord>
+    template <typename geometry_t, typename color_depth>
     DETRAY_HOST_DEVICE state(
         const geometry_t &geo, const raw_image<color_depth> &im,
-        const detail::ray<dtransform3D<ALGEBRA_PLUGIN<detray::scalar>>> &ray,
-        const pixel_coord x, const pixel_coord y)
-        -> state<geometry_t, color_depth, pixel_coord>;
+        const detail::ray<dtransform3D<ALGEBRA_PLUGIN<detray::scalar>>> &ray)
+        -> state<geometry_t, color_depth>;
 #endif
 };
 

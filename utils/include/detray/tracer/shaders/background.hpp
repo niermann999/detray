@@ -30,13 +30,13 @@ struct plain_background : public image_background {
     using transform3D = dtransform3D<algebra_t<T>>;
 
     /// Calculate the pixel color
-    template <typename color_depth = unsigned int>
+    template <typename color_depth = std::uint8_t>
     static constexpr texture::color<color_depth> get(
         const detail::ray<transform3D> &) {
         return m_color<color_depth>;
     }
 
-    template <typename color_depth = unsigned int>
+    template <typename color_depth = std::uint8_t>
     static constexpr auto m_color = texture::white<color_depth>;
 };
 
@@ -49,7 +49,7 @@ struct gradient_background : public image_background {
     using transform3D = dtransform3D<algebra_t<T>>;
 
     /// Calculate the pixel color
-    template <typename color_depth = unsigned int>
+    template <typename color_depth = std::uint8_t>
     static constexpr texture::color<color_depth> get(
         const detail::ray<transform3D> &ray) {
         vector3D dir = vector::normalize(ray.dir());
@@ -57,7 +57,10 @@ struct gradient_background : public image_background {
         point3D p2{0.85f, 0.85f, 1.0f};
         const auto t = 0.5f * dir[1] + 1.0f;
         point3D p4 = ((1.0f - t) * p1 + t * p2);
-        point3D p3 = 255.99f * p4;
+        point3D p3 = p4;
+        if constexpr (std::is_integral_v<color_depth>) {
+            p3 = static_cast<float>(texture::color<color_depth>::max_I) * p4;
+        }
 
         return {
             static_cast<color_depth>(p3[0]), static_cast<color_depth>(p3[1]),
@@ -72,13 +75,13 @@ struct inf_plane : public image_background {
     using transform3D = typename image_background_t::transform3D;
 
     /// Calculate the pixel color
-    template <typename color_depth = unsigned int>
+    template <typename color_depth = std::uint8_t>
     static constexpr texture::color<color_depth> get(
         const detail::ray<transform3D> &ray) {
 
         // Flip background color at y = 0
         if (not detail::any_of(math_ns::signbit(ray.dir()[1]))) {
-            return texture::green<color_depth>;
+            return texture::green<>;
         } else {
             return image_background_t::template get<color_depth>(ray);
         }
@@ -93,12 +96,13 @@ struct background_shader : public detray::actor {
     template <typename scene_handle_t, typename intersector_state_t>
     DETRAY_HOST_DEVICE void operator()(state &, intersector_state_t &intr_state,
                                        scene_handle_t &sc) const {
-        using color_depth = typename decltype(sc.m_pixel)::color_depth;
+        using color_depth =
+            typename decltype(sc.m_colors)::value_type::color_depth;
 
         // Set only pixels that are not part of an object in the scene
         for (const auto &[r_idx, ray] : detray::views::enumerate(sc.rays())) {
-            if (not intr_state.m_is_inside[r_idx]) {
-                sc.m_pixel +=
+            if (intr_state.m_missed[r_idx]) {
+                sc.m_colors[r_idx] *=
                     image_background_t::template get<color_depth>(ray);
             }
         }

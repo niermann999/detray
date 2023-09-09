@@ -24,15 +24,16 @@ struct material_shader : public detray::actor {
     template <typename scene_handle_t, typename intersector_state_t>
     DETRAY_HOST_DEVICE void operator()(state &, intersector_state_t &intr_state,
                                        scene_handle_t &sc) const {
-        using color_depth = typename decltype(sc.m_pixel)::color_depth;
+        using color_depth =
+            typename decltype(sc.m_colors)::value_type::color_depth;
 
         for (const std::size_t ray_idx :
              detray::views::iota(0ul, sc.rays().size())) {
-            if (intr_state.m_is_inside[ray_idx]) {
+            if (not intr_state.m_missed[ray_idx]) {
                 auto c = texture::detail::material_color_helper<color_depth>(
                     *(intr_state.material()[ray_idx]));
 
-                sc.m_pixel += c;
+                sc.m_colors[ray_idx] *= c;
             }
         }
     }

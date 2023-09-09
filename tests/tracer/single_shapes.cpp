@@ -81,20 +81,32 @@ inline void render_mask(raw_image<color_depth, aspect_ratio> &im,
             auto rays = cam.template get_rays<SAMPLES>(i_x, i_y, rand_gen, im);
 
             // Strap the global geometry state and the thread-local ray together
-            scene_handle::state scene{geo, im, rays, i_x, i_y};
+            scene_handle::state scene{geo, im, rays};
 
             // Finds the intersections between the ray and the geometry
             typename intersector_t::state intrs{};
             actor::state empty{};  // Dummy for actors that don't define a state
             auto pipeline_state = std::tie(empty, intrs);
 
-            // Run
-            pipeline_t{}(pipeline_state, scene);
+            // Run while at leat one ray is hitting a surface
+            std::size_t n_reflections{0};  // < prevent infinite reflections
+            do {
+                pipeline_t{}(pipeline_state, scene);
+                ++n_reflections;
+            } while (intrs.has_hit() and n_reflections < 10);
+
+            // Average the pixels for this ray boundle (antialiasing)
+            texture::pixel<std::size_t, T> pix{{i_x, i_y}};
+            for (const auto &c : scene.m_colors) {
+                pix += c;
+            }
 
             // Normalize the pixel color and write it to the image
             constexpr T scalor{1.f / SAMPLES};
-            scene.m_pixel *= scalor;
-            im.set_pixel(scene.m_pixel);
+            pix *= scalor;
+
+            im.set_pixel(
+                static_cast<texture::pixel<std::size_t, color_depth>>(pix));
         }
     }
 }
@@ -111,7 +123,7 @@ using algebra_s = detray::cmath<T>;
 
 int main() {
 
-    using color_depth = std::uint16_t;
+    using color_depth = std::uint8_t;
 
     io::ppm_writer<color_depth> ppm{};
 

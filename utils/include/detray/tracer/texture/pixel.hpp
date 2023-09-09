@@ -13,7 +13,7 @@
 
 // System include(s)
 #include <array>
-#include <iostream>
+#include <ostream>
 #include <type_traits>
 
 namespace detray::texture {
@@ -44,13 +44,13 @@ struct pixelD {
     constexpr pixelD(const std::array<data_t, D>& coord, const color_t& c)
         : m_color{c}, m_coord{coord} {}
 
-    DETRAY_HOST_DEVICE
-    operator pixelD<D, data_t, std::uint8_t>() {
-        return pixelD<D, data_t, std::uint8_t>{
-            m_coord, texture::color<std::uint8_t>{
-                         static_cast<std::uint8_t>(m_color[0]),
-                         static_cast<std::uint8_t>(m_color[1]),
-                         static_cast<std::uint8_t>(m_color[2])}};
+    template <typename other_depth_t,
+              std::enable_if_t<std::is_convertible_v<depth, other_depth_t>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr operator pixelD<D, data_t, other_depth_t>()
+        const {
+        return pixelD<D, data_t, other_depth_t>{
+            m_coord, static_cast<texture::color<other_depth_t>>(m_color)};
     }
 
     /// Equality operator: Only considers exact match
@@ -86,7 +86,7 @@ struct pixelD {
     /// Mixes by adding their colors
     DETRAY_HOST_DEVICE
     constexpr pixelD operator+=(const color_t& c) {
-        m_color = m_color + c;
+        m_color += c;
         return *this;
     }
 
@@ -95,7 +95,7 @@ struct pixelD {
     template <typename scalar_t,
               std::enable_if_t<std::is_arithmetic_v<scalar_t>, bool> = true>
     constexpr pixelD operator*=(const scalar_t scalor) {
-        m_color = m_color * scalor;
+        m_color *= scalor;
         return *this;
     }
 

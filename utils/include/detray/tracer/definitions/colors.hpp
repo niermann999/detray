@@ -16,9 +16,15 @@ namespace detray::texture {
 /// @{
 
 // Macro for declaring rgb colors
-#define DETRAY_DECLARE_COLOR(COLOR_NAME, R, G, B) \
-    template <typename color_depth = uint8_t>     \
-    inline auto COLOR_NAME = texture::color<color_depth>{R, G, B};
+#define DETRAY_DECLARE_COLOR(COLOR_NAME, R, G, B)                            \
+    template <typename color_depth = uint8_t>                                \
+    inline constexpr auto COLOR_NAME = texture::color<color_depth>{R, G, B}; \
+    template <>                                                              \
+    inline constexpr auto COLOR_NAME<float> =                                \
+        texture::color<float>{R / 256.f, G / 256.f, B / 256.f, 1.f};         \
+    template <>                                                              \
+    inline constexpr auto COLOR_NAME<double> =                               \
+        texture::color<double>{R / 256., G / 256., B / 256., 1.};
 
 // https://www.w3schools.com/colors/color_tryit.asp?hex=F0F8FF
 // basic
