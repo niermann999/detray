@@ -85,12 +85,24 @@ struct single_shape : detray::actor {
             }
         }
 
+        /// From potentialliy multiple intersected surfaces in the intersection,
+        /// get the index of the closest one
+        T path_to_closest(std::size_t ray_idx) const {
+            // AoS?
+            if constexpr (std::is_same_v<
+                              decltype(m_intersection[ray_idx].status), bool>) {
+                return m_intersection[ray_idx].path;
+            } else {
+                return m_intersection[ray_idx].path.min();
+            }
+        }
+
         /// @returns @c true if any ray has hit a surface
         bool has_hit() const {
             // AoS?
             bool is_hit = false;
             for (std::size_t i = 0u; i < SAMPLES; ++i) {
-                is_hit &= m_missed[i];
+                is_hit |= !m_missed[i];
             }
             return is_hit;
         }
@@ -102,6 +114,8 @@ struct single_shape : detray::actor {
         std::array<const material_t *, SAMPLES> m_material{nullptr};
         /// Flag to the obseving colorizer/shaders that the surface was hit
         std::array<bool, SAMPLES> m_missed{false};
+        /// Flag to the obseving colorizer/shaders that the surface was hit
+        std::array<bool, SAMPLES> m_finished{false};
     };
 
     /// Intersect the ray with the mask. The closest intersection is in front of
@@ -116,8 +130,8 @@ struct single_shape : detray::actor {
         for (const auto &[r_idx, ray] : detray::views::enumerate(sc.rays())) {
 
             // This is a background ray: No further intersections needed
-            if (loc_st.m_missed[r_idx]) {
-                return;
+            if (loc_st.m_missed[r_idx] or loc_st.m_finished[r_idx]) {
+                continue;
             }
 
             // Reset to test intersection again
@@ -152,7 +166,7 @@ struct single_shape : detray::actor {
         intersection_t &&sfi, intersection_t &intersection) const {
         if (detail::any_of(
                 (math_ns::abs(sfi.path) < math_ns::abs(intersection.path)) &&
-                sfi.status)) {
+                (math_ns::abs(sfi.path) > 0.0001f) && sfi.status)) {
             intersection = std::move(sfi);
             return true;
         } else {
@@ -171,6 +185,7 @@ struct single_shape : detray::actor {
         for (auto &sfi : solutions) {
             if (detail::any_of((math_ns::abs(sfi.path) <
                                 math_ns::abs(intersection.path)) &&
+                               (math_ns::abs(sfi.path) > 0.0001f) &&
                                sfi.status)) {
                 intersection = std::move(sfi);
                 is_valid = true;

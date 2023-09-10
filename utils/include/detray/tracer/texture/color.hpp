@@ -139,7 +139,7 @@ struct color {
     /// Scale the color by a normalization factor @param scalor
     DETRAY_HOST_DEVICE
     template <typename, typename scalar_t>
-    friend constexpr color operator*(const color& left, const scalar_t scalor);
+    friend constexpr color operator*(const scalar_t scalor, const color& right);
 
     /// Print the color data to stdout
     DETRAY_HOST
@@ -177,14 +177,14 @@ constexpr color<data_t> operator+(const color<data_t>& left,
 }
 
 template <typename data_t, typename scalar_t>
-constexpr color<data_t> operator*(const color<data_t>& left,
-                                  const scalar_t& scalor) {
+constexpr color<data_t> operator*(const scalar_t& scalor,
+                                  const color<data_t>& right) {
     color<data_t> new_color;
 
-    new_color[0] = static_cast<data_t>(left[0] * scalor);
-    new_color[1] = static_cast<data_t>(left[1] * scalor);
-    new_color[2] = static_cast<data_t>(left[2] * scalor);
-    new_color[3] = static_cast<data_t>(left[3] * scalor);
+    new_color[0] = static_cast<data_t>(right[0] * scalor);
+    new_color[1] = static_cast<data_t>(right[1] * scalor);
+    new_color[2] = static_cast<data_t>(right[2] * scalor);
+    new_color[3] = static_cast<data_t>(right[3] * scalor);
 
     return new_color;
 }

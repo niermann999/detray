@@ -116,6 +116,7 @@ struct line_intersector {
 
         // Mask the values where the overstepping tolerance was not met
         is.status &= (is.path >= ray.overstep_tolerance());
+        is.path(!is.status) = std::numeric_limits<value_type>::max();
 
         return is;
     }

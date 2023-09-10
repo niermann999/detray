@@ -38,7 +38,7 @@ struct scene_handle {
 
         DETRAY_HOST_DEVICE
         state(const geometry_t &geo, const raw_image<color_depth> &im,
-              const std::array<
+              std::array<
                   detail::ray<dtransform3D<ALGEBRA_PLUGIN<detray::scalar>>>,
                   SAMPLES> &ray)
             : m_geo{&geo}, m_image{&im}, m_ray{&ray} {
@@ -48,6 +48,7 @@ struct scene_handle {
         /// Threadsafe interface
         /// @{
         const std::array<ray_t, SAMPLES> &rays() const { return *m_ray; }
+        std::array<ray_t, SAMPLES> &rays() { return *m_ray; }
         const geometry_t &geometry() const { return *m_geo; }
         /// @}
 
@@ -56,7 +57,7 @@ struct scene_handle {
         /// The image handle
         const raw_image<color_depth> *m_image;
         /// The ray handle
-        const std::array<ray_t, SAMPLES> *m_ray;
+        std::array<ray_t, SAMPLES> *m_ray;
         /// The color for this ray (save with enough memory for color mixing)
         std::array<texture::color<detray::scalar>, SAMPLES> m_colors;
     };

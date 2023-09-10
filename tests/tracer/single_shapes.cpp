@@ -50,18 +50,20 @@ inline void render_mask(raw_image<color_depth, aspect_ratio> &im,
                         std::vector<mask_t> &&mask,
                         const std::vector<dtransform3D<algebra_t<T>>> &trf,
                         const std::vector<material_t> &mat) {
+    using generator_t = detail::random_numbers<>;
 
     // Rendering steps
     using intersector_t =
         single_shape<T, algebra_t, SAMPLES, mask_t, material_t>;
-    using backgr_shader_t = background_shader<inf_plane<im_background_t>>;
-    using mat_shader_t = material_shader<T, ALGEBRA_PLUGIN>;
+    // using backgr_shader_t = background_shader<inf_plane<im_background_t>>;
+    using backgr_shader_t = background_shader<im_background_t>;
+    using mat_shader_t = material_shader<T, ALGEBRA_PLUGIN, generator_t>;
     // The rendering pipeline: The intersector finds the shape intersections
     using pipeline_t =
         rendering_pipeline<intersector_t, backgr_shader_t, mat_shader_t>;
 
     // Random numbers for ray generation
-    auto rand_gen = detail::random_numbers<>{};
+    auto rand_gen = generator_t{};
     const T viewport_height = 2.0f;
     const dpoint3D<ALGEBRA_PLUGIN<T>> origin{0.0f, 0.0f, 0.0f};
 
@@ -85,28 +87,28 @@ inline void render_mask(raw_image<color_depth, aspect_ratio> &im,
 
             // Finds the intersections between the ray and the geometry
             typename intersector_t::state intrs{};
+            typename mat_shader_t::state mat{rand_gen};
+
             actor::state empty{};  // Dummy for actors that don't define a state
-            auto pipeline_state = std::tie(empty, intrs);
+            auto pipeline_state = std::tie(empty, intrs, mat);
 
             // Run while at leat one ray is hitting a surface
             std::size_t n_reflections{0};  // < prevent infinite reflections
             do {
                 pipeline_t{}(pipeline_state, scene);
                 ++n_reflections;
-            } while (intrs.has_hit() and n_reflections < 10);
+            } while (intrs.has_hit() and n_reflections < 50);
 
             // Average the pixels for this ray boundle (antialiasing)
             texture::pixel<std::size_t, T> pix{{i_x, i_y}};
             for (const auto &c : scene.m_colors) {
                 pix += c;
             }
-
-            // Normalize the pixel color and write it to the image
+            // Normalize the pixel color
             constexpr T scalor{1.f / SAMPLES};
             pix *= scalor;
 
-            im.set_pixel(
-                static_cast<texture::pixel<std::size_t, color_depth>>(pix));
+            im.set_pixel(pix);
         }
     }
 }
@@ -149,7 +151,7 @@ int main() {
     t_v[0] = 0.1f * (image.width() * t_v[0] - 0.5f * image.width());
     t_v[1] = t_v[1].Random();
     t_v[1] = 0.1f * (image.height() * t_v[1] - 0.5f * image.height());
-    t_v[2] = -30.1f;
+    t_v[2] = -120.1f * math_ns::abs(t_v[1].Random());
 
     std::vector<dtransform3D<algebra_v<scalar>>> trfs_v;
     trfs_v.emplace_back(t_v, z_v, x_v);
@@ -183,12 +185,11 @@ int main() {
                                               trfs_s, mat);
     auto end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nRectangle AoS: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    auto time_aos{
+        std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+            .count() /
+        1000'000.};
+    std::cout << "\nRectangle AoS: " << time_aos << " ms" << std::endl;
 
     ppm.write(image, "rectangle_AoS");
 
@@ -205,14 +206,15 @@ int main() {
                                               mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Rectangle SoA: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    auto time_soa{
+        std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+            .count() /
+        1000'000.};
+    std::cout << "Rectangle SoA: " << time_soa << " ms" << std::endl;
 
     ppm.write(image, "rectangle_SoA");
+
+    std::cout << "Speedup: " << time_aos / time_soa << std::endl;
 
     // render a trapezoid mask
 
@@ -226,12 +228,10 @@ int main() {
 
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nTrapezoid AoS: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_aos = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "\nTrapezoid AoS: " << time_aos << " ms" << std::endl;
 
     ppm.write(image, "trapezoid_AoS");
 
@@ -251,14 +251,14 @@ int main() {
                                               mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Trapezoid SoA: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_soa = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "Trapezoid SoA: " << time_soa << " ms" << std::endl;
 
     ppm.write(image, "trapezoid_SoA");
+
+    std::cout << "Speedup: " << time_aos / time_soa << std::endl;
 
     // render a ring mask
 
@@ -271,12 +271,10 @@ int main() {
                                               trfs_s, mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nRing AoS: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_aos = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "\nRing AoS: " << time_aos << " ms" << std::endl;
 
     ppm.write(image, "ring_AoS");
 
@@ -292,14 +290,14 @@ int main() {
                                               mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Ring SoA: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_soa = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "Ring SoA: " << time_soa << " ms" << std::endl;
 
     ppm.write(image, "ring_SoA");
+
+    std::cout << "Speedup: " << time_aos / time_soa << std::endl;
 
     // render an annulus mask
 
@@ -313,12 +311,10 @@ int main() {
                                               trfs_s, mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nAnnulus AoS: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_aos = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "\nAnnulus AoS: " << time_aos << " ms" << std::endl;
 
     ppm.write(image, "annulus_AoS");
 
@@ -335,14 +331,14 @@ int main() {
                                               mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Annulus SoA: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_soa = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "Annulus SoA: " << time_soa << " ms" << std::endl;
 
     ppm.write(image, "annulus_SoA");
+
+    std::cout << "Speedup: " << time_aos / time_soa << std::endl;
 
     // render a spherical mask
 
@@ -356,12 +352,10 @@ int main() {
                                               trfs_s, mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nSphere AoS: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_aos = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "\nSphere AoS: " << time_aos << " ms" << std::endl;
 
     ppm.write(image, "sphere_AoS");
 
@@ -376,14 +370,14 @@ int main() {
                                               mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Sphere SoA: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_soa = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "Sphere SoA: " << time_soa << " ms" << std::endl;
 
     ppm.write(image, "sphere_SoA");
+
+    std::cout << "Speedup: " << time_aos / time_soa << std::endl;
 
     // render a line mask
 
@@ -397,12 +391,10 @@ int main() {
                                               mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nLine AoS: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_aos = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "\nLine AoS: " << time_aos << " ms" << std::endl;
 
     ppm.write(image, "line_AoS");
 
@@ -418,14 +410,14 @@ int main() {
                                               mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Line SoA: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_soa = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "Line SoA: " << time_soa << " ms" << std::endl;
 
     ppm.write(image, "line_SoA");
+
+    std::cout << "Speedup: " << time_aos / time_soa << std::endl;
 
     // render a cylinder mask
 
@@ -439,12 +431,10 @@ int main() {
                                               trfs_s, mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nCylinder AoS: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_aos = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "\nCylinder AoS: " << time_aos << " ms" << std::endl;
 
     ppm.write(image, "cylinder_AoS");
 
@@ -460,14 +450,14 @@ int main() {
                                               mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Cylinder SoA: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_soa = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "Cylinder SoA: " << time_soa << " ms" << std::endl;
 
     ppm.write(image, "cylinder_SoA");
+
+    std::cout << "Speedup: " << time_aos / time_soa << std::endl;
 
     // render a portal cylinder mask
 
@@ -484,12 +474,10 @@ int main() {
                                               trfs_s, mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nPortal Cylinder AoS: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms" << std::endl;
+    time_aos = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "\nPortal Cylinder AoS: " << time_aos << " ms" << std::endl;
 
     ppm.write(image, "portal_cylinder_AoS");
 
@@ -505,15 +493,14 @@ int main() {
                                               trfs_v, mat);
     end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Portal Cylinder SoA: "
-              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
-                                                                      start)
-                         .count() /
-                     1000'000.
-              << " ms\n"
-              << std::endl;
+    time_soa = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+                   .count() /
+               1000'000.;
+    std::cout << "Portal Cylinder SoA: " << time_soa << " ms" << std::endl;
 
     ppm.write(image, "portal_cylinder_SoA");
+
+    std::cout << "Speedup: " << time_aos / time_soa << std::endl << std::endl;
 
     return EXIT_SUCCESS;
 }

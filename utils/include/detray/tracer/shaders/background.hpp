@@ -31,7 +31,7 @@ struct plain_background : public image_background {
 
     /// Calculate the pixel color
     template <typename color_depth = std::uint8_t>
-    static constexpr texture::color<color_depth> get(
+    inline static constexpr texture::color<color_depth> get(
         const detail::ray<transform3D> &) {
         return m_color<color_depth>;
     }
@@ -50,7 +50,7 @@ struct gradient_background : public image_background {
 
     /// Calculate the pixel color
     template <typename color_depth = std::uint8_t>
-    static constexpr texture::color<color_depth> get(
+    inline static constexpr texture::color<color_depth> get(
         const detail::ray<transform3D> &ray) {
         vector3D dir = vector::normalize(ray.dir());
         point3D p1{1.0f, 1.0f, 1.0f};
@@ -76,7 +76,7 @@ struct inf_plane : public image_background {
 
     /// Calculate the pixel color
     template <typename color_depth = std::uint8_t>
-    static constexpr texture::color<color_depth> get(
+    inline static constexpr texture::color<color_depth> get(
         const detail::ray<transform3D> &ray) {
 
         // Flip background color at y = 0
@@ -94,16 +94,19 @@ struct background_shader : public detray::actor {
 
     /// Set the pixel color
     template <typename scene_handle_t, typename intersector_state_t>
-    DETRAY_HOST_DEVICE void operator()(state &, intersector_state_t &intr_state,
-                                       scene_handle_t &sc) const {
+    DETRAY_HOST_DEVICE inline void operator()(const state &,
+                                              intersector_state_t &intr_state,
+                                              scene_handle_t &sc) const {
         using color_depth =
             typename decltype(sc.m_colors)::value_type::color_depth;
 
         // Set only pixels that are not part of an object in the scene
         for (const auto &[r_idx, ray] : detray::views::enumerate(sc.rays())) {
-            if (intr_state.m_missed[r_idx]) {
+            if (intr_state.m_missed[r_idx] and !intr_state.m_finished[r_idx]) {
+                // std::cout << "should I be here?" << std::endl;
                 sc.m_colors[r_idx] *=
                     image_background_t::template get<color_depth>(ray);
+                intr_state.m_finished[r_idx] = true;
             }
         }
     }
