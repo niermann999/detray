@@ -102,10 +102,11 @@ struct background_shader : public detray::actor {
 
         // Set only pixels that are not part of an object in the scene
         for (const auto &[r_idx, ray] : detray::views::enumerate(sc.rays())) {
-            if (intr_state.m_missed[r_idx] and !intr_state.m_finished[r_idx]) {
-                // std::cout << "should I be here?" << std::endl;
+            if (!intr_state.m_is_hit[r_idx] and !intr_state.m_finished[r_idx]) {
+
                 sc.m_colors[r_idx] *=
                     image_background_t::template get<color_depth>(ray);
+
                 intr_state.m_finished[r_idx] = true;
             }
         }

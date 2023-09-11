@@ -87,17 +87,28 @@ inline void render_mask(raw_image<color_depth, aspect_ratio> &im,
 
             // Finds the intersections between the ray and the geometry
             typename intersector_t::state intrs{};
-            typename mat_shader_t::state mat{rand_gen};
+            typename mat_shader_t::state mat_state{rand_gen};
 
             actor::state empty{};  // Dummy for actors that don't define a state
-            auto pipeline_state = std::tie(empty, intrs, mat);
+            auto pipeline_state = std::tie(empty, intrs, mat_state);
 
             // Run while at leat one ray is hitting a surface
             std::size_t n_reflections{0};  // < prevent infinite reflections
             do {
                 pipeline_t{}(pipeline_state, scene);
                 ++n_reflections;
-            } while (intrs.has_hit() and n_reflections < 50);
+
+                /*if (intrs.has_hit()) {
+                    std::cout << "REFLECTION: " << n_reflections << std::endl;
+                    for (const auto&[i, r] : detray::views::enumerate(rays)) {
+                        std::cout << intrs.m_intersection[i] << std::endl;
+                        std::cout << intrs.path_to_closest(i) << std::endl;
+                        //std::cout << intrs.m_intersection[i].path <<
+                std::endl; std::cout << r << std::endl;
+                    }
+                }*/
+
+            } while (intrs.has_hit() and n_reflections < 100);
 
             // Average the pixels for this ray boundle (antialiasing)
             texture::pixel<std::size_t, T> pix{{i_x, i_y}};
@@ -197,9 +208,7 @@ int main() {
     std::vector<mask<rectangle2D<soa::plane_intersector>, std::uint_least16_t,
                      algebra_v<scalar>>>
         rect2_v;
-    rect2_v.emplace_back(
-        0u, 0.01f * image.width() * dsimd<algebra_v, scalar>{}.Random(),
-        0.01f * image.height() * dsimd<algebra_v, scalar>{}.Random());
+    rect2_v.emplace_back(0u, 0.01f * image.width(), 0.01f * image.height());
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(rect2_v), trfs_v,
@@ -239,12 +248,7 @@ int main() {
     std::vector<mask<trapezoid2D<soa::plane_intersector>, std::uint_least16_t,
                      algebra_v<scalar>>>
         trap2_v;
-    trap2_v.emplace_back(
-        0u, 0.01f * image.width() * dsimd<algebra_v, scalar>{}.Random(),
-        0.03f * image.height() * dsimd<algebra_v, scalar>{}.Random(),
-        0.02f * image.height() * dsimd<algebra_v, scalar>{}.Random(),
-        1.f / 40.f * 1.f / 1000.f * image.height() *
-            dsimd<algebra_v, scalar>{}.Random());
+    trap2_v.emplace_back(0u, 10.f, 30.f, 20.f, 1.f / 40.f);
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(trap2_v), trfs_v,
@@ -282,8 +286,7 @@ int main() {
     std::vector<mask<ring2D<soa::plane_intersector>, std::uint_least16_t,
                      algebra_v<scalar>>>
         ring2_v;
-    ring2_v.emplace_back(0u, 23.f * dsimd<algebra_v, scalar>{}.Random(),
-                         30.f * dsimd<algebra_v, scalar>{}.Random());
+    ring2_v.emplace_back(0u, 12.f, 20.f);
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(ring2_v), trfs_v,
@@ -319,12 +322,10 @@ int main() {
     ppm.write(image, "annulus_AoS");
 
     // SoA
-    const auto rand = 2.f * dsimd<algebra_v, scalar>{}.Random();
     std::vector<mask<annulus2D<soa::plane_intersector>, std::uint_least16_t,
                      algebra_v<scalar>>>
         ann2_v;
-    ann2_v.emplace_back(0u, 5.f * rand, 13.0f * rand, 0.74195f * rand,
-                        1.33970f * rand, -2.f * rand, 2.f * rand, 0.f * rand);
+    ann2_v.emplace_back(0u, 5.f, 13.0f, 0.74195f, 1.33970f, -2.f, 2.f, 0.f);
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(ann2_v), trfs_v,
@@ -363,7 +364,7 @@ int main() {
     std::vector<mask<sphere2D<soa::sphere_intersector>, std::uint_least16_t,
                      algebra_v<scalar>>>
         sph2_v;
-    sph2_v.emplace_back(0u, 10.f * dsimd<algebra_v, scalar>{}.Random());
+    sph2_v.emplace_back(0u, 10.f);
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(sph2_v), trfs_v,
@@ -383,7 +384,7 @@ int main() {
 
     // AoS
     const mask<line<true>, std::uint_least16_t, algebra_s<scalar>> ln2_s{
-        0u, 10.f, std::numeric_limits<scalar>::infinity()};
+        0u, 10.f, std::numeric_limits<scalar>::max()};
     std::vector<mask<line<true>>> ln2_vec(simd_size, ln2_s);
 
     start = std::chrono::high_resolution_clock::now();
@@ -402,8 +403,7 @@ int main() {
     std::vector<mask<line<true, soa::line_intersector>, std::uint_least16_t,
                      algebra_v<scalar>>>
         ln2_v;
-    ln2_v.emplace_back(0u, 10.f * rand,
-                       std::numeric_limits<scalar>::infinity() * rand);
+    ln2_v.emplace_back(0u, 10.f, std::numeric_limits<scalar>::max());
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(ln2_v), trfs_v,
@@ -442,7 +442,7 @@ int main() {
     std::vector<mask<cylinder2D<false, soa::cylinder_intersector>,
                      std::uint_least16_t, algebra_v<scalar>>>
         cyl2_v;
-    cyl2_v.emplace_back(0u, 0.5f * image.height() * rand, 0.5f * image.width(),
+    cyl2_v.emplace_back(0u, 0.5f * image.height(), 0.5f * image.width(),
                         0.7f * image.width());
 
     start = std::chrono::high_resolution_clock::now();
@@ -464,7 +464,7 @@ int main() {
     // AoS
     const mask<cylinder2D<false, cylinder_portal_intersector>,
                std::uint_least16_t, algebra_s<scalar>>
-        pt_cyl2_s{0u, 0.1f * image.height(), 0.5f * image.width(),
+        pt_cyl2_s{0u, 0.5f * image.height(), 0.5f * image.width(),
                   0.7f * image.width()};
     std::vector<mask<cylinder2D<false, cylinder_portal_intersector>>>
         pt_cyl2_vec(simd_size, pt_cyl2_s);
@@ -485,8 +485,8 @@ int main() {
     std::vector<mask<cylinder2D<false, soa::cylinder_portal_intersector>,
                      std::uint_least16_t, algebra_v<scalar>>>
         pt_cyl2_v;
-    pt_cyl2_v.emplace_back(0u, 0.5f * image.height() * rand,
-                           0.5f * image.width(), 0.7f * image.width());
+    pt_cyl2_v.emplace_back(0u, 0.5f * image.height(), 0.5f * image.width(),
+                           0.7f * image.width());
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(pt_cyl2_v),

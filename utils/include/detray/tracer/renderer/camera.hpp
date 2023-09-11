@@ -64,7 +64,7 @@ class camera {
             m_origin, 0.f,
             m_lower_left_corner + u * m_horizontal + v * m_vertical - m_origin,
             0.f};
-        ray.set_overstep_tolerance(-std::numeric_limits<T>::max());
+        ray.set_overstep_tolerance(0.f);
 
         return ray;
     }

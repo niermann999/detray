@@ -51,6 +51,9 @@ DETRAY_HOST_DEVICE void random_scattering(
     const scalar_t sign =
         math_ns::copysign(1.f, -vector::dot(rand_dir, ray.dir()));
 
+    // std::cout << "In mat shader: " << path << std::endl;
+    // std::cout << ray << std::endl;
+
     ray.set_pos(ray.pos() + path * ray.dir());
     ray.set_dir(sign * rand_dir);
 };

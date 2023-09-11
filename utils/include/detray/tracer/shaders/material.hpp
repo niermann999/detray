@@ -48,7 +48,7 @@ struct material_shader : public detray::actor {
         std::size_t r_idx{0u};
         for (auto &ray : sc.rays()) {
 
-            if (!intr_state.m_finished[r_idx] and !intr_state.m_missed[r_idx]) {
+            if (!intr_state.m_finished[r_idx] and intr_state.m_is_hit[r_idx]) {
 
                 auto c = texture::detail::material_color_helper<color_depth>(
                     *(intr_state.material()[r_idx]));
