@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
@@ -15,10 +16,8 @@
 
 namespace detray {
 
-template <typename transform3_t>
+template <typename T, template <typename> class algebra_t>
 struct parameter_resetter : actor {
-
-    using scalar_type = typename transform3_t::scalar_type;
 
     struct state {};
 
@@ -28,6 +27,8 @@ struct parameter_resetter : actor {
         /// @name Type definitions for the struct
         /// @{
 
+        using scalar_type = dscalar<algebra_t<T>>;
+        using transform3_t = dtransform3D<algebra_t<T>>;
         // Matrix actor
         using matrix_operator = typename transform3_t::matrix_actor;
 

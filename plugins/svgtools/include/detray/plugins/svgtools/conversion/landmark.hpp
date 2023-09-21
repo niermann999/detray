@@ -17,12 +17,10 @@ namespace detray::svgtools::conversion {
 
 /// @returns The proto landmark of a detray intersection.
 template <typename point3_t, typename detector_t>
-inline auto landmark(
-    const typename detector_t::geometry_context& context,
-    const detector_t& detector,
-    const detray::intersection2D<typename detector_t::surface_type,
-                                 typename detector_t::transform3>&
-        d_intersection) {
+inline auto landmark(const typename detector_t::geometry_context& context,
+                     const detector_t& detector,
+                     typename detector_t::scalar_type,
+                     ALGEBRA_PLUGIN > &d_intersection) {
     using p_landmark_t = svgtools::meta::proto::landmark<point3_t>;
 
     const typename detector_t::vector3 dir{};

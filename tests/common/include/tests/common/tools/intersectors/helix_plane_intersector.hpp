@@ -30,7 +30,7 @@ namespace detail {
 template <typename intersection_t>
 struct helix_plane_intersector {
 
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = typename intersection_t::transform3D;
     using scalar_type = typename transform3_type::scalar_type;
     using matrix_operator = typename transform3_type::matrix_actor;
     using point3 = typename transform3_type::point3;

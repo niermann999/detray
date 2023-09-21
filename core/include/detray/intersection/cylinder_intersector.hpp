@@ -25,13 +25,14 @@ namespace detray {
 template <typename intersection_t>
 struct cylinder_intersector {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using algebra = typename intersection_t::algebra;
+    using transform3_type = typename intersection_t::transform3D;
+    using scalar_type = typename intersection_t::scalar_t;
+    using point3 = typename intersection_t::point3D;
+    using point2 = typename intersection_t::point2D;
+    using vector3 = typename intersection_t::vector3D;
     /// @}
 
     using intersection_type = intersection_t;
@@ -49,7 +50,10 @@ struct cylinder_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the intersections.
-    template <typename mask_t, typename surface_t>
+    template <typename mask_t, typename surface_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              cylindrical2D<algebra>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
@@ -95,7 +99,7 @@ struct cylinder_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     template <typename mask_t,
               std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              cylindrical2<transform3_type>>,
+                                              cylindrical2<algebra>>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,

@@ -36,7 +36,7 @@ template <typename intersection_t>
 struct helix_cylinder_intersector
     : public cylinder_intersector<intersection_t> {
 
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = typename intersection_t::transform3D;
     using scalar_type = typename transform3_type::scalar_type;
     using matrix_operator = typename transform3_type::matrix_actor;
     using point2 = typename transform3_type::point2;
@@ -181,7 +181,7 @@ struct helix_intersector<
     intersection_t, mask_t,
     std::enable_if_t<
         std::is_same_v<typename mask_t::local_frame_type,
-                       cylindrical2<typename intersection_t::transform3_type>>,
+                       cylindrical2D<ALGEBRA_PLUGIN<detray::scalar>>>,
         void>> : public detail::helix_cylinder_intersector<intersection_t> {
     using intersector_impl = detail::helix_cylinder_intersector<intersection_t>;
 

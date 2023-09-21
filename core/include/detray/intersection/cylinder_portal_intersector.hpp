@@ -30,13 +30,14 @@ template <typename intersection_t>
 struct cylinder_portal_intersector
     : public cylinder_intersector<intersection_t> {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using algebra = typename intersection_t::algebra;
+    using transform3_type = typename intersection_t::transform3D;
+    using scalar_type = typename intersection_t::scalar_t;
+    using point3 = typename intersection_t::point3D;
+    using point2 = typename intersection_t::point2D;
+    using vector3 = typename intersection_t::vector3D;
     /// @}
 
     using intersection_type = intersection_t;

@@ -45,20 +45,21 @@ namespace detray {
 /// @tparam links_t the type of link into the volume container
 ///                 (e.g. single index vs range)
 template <typename shape_t, typename links_t = std::uint_least16_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>,
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>,
           template <typename, std::size_t> class array_t = darray>
 class mask {
     public:
     using links_type = links_t;
-    using scalar_type = typename algebra_t::scalar_type;
+    using scalar_type = dscalar<algebra_t>;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
     using mask_values = array_t<scalar_type, boundaries::e_size>;
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
     // Linear algebra types
-    using point3_t = typename algebra_t::point3;
-    using point2_t = typename algebra_t::point2;
+    using transform3D = dtransform3D<algebra_t>;
+    using point3_t = dpoint3D<algebra_t>;
+    using point2_t = dpoint2D<algebra_t>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -201,7 +202,7 @@ class mask {
                               std::numeric_limits<scalar_type>::epsilon()) const
         -> mask<cuboid3D<>, unsigned int> {
         const auto bounds =
-            _shape.template local_min_bounds<algebra_t>(_values, env);
+            _shape.template local_min_bounds<transform3D>(_values, env);
         static_assert(bounds.size() == cuboid3D<>::e_size,
                       "Shape returns incompatible bounds for bound box");
         return {bounds, std::numeric_limits<unsigned int>::max()};
@@ -209,8 +210,7 @@ class mask {
 
     /// @brief Calculates the center of the min bounds bounding box.
     /// @returns The center point in global cartesian coordinates.
-    template <typename transform3_t>
-    auto global_min_bounds_center(const transform3_t& trf) const {
+    auto global_min_bounds_center(const transform3D& trf) const {
         const auto m = local_min_bounds();
         const auto center{
             0.5f * (point3_t{m[cuboid3D<>::e_max_x], m[cuboid3D<>::e_max_y],

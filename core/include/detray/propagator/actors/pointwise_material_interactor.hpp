@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
@@ -18,19 +19,24 @@
 
 namespace detray {
 
-template <typename transform3_t>
+template <typename T, template <typename> class algebra_t>
 struct pointwise_material_interactor : actor {
-    using transform3_type = transform3_t;
-    using matrix_operator = typename transform3_t::matrix_actor;
-    using scalar_type = typename matrix_operator::scalar_type;
+
+    /// @name Linear algebra definitions
+    /// @{
+    using scalar_type = dscalar<algebra_t<T>>;
+    using vector3 = dvector3D<algebra_t<T>>;
+    using transform3_type = dtransform3D<algebra_t<T>>;
+    using matrix_operator = typename transform3_type::matrix_actor;
     using size_type = typename matrix_operator::size_ty;
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
-    using interaction_type = interaction<scalar_type>;
-    using vector3 = typename transform3_t::vector3;
     using bound_vector = matrix_type<e_bound_size, 1u>;
     using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
+    /// @}
+
+    using interaction_type = interaction<scalar_type>;
 
     struct state {
         using vector3 = __plugin::vector3<scalar>;

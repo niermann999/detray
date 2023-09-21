@@ -43,29 +43,32 @@ enum class status : std::uint_least8_t {
 /// @brief This class holds the intersection information.
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
-template <typename surface_descr_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+template <typename surface_descr_t, typename T,
+          template <typename> class algebra_t>
 struct intersection2D {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using point3 = typename algebra_t::point3;
-    using point2 = typename algebra_t::point2;
-    using nav_link_type = typename surface_descr_t::navigation_link;
+    using algebra = algebra_t<T>;
+    using value_t = T;
+    using scalar_t = dscalar<algebra>;
+    using point2D = dpoint2D<algebra>;
+    using point3D = dpoint3D<algebra>;
+    using vector3D = dvector3D<algebra>;
+    using transform3D = dtransform3D<algebra>;
+    using nav_link_t = typename surface_descr_t::navigation_link;
 
     /// Descriptor of the surface this intersection belongs to
     surface_descr_t sf_desc;
 
     /// Local position of the intersection on the surface
-    point3 local{detail::invalid_value<scalar_type>(),
-                 detail::invalid_value<scalar_type>(),
-                 detail::invalid_value<scalar_type>()};
+    point3D local{detail::invalid_value<scalar_t>(),
+                  detail::invalid_value<scalar_t>(),
+                  detail::invalid_value<scalar_t>()};
 
     /// Distance between track and candidate
-    scalar_type path{detail::invalid_value<scalar_type>()};
+    scalar_t path{detail::invalid_value<scalar_t>()};
 
     /// cosine of incidence angle
-    scalar_type cos_incidence_angle{detail::invalid_value<scalar_type>()};
+    scalar_t cos_incidence_angle{detail::invalid_value<scalar_t>()};
 
     /// Navigation information (next volume to go to)
     nav_link_type volume_link{detail::invalid_value<nav_link_type>()};
@@ -92,7 +95,7 @@ struct intersection2D {
     DETRAY_HOST_DEVICE
     bool operator==(const intersection2D &rhs) const {
         return std::abs(path - rhs.path) <
-               std::numeric_limits<scalar_type>::epsilon();
+               std::numeric_limits<scalar_t>::epsilon();
     }
 
     /// Transform to a string for output debugging
