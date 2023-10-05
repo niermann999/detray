@@ -55,7 +55,6 @@ inline void render_mask(raw_image<color_depth, aspect_ratio> &im,
     // Rendering steps
     using intersector_t =
         single_shape<T, algebra_t, SAMPLES, mask_t, material_t>;
-    // using backgr_shader_t = background_shader<inf_plane<im_background_t>>;
     using backgr_shader_t = background_shader<im_background_t>;
     using mat_shader_t = material_shader<T, ALGEBRA_PLUGIN, generator_t>;
     // The rendering pipeline: The intersector finds the shape intersections
@@ -155,13 +154,15 @@ int main() {
     // Affine transform matrix to place the shapes
 
     // SoA
+    const scalar im_height{static_cast<scalar>(image.height())};
+    const scalar im_width{static_cast<scalar>(image.width())};
     vector3D_v x_v{1.0f, 0.0f, 0.0f};
     vector3D_v z_v{0.0f, 0.0f, 1.f};
     vector3D_v t_v{30.0f, -20.0f, 0.0f};
     t_v[0] = t_v[0].Random();
-    t_v[0] = 0.1f * (image.width() * t_v[0] - 0.5f * image.width());
+    t_v[0] = 0.1f * (im_width * t_v[0] - 0.5f * im_width);
     t_v[1] = t_v[1].Random();
-    t_v[1] = 0.1f * (image.height() * t_v[1] - 0.5f * image.height());
+    t_v[1] = 0.1f * (im_height * t_v[1] - 0.5f * im_height);
     t_v[2] = -120.1f * math_ns::abs(t_v[1].Random());
 
     std::vector<dtransform3D<algebra_v<scalar>>> trfs_v;
@@ -187,8 +188,7 @@ int main() {
     // render a rectangle mask
 
     // AoS
-    mask<rectangle2D<>> rect2_s{0u, 0.01f * image.width(),
-                                0.01f * image.height()};
+    mask<rectangle2D<>> rect2_s{0u, 0.01f * im_width, 0.01f * im_height};
     std::vector<mask<rectangle2D<>>> rect2_vec(simd_size, rect2_s);
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -208,7 +208,7 @@ int main() {
     std::vector<mask<rectangle2D<soa::plane_intersector>, std::uint_least16_t,
                      algebra_v<scalar>>>
         rect2_v;
-    rect2_v.emplace_back(0u, 0.01f * image.width(), 0.01f * image.height());
+    rect2_v.emplace_back(0u, 0.01f * im_width, 0.01f * im_height);
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(rect2_v), trfs_v,
@@ -423,7 +423,7 @@ int main() {
 
     // AoS
     const mask<cylinder2D<>, std::uint_least16_t, algebra_s<scalar>> cyl2_s{
-        0u, 0.5f * image.height(), 0.5f * image.width(), 0.7f * image.width()};
+        0u, 0.5f * im_height, 0.5f * im_width, 0.7f * im_width};
     std::vector<mask<cylinder2D<>>> cyl2_vec(simd_size, cyl2_s);
 
     start = std::chrono::high_resolution_clock::now();
@@ -442,8 +442,7 @@ int main() {
     std::vector<mask<cylinder2D<false, soa::cylinder_intersector>,
                      std::uint_least16_t, algebra_v<scalar>>>
         cyl2_v;
-    cyl2_v.emplace_back(0u, 0.5f * image.height(), 0.5f * image.width(),
-                        0.7f * image.width());
+    cyl2_v.emplace_back(0u, 0.5f * im_height, 0.5f * im_width, 0.7f * im_width);
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(cyl2_v), trfs_v,
@@ -464,8 +463,7 @@ int main() {
     // AoS
     const mask<cylinder2D<false, cylinder_portal_intersector>,
                std::uint_least16_t, algebra_s<scalar>>
-        pt_cyl2_s{0u, 0.5f * image.height(), 0.5f * image.width(),
-                  0.7f * image.width()};
+        pt_cyl2_s{0u, 0.5f * im_height, 0.5f * im_width, 0.7f * im_width};
     std::vector<mask<cylinder2D<false, cylinder_portal_intersector>>>
         pt_cyl2_vec(simd_size, pt_cyl2_s);
 
@@ -485,8 +483,8 @@ int main() {
     std::vector<mask<cylinder2D<false, soa::cylinder_portal_intersector>,
                      std::uint_least16_t, algebra_v<scalar>>>
         pt_cyl2_v;
-    pt_cyl2_v.emplace_back(0u, 0.5f * image.height(), 0.5f * image.width(),
-                           0.7f * image.width());
+    pt_cyl2_v.emplace_back(0u, 0.5f * im_height, 0.5f * im_width,
+                           0.7f * im_width);
 
     start = std::chrono::high_resolution_clock::now();
     render_mask<scalar, algebra_v, n_samples>(image, std::move(pt_cyl2_v),

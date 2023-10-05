@@ -30,9 +30,10 @@ template <typename T, template <typename> class algebra_t, std::size_t SAMPLES,
 struct single_shape : detray::actor {
 
     using scalar_t = dscalar<algebra_t<T>>;
-    using link_t = dsimd<algebra_t, std::uint_least16_t>;
+    /*using link_t = dsimd<algebra_t, std::uint_least16_t>;
     using surface_t = surface_descriptor<dtyped_index<>, dtyped_index<>, link_t,
-                                         link_t, link_t>;
+                                         link_t, link_t>;*/
+    using surface_t = surface_descriptor<>;
     using intersection_t = intersection2D<surface_t, T, algebra_t>;
 
     struct global_state {
@@ -119,7 +120,7 @@ struct single_shape : detray::actor {
         std::array<const material_t *, SAMPLES> m_material{nullptr};
         /// Flag to the obseving colorizer/shaders that the surface was hit
         std::array<bool, SAMPLES> m_is_hit{false};
-        /// Flag to the obseving colorizer/shaders that the surface was hit
+        /// Flag to the obseving colorizer/shaders that no this ray is dead
         std::array<bool, SAMPLES> m_finished{false};
     };
 
@@ -147,9 +148,13 @@ struct single_shape : detray::actor {
             for (const auto &[m_idx, mask] :
                  detray::views::enumerate(geo.mask())) {
 
+                const auto mask_idx{static_cast<dindex>(m_idx)};
+                const surface_t sf_desc{
+                    mask_idx, {0u, mask_idx}, {0u, 0u},
+                    0u,       dindex_invalid, surface_id::e_sensitive};
                 if (place_in_collection(
                         mask.template intersector<intersection_t>()(
-                            ray, surface_t{}, mask, geo.transform()[m_idx]),
+                            ray, sf_desc, mask, geo.transform()[m_idx]),
                         loc_st.m_intersection[r_idx])) {
 
                     loc_st.m_is_hit[r_idx] = true;
@@ -158,7 +163,10 @@ struct single_shape : detray::actor {
                     constexpr std::size_t simd_size{sizeof(scalar_t) /
                                                     sizeof(T)};
                     const std::size_t intr_idx{loc_st.closest_solution(r_idx)};
-                    const auto mat_idx = m_idx * simd_size + intr_idx;
+                    const auto mat_idx =
+                        static_cast<dindex>(m_idx * simd_size + intr_idx);
+                    loc_st.m_intersection[r_idx].sf_desc.update_material(
+                        mat_idx);
                     loc_st.m_material[r_idx] =
                         std::addressof(geo.material()[mat_idx]);
                 }

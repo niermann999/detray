@@ -10,6 +10,7 @@
 // Project include(s)
 #include <iostream>
 
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracer/definitions/colors.hpp"
@@ -53,8 +54,20 @@ struct material_shader : public detray::actor {
                 auto c = texture::detail::material_color_helper<color_depth>(
                     *(intr_state.material()[r_idx]));
 
+                const auto &intr = intr_state.m_intersection[r_idx];
+
+                const auto &trf =
+                    sc.geometry().transform()[intr.sf_desc.transform()];
+                const auto &mask =
+                    sc.geometry().mask()[intr.sf_desc.mask().index()];
+
+                const auto normals = mask.local_frame().normal(trf, intr.local);
+                const auto normal =
+                    getter::template get<dvector3D<ALGEBRA_PLUGIN<T>>>(
+                        normals, intr_state.closest_solution(r_idx));
+
                 random_scattering<T, ALGEBRA_PLUGIN>(
-                    ray, intr_state.path_to_closest(r_idx),
+                    ray, normal, intr_state.path_to_closest(r_idx),
                     mat_state.random_gen(), mat_state.min(), mat_state.max());
 
                 sc.m_colors[r_idx] *= c;

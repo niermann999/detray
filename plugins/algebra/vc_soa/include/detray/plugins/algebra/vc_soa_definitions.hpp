@@ -90,7 +90,7 @@ ALGEBRA_HOST_DEVICE inline auto vector(
 /// Function extracting a slice from the matrix used by
 /// @c algebra::vc::transform3<double>
 template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
-ALGEBRA_HOST_DEVICE inline auto vector(
+ALGEBRA_HOST_DEVICE inline auto& vector(
     const algebra::vc_soa::math::transform3<algebra::vc_soa::storage_type,
                                             double>::matrix44& m,
     [[maybe_unused]] std::size_t row, std::size_t col) {
@@ -109,6 +109,13 @@ ALGEBRA_HOST_DEVICE inline auto vector(
         default:
             return m.x;
     }
+}
+
+/// Function extracting a slice from an SoA vector by index @param i
+template <typename vector3_t>
+ALGEBRA_HOST_DEVICE inline auto get(
+    const typename detray::vc_soa<scalar>::vector3D& v, std::size_t i) {
+    return vector3_t{v[0][i], v[1][i], v[2][i]};
 }
 
 }  // namespace getter

@@ -75,6 +75,13 @@ ALGEBRA_HOST_DEVICE inline auto vector(const Eigen::MatrixBase<derived_type>& m,
                                      static_cast<Eigen::Index>(col));
 }
 
+/// Function extracting a slice from an SoA vector by index @param i
+template <typename point3_t>
+ALGEBRA_HOST_DEVICE inline auto get(
+    const typename detray::eigen<scalar>::point3D& v, std::size_t) {
+    return v;
+}
+
 }  // namespace getter
 
 // Define matrix/vector operator

@@ -86,6 +86,13 @@ ALGEBRA_HOST_DEVICE inline Vc::array<scalar_t, SIZE> vector(
                                                                       col);
 }
 
+/// Function extracting a slice from an SoA vector by index @param i
+template <typename point3_t>
+ALGEBRA_HOST_DEVICE inline auto get(
+    const typename detray::vc_cmath<scalar>::point3D& v, std::size_t) {
+    return v;
+}
+
 }  // namespace getter
 
 // Define matrix/vector operator
