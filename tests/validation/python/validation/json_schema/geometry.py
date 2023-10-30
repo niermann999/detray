@@ -256,8 +256,8 @@ geometry_schema = {
                             },
                             "required": ["type", "index"]
                         },
-                        "axes": { "type": "null" },
-                        "bins": { "type": "null" }
+                        "axes": { "type": ["array", "null"] },
+                        "bins": { "type": ["array", "null"] }
                     },
                     "required": ["volume_link", "acc_link", "axes", "bins"]
                 }
