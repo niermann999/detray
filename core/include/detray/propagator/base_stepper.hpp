@@ -57,11 +57,9 @@ class base_stepper {
     using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
     using free_to_path_matrix = matrix_type<1, e_free_size>;
 
-    /** State struct holding the track
-     *
-     * It has to cast into a const track via the call
-     * operation.
-     */
+    /// @brief State struct holding the track
+    ///
+    /// @note It has to cast into a const track via the call operation.
     struct state {
 
         /// Sets track parameters.

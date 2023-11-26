@@ -35,6 +35,11 @@ struct propagator {
     using bound_track_parameters_type =
         typename stepper_t::bound_track_parameters_type;
 
+    struct config {
+        typename stepper_t::config stepping;
+        typename navigator_t::config navigation;
+    };
+
     stepper_t _stepper;
     navigator_t _navigator;
 
@@ -71,26 +76,26 @@ struct propagator {
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &t_in, const detector_type &det,
             vector_type<intersection_type> &&candidates = {})
-            : _stepping(t_in),
-              _navigation(det, std::move(candidates)),
-              m_param_type(parameter_type::e_free) {}
+            : m_param_type(parameter_type::e_free),
+              _stepping(t_in),
+              _navigation(det, std::move(candidates)) {}
 
         template <typename field_t>
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &t_in,
             const field_t &magnetic_field, const detector_type &det,
             vector_type<intersection_type> &&candidates = {})
-            : _stepping(t_in, magnetic_field),
-              _navigation(det, std::move(candidates)),
-              m_param_type(parameter_type::e_free) {}
+            : m_param_type(parameter_type::e_free),
+              _stepping(t_in, magnetic_field),
+              _navigation(det, std::move(candidates)) {}
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &param, const detector_type &det,
             vector_type<intersection_type> &&candidates = {})
-            : _stepping(param, det),
-              _navigation(det, std::move(candidates)),
-              m_param_type(parameter_type::e_bound) {}
+            : m_param_type(parameter_type::e_bound),
+              _stepping(param, det),
+              _navigation(det, std::move(candidates)) {}
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
@@ -98,9 +103,9 @@ struct propagator {
             const bound_track_parameters_type &param,
             const field_t &magnetic_field, const detector_type &det,
             vector_type<intersection_type> &&candidates = {})
-            : _stepping(param, magnetic_field, det),
-              _navigation(det, std::move(candidates)),
-              m_param_type(parameter_type::e_bound) {}
+            : m_param_type(parameter_type::e_bound),
+              _stepping(param, magnetic_field, det),
+              _navigation(det, std::move(candidates)) {}
 
         DETRAY_HOST_DEVICE
         parameter_type param_type() const { return m_param_type; }
@@ -108,23 +113,13 @@ struct propagator {
         DETRAY_HOST_DEVICE
         void set_param_type(const parameter_type t) { m_param_type = t; }
 
-        DETRAY_HOST_DEVICE
-        void set_mask_tolerance(const scalar_type tol) {
-            m_mask_tolerance = tol;
-        }
-
-        DETRAY_HOST_DEVICE
-        scalar_type mask_tolerance() const { return m_mask_tolerance; }
-
-        // Mask tolerance
-        scalar_type m_mask_tolerance{15.f * unit<scalar_type>::um};
-
         // Is the propagation still alive?
         bool _heartbeat = false;
+        // Starting type of track parametrization
+        parameter_type m_param_type = parameter_type::e_free;
 
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
-        parameter_type m_param_type = parameter_type::e_free;
     };
 
     /// Propagate method: Coordinates the calls of the stepper, navigator and
@@ -139,31 +134,35 @@ struct propagator {
     /// @return propagation success.
     template <typename state_t, typename actor_states_t = actor_chain<>::state>
     DETRAY_HOST_DEVICE bool propagate(state_t &propagation,
-                                      actor_states_t &&actor_states = {}) {
+                                      actor_states_t &&actor_states = {},
+                                      const config &cfg = {}) {
 
         // Initialize the navigation
-        propagation._heartbeat = _navigator.init(propagation);
+        propagation._heartbeat = _navigator.init(propagation, cfg.navigation);
 
         // Run all registered actors/aborters after init
         run_actors(actor_states, propagation);
 
         // Find next candidate
-        propagation._heartbeat &= _navigator.update(propagation);
+        propagation._heartbeat &=
+            _navigator.update(propagation, cfg.navigation);
 
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
 
             // Take the step
-            propagation._heartbeat &= _stepper.step(propagation);
+            propagation._heartbeat &= _stepper.step(propagation, cfg.stepping);
 
             // Find next candidate
-            propagation._heartbeat &= _navigator.update(propagation);
+            propagation._heartbeat &=
+                _navigator.update(propagation, cfg.navigation);
 
             // Run all registered actors/aborters after update
             run_actors(actor_states, propagation);
 
             // And check the status
-            propagation._heartbeat &= _navigator.update(propagation);
+            propagation._heartbeat &=
+                _navigator.update(propagation, cfg.navigation);
         }
 
         // Pass on the whether the propagation was successful
@@ -184,26 +183,30 @@ struct propagator {
     /// @return propagation success.
     template <typename state_t, typename actor_states_t = actor_chain<>::state>
     DETRAY_HOST_DEVICE bool propagate_sync(state_t &propagation,
-                                           actor_states_t &&actor_states = {}) {
+                                           actor_states_t &&actor_states = {},
+                                           const config &cfg = {}) {
 
         // Initialize the navigation
-        propagation._heartbeat = _navigator.init(propagation);
+        propagation._heartbeat = _navigator.init(propagation, cfg.navigation);
 
         // Run all registered actors/aborters after init
         run_actors(actor_states, propagation);
 
         // Find next candidate
-        propagation._heartbeat &= _navigator.update(propagation);
+        propagation._heartbeat &=
+            _navigator.update(propagation, cfg.navigation);
 
         while (propagation._heartbeat) {
 
             while (propagation._heartbeat) {
 
                 // Take the step
-                propagation._heartbeat &= _stepper.step(propagation);
+                propagation._heartbeat &=
+                    _stepper.step(propagation, cfg.stepping);
 
                 // Find next candidate
-                propagation._heartbeat &= _navigator.update(propagation);
+                propagation._heartbeat &=
+                    _navigator.update(propagation, cfg.navigation);
 
                 // If the track is on a sensitive surface, break the loop to
                 // synchornize the threads
@@ -213,7 +216,8 @@ struct propagator {
                     run_actors(actor_states, propagation);
 
                     // And check the status
-                    propagation._heartbeat &= _navigator.update(propagation);
+                    propagation._heartbeat &=
+                        _navigator.update(propagation, cfg.navigation);
                 }
             }
 
@@ -222,7 +226,8 @@ struct propagator {
                 run_actors(actor_states, propagation);
 
                 // And check the status
-                propagation._heartbeat &= _navigator.update(propagation);
+                propagation._heartbeat &=
+                    _navigator.update(propagation, cfg.navigation);
             }
         }
 

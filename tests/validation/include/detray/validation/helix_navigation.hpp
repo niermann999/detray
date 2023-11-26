@@ -48,6 +48,7 @@ class helix_navigation : public test::fixture_base<> {
             free_track_parameters_t>::configuration;
 
         std::string m_name{"helix_navigation"};
+        std::array<dindex, 2> m_grid_search_window{0u, 0u};
         trk_gen_config_t m_trk_gen_cfg{};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
@@ -56,6 +57,9 @@ class helix_navigation : public test::fixture_base<> {
         /// Getters
         /// @{
         const std::string &name() const { return m_name; }
+        const std::array<dindex, 2> &search_window() const {
+            return m_grid_search_window;
+        }
         trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
@@ -69,6 +73,10 @@ class helix_navigation : public test::fixture_base<> {
             m_name = n;
             return *this;
         }
+        config &search_window(const std::array<dindex, 2> &sw) {
+            m_grid_search_window = sw;
+            return *this;
+        }
         /// @}
     };
 
@@ -77,6 +85,7 @@ class helix_navigation : public test::fixture_base<> {
                               const typename detector_t::name_map &names,
                               const config_t &cfg = {})
         : m_det{det}, m_names{names} {
+        m_cfg.search_window(cfg.search_window());
         m_cfg.overstepping_tolerance(cfg.overstepping_tolerance());
         m_cfg.name(cfg.name());
         m_cfg.track_generator() = cfg.track_generator();
@@ -117,6 +126,9 @@ class helix_navigation : public test::fixture_base<> {
 
         // Propagator
         propagator_t prop(stepper_t{}, navigator_t{});
+        typename propagator_t::config cfg{};
+        cfg.navigation.search_window = m_cfg.search_window();
+        cfg.navigation.overstep_tolerance = m_cfg.overstepping_tolerance();
 
         // B-field vector for helix
         const typename fixture_type::point3 B{0.f * unit<scalar_t>::T,
@@ -136,9 +148,6 @@ class helix_navigation : public test::fixture_base<> {
                   << std::endl;
 
         for (auto track : trk_state_generator) {
-
-            // Prepare for overstepping in the presence of b fields
-            track.set_overstep_tolerance(m_cfg.overstepping_tolerance());
 
             // Get ground truth helix from track
             detail::helix helix(track, &B);
@@ -161,7 +170,7 @@ class helix_navigation : public test::fixture_base<> {
             auto &debug_printer = inspector.template get<print_inspector>();
 
             // Run the propagation
-            bool success = prop.propagate(propagation, actor_states);
+            bool success = prop.propagate(propagation, actor_states, cfg);
 
             if (success) {
                 success &= detail::compare_traces(intersection_trace,

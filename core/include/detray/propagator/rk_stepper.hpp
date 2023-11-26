@@ -33,6 +33,7 @@ class rk_stepper final
     using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
     using transform3_type = transform3_t;
     using policy_type = policy_t;
+    using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using vector2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
@@ -43,6 +44,15 @@ class rk_stepper final
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
     using magnetic_field_type = magnetic_field_t;
+
+    struct config {
+        /// Runge-Kutta numeric error tolerance
+        scalar_type tolerance{1e-4f};
+        /// Step size cutoff value
+        scalar_type step_size_cutoff{1e-4f};
+        /// Maximum number of Runge-Kutta step trials
+        std::size_t max_rk_step_trials{10000u};
+    };
 
     DETRAY_HOST_DEVICE
     rk_stepper() {}
@@ -61,14 +71,6 @@ class rk_stepper final
             const bound_track_parameters_type& bound_params,
             const magnetic_field_t& mag_field, const detector_t& det)
             : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
-        /// error tolerance
-        scalar _tolerance{1e-4f};
-
-        /// step size cutoff value
-        scalar _step_size_cutoff{1e-4f};
-
-        /// maximum trial number of RK stepping
-        std::size_t _max_rk_step_trials{10000u};
 
         /// stepping data required for RKN4
         struct {
@@ -79,15 +81,11 @@ class rk_stepper final
             vector3 k2{0.f, 0.f, 0.f};
             vector3 k3{0.f, 0.f, 0.f};
             vector3 k4{0.f, 0.f, 0.f};
-            array_t<scalar, 4> k_qop{0.f, 0.f, 0.f, 0.f};
+            array_t<scalar_type, 4> k_qop{0.f, 0.f, 0.f, 0.f};
         } _step_data;
 
         /// Magnetic field view
         const magnetic_field_t _magnetic_field;
-
-        /// Set the local error tolerenace
-        DETRAY_HOST_DEVICE
-        inline void set_tolerance(scalar tol) { _tolerance = tol; };
 
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
@@ -100,7 +98,7 @@ class rk_stepper final
         /// evaulate k_n for runge kutta stepping
         DETRAY_HOST_DEVICE
         inline vector3 evaluate_k(const vector3& b_field, const int i,
-                                  const scalar h, const vector3& k_prev);
+                                  const scalar_type h, const vector3& k_prev);
 
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return this->_step_data.k4; }
@@ -110,7 +108,8 @@ class rk_stepper final
     ///
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
+    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
+                                 const config& cfg = {});
 };
 
 }  // namespace detray

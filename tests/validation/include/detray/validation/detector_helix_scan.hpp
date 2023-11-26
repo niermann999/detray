@@ -119,9 +119,6 @@ class helix_scan : public test::fixture_base<> {
 
         for (auto trk : trk_state_generator) {
 
-            // Prepare for overstepping in the presence of b fields
-            trk.set_overstep_tolerance(m_cfg.overstepping_tolerance());
-
             // Get ground truth helix from track
             detail::helix helix(trk, &B);
 

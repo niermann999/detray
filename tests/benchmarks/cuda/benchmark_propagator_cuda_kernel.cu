@@ -36,6 +36,8 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
 
     // Create propagator
     propagator_device_type p(std::move(s), std::move(n));
+    typename propagator_device_type::config cfg{};
+    cfg.navigation.search_window = {3u, 3u};
 
     parameter_transporter<transform3>::state transporter_state{};
     pointwise_material_interactor<transform3>::state interactor_state{};
@@ -50,9 +52,9 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
 
     // Run propagation
     if (opt == propagate_option::e_unsync) {
-        p.propagate(p_state, actor_states);
+        p.propagate(p_state, actor_states, cfg);
     } else if (opt == propagate_option::e_sync) {
-        p.propagate_sync(p_state, actor_states);
+        p.propagate_sync(p_state, actor_states, cfg);
     }
 }
 

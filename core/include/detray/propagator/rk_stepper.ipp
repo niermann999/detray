@@ -14,9 +14,11 @@ template <typename magnetic_field_t, typename transform3_t,
 void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         array_t>::state::advance_track() {
 
+    using scalar_t = typename transform3_t::scalar_type;
+
     const auto& sd = this->_step_data;
-    const scalar h{this->_step_size};
-    const scalar h_6{h * static_cast<scalar>(1. / 6.)};
+    const scalar_type h{this->_step_size};
+    const scalar_t h_6{h * static_cast<scalar_t>(1. / 6.)};
     auto& track = this->_track;
     auto pos = track.pos();
     auto dir = track.dir();
@@ -58,16 +60,18 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     /// constant offset does not exist for rectangular matrix dGdu' (due to the
     /// missing Lambda part) and only exists for dFdu' in dlambda/dlambda.
 
+    using scalar_t = typename transform3_t::scalar_type;
+
     const auto& sd = this->_step_data;
-    const scalar h{this->_step_size};
+    const scalar_t h{this->_step_size};
     // const auto& mass = this->_mass;
     auto& track = this->_track;
     const auto dir = track.dir();
     const auto qop = track.qop();
 
     // Half step length
-    const scalar half_h{h * 0.5f};
-    const scalar h_6{h * static_cast<scalar>(1. / 6.)};
+    const scalar_t half_h{h * 0.5f};
+    const scalar_t h_6{h * static_cast<scalar_t>(1. / 6.)};
     /*---------------------------------------------------------------------------
      * k_{n} is always in the form of [ A(T) X B ] where A is a function of r'
      * and B is magnetic field and X symbol is for cross product. Hence dk{n}dT
@@ -135,11 +139,11 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t,
           template <typename, std::size_t> class array_t>
-auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        array_t>::state::evaluate_k(const vector3& b_field,
-                                                    const int i, const scalar h,
-                                                    const vector3& k_prev)
-    -> vector3 {
+auto detray::rk_stepper<
+    magnetic_field_t, transform3_t, constraint_t, policy_t,
+    array_t>::state::evaluate_k(const vector3& b_field, const int i,
+                                const typename transform3_t::scalar_type h,
+                                const vector3& k_prev) -> vector3 {
     auto& track = this->_track;
 
     const auto qop = track.qop();
@@ -161,7 +165,12 @@ template <typename magnetic_field_t, typename transform3_t,
           template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
 bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        array_t>::step(propagation_state_t& propagation) {
+                        array_t>::
+    step(propagation_state_t& propagation,
+         const detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t,
+                                  policy_t, array_t>::config& cfg) {
+
+    using scalar_t = typename transform3_t::scalar_type;
 
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
@@ -170,7 +179,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     auto& sd = stepping._step_data;
 
-    scalar error_estimate{0.f};
+    scalar_t error_estimate{0.f};
 
     // First Runge-Kutta point
     const vector3 pos = stepping().pos();
@@ -184,8 +193,8 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     const auto try_rk4 = [&](const scalar& h) -> bool {
         // State the square and half of the step size
-        const scalar h2{h * h};
-        const scalar half_h{h * 0.5f};
+        const scalar_t h2{h * h};
+        const scalar_t half_h{h * 0.5f};
 
         // Second Runge-Kutta point
         const vector3 pos1 = pos + half_h * dir + h2 * 0.125f * sd.k1;
@@ -210,39 +219,38 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // @Todo
         const vector3 err_vec = h2 * (sd.k1 - sd.k2 - sd.k3 + sd.k4);
         error_estimate =
-            std::max(getter::norm(err_vec), static_cast<scalar>(1e-20));
+            std::max(getter::norm(err_vec), static_cast<scalar_t>(1e-20));
 
-        return (error_estimate <= stepping._tolerance);
+        return (error_estimate <= cfg.tolerance);
     };
 
     // Initial step size estimate
     stepping.set_step_size(navigation());
 
-    scalar step_size_scaling{1.f};
+    scalar_t step_size_scaling{1.f};
     std::size_t n_step_trials{0u};
 
     // Adjust initial step size to integration error
     while (!try_rk4(stepping._step_size)) {
 
         step_size_scaling = std::min(
-            std::max(0.25f * unit<scalar>::mm,
-                     std::sqrt(std::sqrt((stepping._tolerance /
-                                          std::abs(2.f * error_estimate))))),
-            static_cast<scalar>(4));
+            std::max(0.25f * unit<scalar_t>::mm,
+                     std::sqrt(std::sqrt(
+                         (cfg.tolerance / std::abs(2.f * error_estimate))))),
+            static_cast<scalar_t>(4));
 
         stepping._step_size *= step_size_scaling;
 
         // If step size becomes too small the particle remains at the
         // initial place
-        if (std::abs(stepping._step_size) <
-            std::abs(stepping._step_size_cutoff)) {
+        if (std::abs(stepping._step_size) < std::abs(cfg.step_size_cutoff)) {
             // Not moving due to too low momentum needs an aborter
             return navigation.abort();
         }
 
         // If the parameter is off track too much or given step_size is not
         // appropriate
-        if (n_step_trials > stepping._max_rk_step_trials) {
+        if (n_step_trials > cfg.max_rk_step_trials) {
             // Too many trials, have to abort
             return navigation.abort();
         }

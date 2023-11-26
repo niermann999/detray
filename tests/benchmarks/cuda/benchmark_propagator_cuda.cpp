@@ -58,6 +58,8 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create propagator
     propagator_host_type p(std::move(s), std::move(n));
+    typename propagator_host_type::config cfg{};
+    cfg.navigation.search_window = {3u, 3u};
 
     std::size_t total_tracks = 0;
 
@@ -90,9 +92,9 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
             // Run propagation
             if constexpr (opt == propagate_option::e_unsync) {
-                p.propagate(p_state, actor_states);
+                p.propagate(p_state, actor_states, cfg);
             } else if constexpr (opt == propagate_option::e_sync) {
-                p.propagate_sync(p_state, actor_states);
+                p.propagate_sync(p_state, actor_states, cfg);
             }
         }
     }

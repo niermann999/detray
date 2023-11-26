@@ -200,15 +200,14 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{}, navigator_t{});
+    typename propagator_t::config cfg{};
+    cfg.navigation.overstep_tolerance = overstep_tol;
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<track_t>(phi_steps, theta_steps, mom)) {
         // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
-
-        track.set_overstep_tolerance(overstep_tol);
-        lim_track.set_overstep_tolerance(overstep_tol);
 
         // Build actor states: the helix inspector can be shared
         helix_inspector::state helix_insp_state{};
@@ -242,7 +241,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state, actor_states))
+        ASSERT_TRUE(p.propagate(state, actor_states, cfg))
             << print_insp_state.to_string() << std::endl;
         //  << state._navigation.inspector().to_string() << std::endl;
 
@@ -301,15 +300,14 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{}, navigator_t{});
+    typename propagator_t::config cfg{};
+    cfg.navigation.overstep_tolerance = overstep_tol;
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<track_t>(phi_steps, theta_steps, mom)) {
         // Genrate second track state used for propagation with pathlimit
         track_t lim_track(track);
-
-        track.set_overstep_tolerance(overstep_tol);
-        lim_track.set_overstep_tolerance(overstep_tol);
 
         // Build actor states: the helix inspector can be shared
         propagation::print_inspector::state print_insp_state{};
@@ -339,13 +337,13 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state, actor_states))
+        ASSERT_TRUE(p.propagate(state, actor_states, cfg))
             << print_insp_state.to_string() << std::endl;
         //<< state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
-        ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
+        ASSERT_FALSE(p.propagate(lim_state, lim_actor_states, cfg))
             << lim_print_insp_state.to_string() << std::endl;
         //<< lim_state._navigation.inspector().to_string() << std::endl;
 

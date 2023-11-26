@@ -48,6 +48,7 @@ class straight_line_navigation : public test::fixture_base<> {
             typename uniform_track_generator<ray_t>::configuration;
 
         std::string m_name{"straight_line_navigation"};
+        std::array<dindex, 2> m_grid_search_window{0u, 0u};
         trk_gen_config_t m_trk_gen_cfg{};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
@@ -56,6 +57,9 @@ class straight_line_navigation : public test::fixture_base<> {
         /// Getters
         /// @{
         const std::string &name() const { return m_name; }
+        const std::array<dindex, 2> &search_window() const {
+            return m_grid_search_window;
+        }
         trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
@@ -69,6 +73,10 @@ class straight_line_navigation : public test::fixture_base<> {
             m_name = n;
             return *this;
         }
+        config &search_window(const std::array<dindex, 2> &sw) {
+            m_grid_search_window = sw;
+            return *this;
+        }
         /// @}
     };
 
@@ -78,6 +86,7 @@ class straight_line_navigation : public test::fixture_base<> {
         const config_t &cfg = {})
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
+        m_cfg.search_window(cfg.search_window());
         m_cfg.track_generator() = cfg.track_generator();
     }
 
@@ -117,6 +126,8 @@ class straight_line_navigation : public test::fixture_base<> {
 
         // Propagator
         propagator_t prop(stepper_t{}, navigator_t{});
+        typename propagator_t::config cfg{};
+        cfg.navigation.search_window = m_cfg.search_window();
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};
@@ -151,7 +162,7 @@ class straight_line_navigation : public test::fixture_base<> {
             auto &obj_tracer = inspector.template get<object_tracer_t>();
             auto &debug_printer = inspector.template get<print_inspector>();
 
-            bool success = prop.propagate(propagation, actor_states);
+            bool success = prop.propagate(propagation, actor_states, cfg);
 
             if (success) {
                 success &=
