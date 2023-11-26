@@ -274,18 +274,17 @@ class grid {
     }
 
     /// Interface for the navigator
-    template <typename detector_t, typename track_t>
+    template <typename detector_t, typename track_t, typename config_t>
     DETRAY_HOST_DEVICE auto search(
-        const detector_t & /*det*/,
-        const typename detector_t::volume_type & /*volume*/,
-        const track_t & /*track*/) const {
+        const detector_t &det, const typename detector_t::volume_type &volume,
+        const track_t &track, const config_t &cfg) const {
+
         // Track position in grid coordinates
-        /*const auto &trf = det.transform_store()[volume.transform()];
-        const auto loc_pos = global_to_local(trf, track.pos(), track.dir());
+        const auto &trf = det.transform_store()[volume.transform()];
+        const auto loc_pos = global_to_bound(trf, track.pos(), track.dir());
+
         // Grid lookup
-        return search(loc_pos);*/
-        // @todo: Implement local neighborhood lookup
-        return all();
+        return search(loc_pos, cfg.search_window);
     }
 
     /// Find the value of a single bin - const
