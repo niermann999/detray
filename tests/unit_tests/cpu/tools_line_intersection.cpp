@@ -63,30 +63,30 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
     EXPECT_EQ(is[0].path, 1.f);
 
-    const auto global0 = ln.to_global_frame(tf, is[0].local);
+    const auto global0 = ln.to_global_frame(tf, is[0].bound);
     EXPECT_EQ(global0, point3({1.f, 0.f, 0.f}));
-    EXPECT_EQ(is[0].local[0], -1.f);  // right
-    EXPECT_EQ(is[0].local[1], 0.f);
+    EXPECT_EQ(is[0].bound[0], -1.f);  // right
+    EXPECT_EQ(is[0].bound[1], 0.f);
     EXPECT_NEAR(is[0].cos_incidence_angle, 0.f, tol);
 
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
     EXPECT_EQ(is[1].path, 1.f);
-    const auto global1 = ln.to_global_frame(tf, is[1].local);
+    const auto global1 = ln.to_global_frame(tf, is[1].bound);
     EXPECT_NEAR(global1[0], -1.f, tol);
     EXPECT_NEAR(global1[1], 0.f, tol);
     EXPECT_NEAR(global1[2], 0.f, tol);
-    EXPECT_EQ(is[1].local[0], 1.f);  // left
-    EXPECT_EQ(is[1].local[1], 0.f);
+    EXPECT_EQ(is[1].bound[0], 1.f);  // left
+    EXPECT_EQ(is[1].bound[1], 0.f);
     EXPECT_NEAR(is[1].cos_incidence_angle, 0.f, tol);
 
     EXPECT_EQ(is[2].status, intersection::status::e_inside);
     EXPECT_NEAR(is[2].path, constant<scalar>::sqrt2, tol);
-    const auto global2 = ln.to_global_frame(tf, is[2].local);
+    const auto global2 = ln.to_global_frame(tf, is[2].bound);
     EXPECT_NEAR(global2[0], 1.f, tol);
     EXPECT_NEAR(global2[1], 0.f, tol);
     EXPECT_NEAR(global2[2], 1.f, tol);
-    EXPECT_NEAR(is[2].local[0], -1.f, tol);  // right
-    EXPECT_NEAR(is[2].local[1], 1.f, tol);
+    EXPECT_NEAR(is[2].bound[0], -1.f, tol);  // right
+    EXPECT_NEAR(is[2].bound[1], 1.f, tol);
     EXPECT_NEAR(is[2].cos_incidence_angle, constant<scalar>::inv_sqrt2, tol);
 }
 
@@ -113,12 +113,12 @@ GTEST_TEST(detray_intersection, line_intersector_case2) {
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_NEAR(is.path, 2.f, tol);
-    const auto global = ln.to_global_frame(tf, is.local);
+    const auto global = ln.to_global_frame(tf, is.bound);
     EXPECT_NEAR(global[0], 1.f, tol);
     EXPECT_NEAR(global[1], 1.f, tol);
     EXPECT_NEAR(global[2], 0.f, tol);
-    EXPECT_NEAR(is.local[0], -constant<scalar>::inv_sqrt2, tol);  // right
-    EXPECT_NEAR(is.local[1], -constant<scalar>::inv_sqrt2, tol);
+    EXPECT_NEAR(is.bound[0], -constant<scalar>::inv_sqrt2, tol);  // right
+    EXPECT_NEAR(is.bound[1], -constant<scalar>::inv_sqrt2, tol);
 }
 
 GTEST_TEST(detray_intersection, line_intersector_square_scope) {
@@ -178,32 +178,32 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
     EXPECT_NEAR(global0[0], 1.f, tol);
     EXPECT_NEAR(global0[1], 1.f, tol);
     EXPECT_NEAR(global0[2], 0.f, tol);
-    EXPECT_NEAR(is[0].local[0], -constant<scalar>::sqrt2, tol);
-    EXPECT_NEAR(is[0].local[1], 0.f, tol);
+    EXPECT_NEAR(is[0].bound[0], -constant<scalar>::sqrt2, tol);
+    EXPECT_NEAR(is[0].bound[1], 0.f, tol);
 
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
-    EXPECT_TRUE(std::signbit(is[1].local[0]));
+    EXPECT_TRUE(std::signbit(is[1].bound[0]));
     EXPECT_EQ(is[2].status, intersection::status::e_outside);
-    EXPECT_TRUE(std::signbit(is[2].local[0]));
+    EXPECT_TRUE(std::signbit(is[2].bound[0]));
 
     EXPECT_EQ(is[3].status, intersection::status::e_inside);
-    EXPECT_FALSE(std::signbit(is[3].local[0]));
+    EXPECT_FALSE(std::signbit(is[3].bound[0]));
     EXPECT_EQ(is[4].status, intersection::status::e_inside);
-    EXPECT_FALSE(std::signbit(is[4].local[0]));
+    EXPECT_FALSE(std::signbit(is[4].bound[0]));
     EXPECT_EQ(is[5].status, intersection::status::e_outside);
-    EXPECT_FALSE(std::signbit(is[5].local[0]));
+    EXPECT_FALSE(std::signbit(is[5].bound[0]));
 
     EXPECT_EQ(is[6].status, intersection::status::e_inside);
-    EXPECT_FALSE(std::signbit(is[6].local[0]));
+    EXPECT_FALSE(std::signbit(is[6].bound[0]));
     EXPECT_EQ(is[7].status, intersection::status::e_inside);
-    EXPECT_FALSE(std::signbit(is[7].local[0]));
+    EXPECT_FALSE(std::signbit(is[7].bound[0]));
     EXPECT_EQ(is[8].status, intersection::status::e_outside);
-    EXPECT_FALSE(std::signbit(is[8].local[0]));
+    EXPECT_FALSE(std::signbit(is[8].bound[0]));
 
     EXPECT_EQ(is[9].status, intersection::status::e_inside);
-    EXPECT_TRUE(std::signbit(is[9].local[0]));
+    EXPECT_TRUE(std::signbit(is[9].bound[0]));
     EXPECT_EQ(is[10].status, intersection::status::e_inside);
-    EXPECT_TRUE(std::signbit(is[10].local[0]));
+    EXPECT_TRUE(std::signbit(is[10].bound[0]));
     EXPECT_EQ(is[11].status, intersection::status::e_outside);
-    EXPECT_TRUE(std::signbit(is[11].local[0]));
+    EXPECT_TRUE(std::signbit(is[11].bound[0]));
 }

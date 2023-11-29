@@ -149,8 +149,8 @@ struct helix_cylinder_intersector
             // Build intersection struct from helix parameters
             is.path = s;
             const auto p3 = h.pos(s);
-            is.local = mask.to_local_frame(trf, p3);
-            is.status = mask.is_inside(is.local, mask_tolerance);
+            is.bound = mask.to_bound_frame(trf, p3);
+            is.status = mask.is_inside(is.bound, mask_tolerance);
 
             // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {

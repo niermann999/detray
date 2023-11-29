@@ -97,8 +97,8 @@ struct helix_plane_intersector {
 
         // Build intersection struct from helix parameters
         sfi.path = s;
-        sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
-        sfi.status = mask.is_inside(sfi.local, mask_tolerance);
+        sfi.bound = mask.to_bound_frame(trf, h.pos(s), h.dir(s));
+        sfi.status = mask.is_inside(sfi.bound, mask_tolerance);
 
         // Compute some additional information if the intersection is valid
         if (sfi.status == intersection::status::e_inside) {

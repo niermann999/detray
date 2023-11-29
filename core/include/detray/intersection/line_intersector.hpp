@@ -101,9 +101,9 @@ struct line_intersector {
             // point of closest approach on the track
             const point3 m = _p + _d * A;
 
-            is.local = mask.to_local_frame(trf, m, _d);
+            is.bound = mask.to_bound_frame(trf, m, _d);
 
-            is.status = mask.is_inside(is.local, mask_tolerance);
+            is.status = mask.is_inside(is.bound, mask_tolerance);
 
             // prepare some additional information in case the intersection
             // is valid

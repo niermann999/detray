@@ -106,10 +106,10 @@ struct print_inspector {
 
         using geo_ctx_t = typename state_type::detector_type::geometry_context;
         for (const auto &sf_cand : state.candidates()) {
-            const auto &local = sf_cand.local;
+            const auto &bound = sf_cand.bound;
             const auto pos =
-                surface{*state.detector(), sf_cand.sf_desc}.local_to_global(
-                    geo_ctx_t{}, local, {});
+                surface{*state.detector(), sf_cand.sf_desc}.bound_to_global(
+                    geo_ctx_t{}, bound, {});
 
             debug_stream << sf_cand;
             debug_stream << ", glob: [r:" << getter::perp(pos)

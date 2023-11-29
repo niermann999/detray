@@ -67,6 +67,7 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 using transform_container_t = single_store<test::transform3>;
 using transform3_t = typename transform_container_t::value_type;
 using vector3 = typename transform3_t::vector3;
+using point2 = typename transform3_t::point2;
 using point3 = typename transform3_t::point3;
 using transform_link_t = dindex;
 
@@ -133,14 +134,14 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     const free_track_parameters<transform3_t> track(pos, 0.f, mom, -1.f);
 
     // Validation data
-    const point3 expected_rectangle{0.01f, 0.01f, 10.f};
-    const point3 expected_trapezoid{0.02f, 0.02f, 20.f};
-    const point3 expected_annulus{0.03f, 0.03f, 30.f};
-    const point3 expected_cylinder1{0.045f, 0.045f, 45.0f};
-    const point3 expected_cylinder2{0.055f, 0.055f, 55.0f};
-    const point3 expected_cylinder_pt{0.096001f, 0.096001f, 96.001f};
+    const point2 expected_rectangle{0.01f, 0.01f};
+    const point2 expected_trapezoid{0.02f, 0.02f};
+    const point2 expected_annulus{0.03f, 0.03f};
+    const point2 expected_cylinder1{0.045f, 0.045f};
+    const point2 expected_cylinder2{0.055f, 0.055f};
+    const point2 expected_cylinder_pt{0.096001f, 0.096001f};
 
-    const std::vector<point3> expected_points = {
+    const std::vector<point2> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus,
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
@@ -162,18 +163,18 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
 
         if (sfi_init[i].sf_desc.mask().id() == e_rectangle2) {
             global =
-                rect.to_global_frame(transform_store[0], sfi_init[i].local);
+                rect.to_global_frame(transform_store[0], sfi_init[i].bound);
         } else if (sfi_init[i].sf_desc.mask().id() == e_trapezoid2) {
             global =
-                trap.to_global_frame(transform_store[1], sfi_init[i].local);
+                trap.to_global_frame(transform_store[1], sfi_init[i].bound);
         } else if (sfi_init[i].sf_desc.mask().id() == e_annulus2) {
             global =
-                annl.to_global_frame(transform_store[2], sfi_init[i].local);
+                annl.to_global_frame(transform_store[2], sfi_init[i].bound);
         } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2) {
-            global = cyl.to_global_frame(transform_store[3], sfi_init[i].local);
+            global = cyl.to_global_frame(transform_store[3], sfi_init[i].bound);
         } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2_portal) {
             global = cyl_portal.to_global_frame(transform_store[4],
-                                                sfi_init[i].local);
+                                                sfi_init[i].bound);
         }
 
         EXPECT_NEAR(global[0], expected_points[i][0], 1e-3f)
@@ -259,10 +260,10 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const detail::helix<transform3_t> h({pos, 0.f, mom, -1.f}, &B);
 
     // Validation data
-    const point3 expected_rectangle{0.01f, 0.01f, 10.f};
-    const point3 expected_trapezoid{0.02f, 0.02f, 20.f};
-    const point3 expected_annulus{0.03f, 0.03f, 30.f};
-    const std::vector<point3> expected_points = {
+    const point2 expected_rectangle{0.01f, 0.01f};
+    const point2 expected_trapezoid{0.02f, 0.02f};
+    const point2 expected_annulus{0.03f, 0.03f};
+    const std::vector<point2> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
     std::vector<intersection2D<surface_t, transform3_t>> sfi_helix{};
 
@@ -275,13 +276,13 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
         if (surface.mask().id() == e_rectangle2) {
             global =
-                rect.to_global_frame(transform_store[0], sfi_helix[0].local);
+                rect.to_global_frame(transform_store[0], sfi_helix[0].bound);
         } else if (surface.mask().id() == e_trapezoid2) {
             global =
-                trap.to_global_frame(transform_store[1], sfi_helix[0].local);
+                trap.to_global_frame(transform_store[1], sfi_helix[0].bound);
         } else if (surface.mask().id() == e_annulus2) {
             global =
-                annl.to_global_frame(transform_store[2], sfi_helix[0].local);
+                annl.to_global_frame(transform_store[2], sfi_helix[0].bound);
         }
 
         ASSERT_NEAR(global[0], expected_points[sf_idx][0], is_close);

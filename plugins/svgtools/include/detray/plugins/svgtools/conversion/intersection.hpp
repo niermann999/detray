@@ -31,7 +31,7 @@ inline auto intersection(const detector_t& detector,
 
     for (const auto& intr : intersections) {
         const detray::surface surface{detector, intr.sf_desc};
-        const auto position = surface.local_to_global(gctx, intr.local, dir);
+        const auto position = surface.bound_to_global(gctx, intr.bound, dir);
         const auto p_lm = svgtools::conversion::landmark(position, style);
         p_ir._landmarks.push_back(p_lm);
     }

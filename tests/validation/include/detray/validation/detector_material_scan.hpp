@@ -117,7 +117,7 @@ class material_scan : public test::fixture_base<> {
 
                 const auto [seg, t, mx0, ml0] =
                     sf.template visit_material<get_material_params>(
-                        record.second.local, record.second.cos_incidence_angle);
+                        record.second.bound, record.second.cos_incidence_angle);
 
                 if (mx0 > 0.f) {
                     mat_sX0 += seg / mx0;
@@ -181,12 +181,12 @@ class material_scan : public test::fixture_base<> {
 
         template <typename mat_group_t, typename index_t, typename point_t>
         inline auto operator()(const mat_group_t &mat_group,
-                               const index_t &index, const point_t &loc,
+                               const index_t &index, const point_t &bound,
                                const scalar_t cos_inc_angle) const {
 
-            const auto slab = get_material(mat_group, index, loc);
+            const auto slab = get_material(mat_group, index, bound);
 
-            const scalar_t seg{slab.path_segment(cos_inc_angle, loc[0])};
+            const scalar_t seg{slab.path_segment(cos_inc_angle, bound[0])};
             const scalar_t t{slab.thickness()};
             const scalar_t mat_X0{slab.get_material().X0()};
             const scalar_t mat_L0{slab.get_material().L0()};

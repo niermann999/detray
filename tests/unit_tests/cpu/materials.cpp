@@ -172,7 +172,7 @@ GTEST_TEST(detray_materials, material_rod) {
         detail::ray<transform3>(trk), surface_descriptor<>{}, ln, tf);
 
     const scalar cos_inc_ang{is.cos_incidence_angle};
-    const scalar approach{is.local[0]};
+    const scalar approach{is.bound[0]};
 
     EXPECT_NEAR(rod.path_segment(cos_inc_ang, approach),
                 2.f * std::sqrt(10.f - 10.f / 36.f), 1e-5f);

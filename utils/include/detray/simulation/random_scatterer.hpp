@@ -159,7 +159,7 @@ struct random_scatterer : actor {
         const auto sf = navigation.get_surface();
 
         sf.template visit_material<kernel>(simulator_state, bound_params,
-                                           is.cos_incidence_angle, is.local[0]);
+                                           is.cos_incidence_angle, is.bound[0]);
 
         // Get the new momentum
         const auto new_mom = attenuate(

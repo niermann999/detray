@@ -126,13 +126,32 @@ class mask {
     DETRAY_HOST_DEVICE
     inline constexpr auto get_shape() const -> const shape& { return _shape; }
 
-    /// @returns the functor that projects a global cartesian point onto
-    /// the local geometric coordinate system.
+    /// @returns the global position in the masks local frame
     template <typename transform3_t>
     DETRAY_HOST_DEVICE inline auto to_local_frame(
         const transform3_t& trf, const point3_t& glob_p,
         const point3_t& glob_dir = {}) const -> point3_t {
         return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
+    }
+
+    /// @returns the global position bound to the surface
+    template <typename transform3_t>
+    DETRAY_HOST_DEVICE inline auto to_bound_frame(
+        const transform3_t& trf, const point3_t& glob_p,
+        const point3_t& glob_dir = {}) const -> point2_t {
+        const point3_t local =
+            local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
+
+        return {local[0], local[1]};
+    }
+
+    /// @returns the functor that projects a local point to the global
+    /// coordinate system
+    template <typename transform3_t>
+    DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3_t& trf,
+                                                   const point2_t& loc) const
+        -> point3_t {
+        return local_frame_type{}.bound_local_to_global(trf, *this, loc, {});
     }
 
     /// @returns the functor that projects a local point to the global
@@ -161,9 +180,9 @@ class mask {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return an intersection status e_inside / e_outside
-    DETRAY_HOST_DEVICE
-    inline auto is_inside(
-        const point3_t& loc_p,
+    template <typename point_t>
+    DETRAY_HOST_DEVICE inline auto is_inside(
+        const point_t& loc_p,
         const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         -> intersection::status {
 

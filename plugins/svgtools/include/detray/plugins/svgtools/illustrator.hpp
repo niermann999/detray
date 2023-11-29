@@ -459,8 +459,8 @@ class illustrator {
             // The intersection record is always sorted by path length
             const auto sf{
                 detray::surface{_detector, intersections.back().sf_desc}};
-            const auto final_pos = sf.local_to_global(
-                gctx, intersections.back().local, trajectory.dir(0.f));
+            const auto final_pos = sf.bound_to_global(
+                gctx, intersections.back().bound, trajectory.dir(0.f));
             max_path = getter::norm(final_pos - trajectory.pos(0.f));
         }
 

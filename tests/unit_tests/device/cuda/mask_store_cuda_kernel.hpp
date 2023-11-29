@@ -38,8 +38,7 @@ using ring = mask<ring2D<>>;
 using single = mask<single3D<>>;
 using trapezoid = mask<trapezoid2D<>>;
 
-/** Enumerate different mask types for convenience
- **/
+/// Enumerate different mask types for convenience
 enum mask_ids : unsigned int {
     e_rectangle2 = 0u,
     e_trapezoid2 = 1u,
@@ -60,7 +59,7 @@ using device_store_type =
 /// test function for mask store
 void mask_test(
     typename host_store_type::view_type store_data,
-    vecmem::data::vector_view<point3> input_point3_data,
+    vecmem::data::vector_view<point2> input_point2_data,
     vecmem::data::jagged_vector_view<intersection::status> output_data);
 
 }  // namespace detray

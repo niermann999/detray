@@ -108,12 +108,12 @@ struct concentric_cylinder_intersector {
 
                 const point3 p3 = candidates[cindex];
                 const scalar_type phi{getter::phi(p3)};
-                is.local = {r * phi, p3[2], r};
+                is.bound = {r * phi, p3[2]};
 
                 is.path = t01[cindex];
                 // In this case, the point has to be in cylinder3 coordinates
                 // for the r-check
-                is.status = mask.is_inside(is.local, mask_tolerance);
+                is.status = mask.is_inside(is.bound, mask_tolerance);
 
                 // prepare some additional information in case the intersection
                 // is valid

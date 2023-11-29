@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
+using point2_t = test::point2;
 using point3_t = test::point3;
 
 constexpr scalar tol{1e-7f};
@@ -24,11 +25,11 @@ constexpr scalar hz{0.5f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a rectangle
 GTEST_TEST(detray_masks, rectangle2D) {
-    using point_t = point3_t;
+    using point_t = point2_t;
 
-    point_t p2_in = {0.5f, -9.f, 0.f};
-    point_t p2_edge = {1.f, 9.3f, 0.f};
-    point_t p2_out = {1.5f, -9.f, 0.f};
+    point_t p2_in = {0.5f, -9.f};
+    point_t p2_edge = {1.f, 9.3f};
+    point_t p2_out = {1.5f, -9.f};
 
     mask<rectangle2D<>> r2{0u, hx, hy};
 

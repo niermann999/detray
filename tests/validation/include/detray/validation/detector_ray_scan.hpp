@@ -165,7 +165,7 @@ class ray_scan : public test::fixture_base<> {
                     const auto sf =
                         detray::surface{m_det, intersection.sf_desc};
                     auto glob_pos =
-                        sf.local_to_global(gctx, intersection.local, ray.dir());
+                        sf.bound_to_global(gctx, intersection.bound, ray.dir());
                     *outfile
                         << n_tracks << ","
                         << static_cast<int>(intersection.sf_desc.barcode().id())

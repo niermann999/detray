@@ -56,9 +56,8 @@ struct intersection2D {
     /// Descriptor of the surface this intersection belongs to
     surface_descr_t sf_desc;
 
-    /// Local position of the intersection on the surface
-    point3 local{detail::invalid_value<scalar_type>(),
-                 detail::invalid_value<scalar_type>(),
+    /// Bound position of the intersection on the surface
+    point2 bound{detail::invalid_value<scalar_type>(),
                  detail::invalid_value<scalar_type>()};
 
     /// Distance between track and candidate
@@ -102,8 +101,8 @@ struct intersection2D {
         out_stream << "dist:" << is.path
                    << "\tsurface: " << is.sf_desc.barcode()
                    << ", links to vol:" << is.volume_link << ")"
-                   << ", loc [" << is.local[0] << ", " << is.local[1] << ", "
-                   << is.local[2] << "], ";
+                   << ", bound pos [" << is.bound[0] << ", " << is.bound[1]
+                   << "], ";
 
         switch (is.status) {
             case intersection::status::e_outside:

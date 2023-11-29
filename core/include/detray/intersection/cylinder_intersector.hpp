@@ -166,8 +166,8 @@ struct cylinder_intersector {
             is.path = path;
             const point3 p3 = ro + is.path * rd;
 
-            is.local = mask.to_local_frame(trf, p3);
-            is.status = mask.is_inside(is.local, mask_tolerance);
+            is.bound = mask.to_bound_frame(trf, p3);
+            is.status = mask.is_inside(is.bound, mask_tolerance);
 
             // prepare some additional information in case the intersection
             // is valid
@@ -178,7 +178,7 @@ struct cylinder_intersector {
                 is.volume_link = mask.volume_link();
 
                 // Get incidence angle
-                const scalar_type phi{is.local[0] / is.local[2]};
+                const scalar_type phi{is.bound[0] / is.bound[2]};
                 const vector3 normal = {math_ns::cos(phi), math_ns::sin(phi),
                                         0.f};
                 is.cos_incidence_angle = vector::dot(rd, normal);
