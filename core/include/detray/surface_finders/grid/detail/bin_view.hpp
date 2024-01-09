@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -148,9 +148,9 @@ struct bin_iterator {
         map_circular(*m_bin_indexer, lbin,
                      std::make_integer_sequence<std::size_t, grid_t::Dim>{});
         // Transform to global bin index
-        const dindex gbin{m_grid.serializer()(m_grid.axes(), lbin)};
+        const dindex gbin{m_grid.serialize(lbin)};
         // Fetch the bin
-        return (*(m_grid.data().bin_data()))[gbin + m_grid.data().offset()];
+        return m_grid.bin_data()[gbin + m_grid.offset()];
     }
 
     private:

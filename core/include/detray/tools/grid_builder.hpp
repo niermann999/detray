@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -149,7 +149,7 @@ class grid_builder final : public volume_decorator<detector_t> {
                     const auto &sf_trf = sf.transform(ctx);
                     const auto t = sf_trf.point_to_global(sf.centroid());
                     const auto loc_pos =
-                        m_grid.global_to_local(vol.transform(), t, t);
+                        m_grid.global_to_bound(vol.transform(), t, t);
                     auto bin_content = m_grid.search(loc_pos);
 
                     for (surface_desc_t &sf_in_grid : bin_content) {
@@ -184,7 +184,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         const mask<grid_shape_t> &bounds,
         const std::array<std::size_t, grid_t::Dim> n_bins,
         const std::array<std::vector<scalar_type>, grid_t::Dim> &ax_bin_edges,
-        std::tuple<axis_bounds...>, std::tuple<binning_ts...>) {
+        types::list<axis_bounds...>, types::list<binning_ts...>) {
 
         m_grid = m_factory.template new_grid<axis_bounds..., binning_ts...>(
             bounds, n_bins, ax_bin_edges);

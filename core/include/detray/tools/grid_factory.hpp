@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -92,8 +92,8 @@ class grid_factory {
                  b_values[boundary::e_max_phi_rel]},
             {n_bins[e_r_axis], n_bins[e_phi_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
-            std::tuple<r_bounds, phi_bounds>{},
-            std::tuple<r_binning, phi_binning>{});
+            types::list<r_bounds, phi_bounds>{},
+            types::list<r_binning, phi_binning>{});
     }
 
     //
@@ -125,8 +125,8 @@ class grid_factory {
              b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
             {n_bins[e_x_axis], n_bins[e_y_axis], n_bins[e_z_axis]},
             {bin_edges[e_x_axis], bin_edges[e_y_axis], bin_edges[e_z_axis]},
-            std::tuple<x_bounds, y_bounds, z_bounds>{},
-            std::tuple<x_binning, y_binning, z_binning>{});
+            types::list<x_bounds, y_bounds, z_bounds>{},
+            types::list<x_binning, y_binning, z_binning>{});
     }
 
     //
@@ -156,8 +156,8 @@ class grid_factory {
              b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]},
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
-            std::tuple<rphi_bounds, z_bounds>{},
-            std::tuple<rphi_binning, z_binning>{});
+            types::list<rphi_bounds, z_bounds>{},
+            types::list<rphi_binning, z_binning>{});
     }
 
     //
@@ -188,8 +188,8 @@ class grid_factory {
              b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]},
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
-            std::tuple<rphi_bounds, z_bounds>{},
-            std::tuple<rphi_binning, z_binning>{});
+            types::list<rphi_bounds, z_bounds>{},
+            types::list<rphi_binning, z_binning>{});
     }
 
     //
@@ -221,8 +221,8 @@ class grid_factory {
              -b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
             {n_bins[e_r_axis], n_bins[e_phi_axis], n_bins[e_z_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis], bin_edges[e_z_axis]},
-            std::tuple<r_bounds, phi_bounds, z_bounds>{},
-            std::tuple<r_binning, phi_binning, z_binning>{});
+            types::list<r_bounds, phi_bounds, z_bounds>{},
+            types::list<r_binning, phi_binning, z_binning>{});
     }
 
     //
@@ -251,8 +251,8 @@ class grid_factory {
              -constant<scalar_type>::pi, constant<scalar_type>::pi},
             {n_bins[e_r_axis], n_bins[e_phi_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
-            std::tuple<r_bounds, phi_bounds>{},
-            std::tuple<r_binning, phi_binning>{});
+            types::list<r_bounds, phi_bounds>{},
+            types::list<r_binning, phi_binning>{});
     }
 
     //
@@ -280,8 +280,8 @@ class grid_factory {
              -b_values[boundary::e_half_y], b_values[boundary::e_half_y]},
             {n_bins[e_x_axis], n_bins[e_y_axis]},
             {bin_edges[e_x_axis], bin_edges[e_y_axis]},
-            std::tuple<x_bounds, y_bounds>{},
-            std::tuple<x_binning, y_binning>{});
+            types::list<x_bounds, y_bounds>{},
+            types::list<x_binning, y_binning>{});
     }
 
     //
@@ -312,8 +312,8 @@ class grid_factory {
              b_values[boundary::e_half_length_2]},
             {n_bins[e_x_axis], n_bins[e_y_axis]},
             {bin_edges[e_x_axis], bin_edges[e_y_axis]},
-            std::tuple<x_bounds, y_bounds>{},
-            std::tuple<x_binning, y_binning>{});
+            types::list<x_bounds, y_bounds>{},
+            types::list<x_binning, y_binning>{});
     }
 
     /// @brief Create and empty grid with fully initialized axes.
@@ -338,8 +338,8 @@ class grid_factory {
     auto new_grid(const std::vector<scalar_type> spans,
                   const std::vector<std::size_t> n_bins,
                   const std::vector<std::vector<scalar_type>> &ax_bin_edges,
-                  const std::tuple<bound_ts...> &bounds,
-                  const std::tuple<binning_ts...> &binnings) const {
+                  const types::list<bound_ts...> &bounds,
+                  const types::list<binning_ts...> &binnings) const {
 
         return new_grid<
             typename grid_shape_t::template local_frame_type<algebra_t>>(
@@ -369,8 +369,8 @@ class grid_factory {
     auto new_grid(const std::vector<scalar_type> spans,
                   const std::vector<std::size_t> n_bins,
                   const std::vector<std::vector<scalar_type>> &ax_bin_edges,
-                  const std::tuple<bound_ts...> & = {},
-                  const std::tuple<binning_ts...> & = {}) const {
+                  const types::list<bound_ts...> & = {},
+                  const types::list<binning_ts...> & = {}) const {
 
         static_assert(sizeof...(bound_ts) == sizeof...(binning_ts),
                       "number of axis bounds and binning types has to match");
@@ -386,7 +386,7 @@ class grid_factory {
         vector_type<scalar_type> bin_edges{};
 
         // Call init for every axis
-        unroll_axis_init<std::tuple<binning_ts...>>(
+        unroll_axis_init<types::list<binning_ts...>>(
             spans, n_bins, ax_bin_edges, axes_data, bin_edges,
             std::make_index_sequence<axes_t::Dim>{});
 
@@ -412,7 +412,7 @@ class grid_factory {
                    vector_type<dindex_range> &axes_data,
                    vector_type<scalar_type> &bin_edges) const {
         if constexpr (std::is_same_v<
-                          std::tuple_element_t<I, binnings>,
+                          types::at<binnings, I>,
                           n_axis::regular<host_container_types, scalar_type>>) {
             axes_data.push_back({static_cast<dindex>(bin_edges.size()),
                                  static_cast<dindex>(n_bins.at(I))});
@@ -422,8 +422,7 @@ class grid_factory {
             const auto &bin_edges_loc = ax_bin_edges.at(I);
             axes_data.push_back(
                 {static_cast<dindex>(bin_edges.size()),
-                 static_cast<dindex>(bin_edges.size() + bin_edges_loc.size() -
-                                     1u)});
+                 static_cast<dindex>(bin_edges_loc.size() - 1u)});
             bin_edges.insert(bin_edges.end(), bin_edges_loc.begin(),
                              bin_edges_loc.end());
         }

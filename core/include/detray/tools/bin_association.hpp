@@ -232,7 +232,9 @@ static inline void bin_association(const context_t & /*context*/,
 
                             // Register if associated
                             if (associated) {
-                                grid.populate({bin_0, bin_1}, sf);
+                                typename grid_t::loc_bin_index mbin{bin_0,
+                                                                    bin_1};
+                                grid.populate(mbin, sf);
                                 break;
                             }
                         }

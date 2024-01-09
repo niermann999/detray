@@ -1,13 +1,9 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
-
-#include <gtest/gtest.h>
-
-#include <climits>
 
 // detray test
 #include <vecmem/containers/vector.hpp>
@@ -19,6 +15,12 @@
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
 #include "detray/test/types.hpp"
+
+// GTest include(s)
+#include <gtest/gtest.h>
+
+// System inculde(s)
+#include <climits>
 
 using namespace detray;
 using namespace detray::n_axis;

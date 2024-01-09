@@ -68,7 +68,7 @@ TEST(grids_cuda, grid3_replace_populator) {
     // Build multi-axis
     using axes_t = cartesian_3D<host_container_types>;
 
-    typename axes_t::boundary_storage_type axis_data(&mng_mr);
+    typename axes_t::edge_offset_storage_type axis_data(&mng_mr);
     typename axes_t::edges_storage_type bin_edges(&mng_mr);
 
     axis_data.reserve(3);
@@ -134,7 +134,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // Build multi-axis
     using axes_t = polar_ir<host_container_types>;
 
-    typename axes_t::boundary_storage_type axis_data(&mng_mr);
+    typename axes_t::edge_offset_storage_type axis_data(&mng_mr);
     typename axes_t::edges_storage_type bin_edges(&mng_mr);
 
     axis_data.reserve(2u);
@@ -195,7 +195,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // Build multi-axis
     using axes_t = polar<host_container_types>;
 
-    typename axes_t::boundary_storage_type axis_data(&mng_mr);
+    typename axes_t::edge_offset_storage_type axis_data(&mng_mr);
     typename axes_t::edges_storage_type bin_edges(&mng_mr);
 
     axis_data.reserve(2u);
@@ -270,7 +270,7 @@ TEST(grids_cuda, grid2_attach_populator) {
     // Build multi-axis
     using axes_t = polar<host_container_types>;
 
-    typename axes_t::boundary_storage_type axis_data(&mng_mr);
+    typename axes_t::edge_offset_storage_type axis_data(&mng_mr);
     typename axes_t::edges_storage_type bin_edges(&mng_mr);
 
     axis_data.reserve(2);
@@ -354,7 +354,7 @@ TEST(grids_cuda, cylindrical3D_collection) {
 
     vecmem::vector<typename grid_collection_t::size_type> grid_offsets(&mng_mr);
     typename grid_collection_t::bin_storage_type bin_data(&mng_mr);
-    typename grid_collection_t::axes_storage_type edge_ranges(&mng_mr);
+    typename grid_collection_t::edge_offset_storage_type edge_ranges(&mng_mr);
     typename grid_collection_t::edges_storage_type bin_edges(&mng_mr);
 
     // Offsets for the grids into the bin storage

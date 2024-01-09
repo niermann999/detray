@@ -77,7 +77,7 @@ struct fill_by_pos {
 
                 // transform to axis coordinate system
                 const auto loc_pos =
-                    grid.global_to_local(vol.transform(), t, t);
+                    grid.global_to_bound(vol.transform(), t, t);
 
                 // Populate
                 grid.populate(loc_pos, sf);

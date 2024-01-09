@@ -90,8 +90,8 @@ class grid_reader : public reader_interface<detector_t> {
     ///
     /// @param bound_ids runtime queue of bounds type ids (read from file)
     /// @param binning_ids runtime queue of binning type ids (read from file)
-    template <typename bounds_ts = types::type_list<>,
-              typename binning_ts = types::type_list<>, typename... Ts>
+    template <typename bounds_ts = types::list<>,
+              typename binning_ts = types::list<>, typename... Ts>
     static void deserialize(std::queue<n_axis::bounds> &bound_ids,
                             std::queue<n_axis::binning> &binning_ids,
                             Ts &&... data) {
@@ -280,8 +280,8 @@ class grid_reader : public reader_interface<detector_t> {
     static void deserialize(const grid_payload<content_t> &grid_data,
                             detector_builder<typename detector_t::metadata,
                                              volume_builder> &det_builder,
-                            types::type_list<bounds_ts...>,
-                            types::type_list<binning_ts...>) {
+                            types::list<bounds_ts...>,
+                            types::list<binning_ts...>) {
         // Assemble the grid type
         using populator_t = regular_attacher<bin_capacity>;
         using axes_t =
@@ -357,7 +357,7 @@ class grid_reader : public reader_interface<detector_t> {
                 }
             }
         } else {
-            types::print<types::type_list<grid_t>>();
+            types::print<types::list<grid_t>>();
             err_stream
                 << "Grid type in file does not match any grid type in detector";
             throw std::invalid_argument(err_stream.str());

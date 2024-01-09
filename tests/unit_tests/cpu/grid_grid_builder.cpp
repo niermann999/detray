@@ -1,11 +1,9 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
-
-#include <gtest/gtest.h>
 
 // Detray include(s)
 #include "detray/core/detector.hpp"
@@ -22,6 +20,9 @@
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
+
+// Gtest include(s)
+#include <gtest/gtest.h>
 
 // System include(s)
 #include <limits>
@@ -72,7 +73,7 @@ GTEST_TEST(detray_tools, grid_factory) {
     // Test fill a bin to see, if bin content was correctly initialized
     point3 p = {0.5f, 2.f, 0.f};
     vector3 d{};
-    auto loc_p = ann_gr.global_to_local(Identity, p, d);
+    auto loc_p = ann_gr.global_to_bound(Identity, p, d);
     ann_gr.populate(loc_p, 3u);
 
     EXPECT_EQ(ann_gr.search(loc_p)[0], 3u);
@@ -88,8 +89,8 @@ GTEST_TEST(detray_tools, grid_factory) {
         {bin_edges_z.front(), bin_edges_z.back(), 0.f,
          2.f * constant<scalar>::pi},
         {bin_edges_z.size() - 1, 10u}, {bin_edges_phi, bin_edges_z},
-        std::tuple<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
-        std::tuple<regular<>, irregular<>>{});
+        types::list<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
+        types::list<regular<>, irregular<>>{});
 
     // Test axis
     const auto& cyl_axis_z = cyl_gr.template get_axis<label::e_cyl_z>();
@@ -103,7 +104,7 @@ GTEST_TEST(detray_tools, grid_factory) {
                 std::numeric_limits<scalar>::epsilon());
 
     // Test fill a bin to see, if bin content was correctly initialized
-    loc_p = cyl_gr.global_to_local(Identity, p, d);
+    loc_p = cyl_gr.global_to_bound(Identity, p, d);
     cyl_gr.populate(loc_p, 33u);
 
     EXPECT_EQ(cyl_gr.search(loc_p)[0], 33u);
