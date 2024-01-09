@@ -292,8 +292,9 @@ struct detector_helper {
             const auto n_bins_per_axis{material_map.axes().nbins()};
             for (dindex bin0 = 0u; bin0 < n_bins_per_axis[0]; ++bin0) {
                 for (dindex bin1 = 0u; bin1 < n_bins_per_axis[1]; ++bin1) {
-                    material_map.populate(n_axis::multi_bin<2>{bin0, bin1},
-                                          mat[is_disc_map ? bin0 : bin1]);
+                    material_map.template populate<replace>(
+                        n_axis::multi_bin<2>{bin0, bin1},
+                        mat[is_disc_map ? bin0 : bin1]);
                 }
             }
 

@@ -97,7 +97,8 @@ class line_stepper final
     ///
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation) {
+    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
+                                 const stepping::config& = {}) {
         // Get stepper and navigator states
         state& stepping = propagation._stepping;
         auto& navigation = propagation._navigation;
@@ -105,8 +106,9 @@ class line_stepper final
         scalar step_size = navigation();
 
         // Update navigation direction
-        const step::direction dir = step_size > 0 ? step::direction::e_forward
-                                                  : step::direction::e_backward;
+        const step::direction dir = step_size > 0.f
+                                        ? step::direction::e_forward
+                                        : step::direction::e_backward;
         stepping.set_direction(dir);
 
         // Check constraints

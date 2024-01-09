@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -36,9 +36,9 @@ template <typename grid_t>
 struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 
     /// Cartesian product view over the local bin index sequences
-    using bin_indexer_t = decltype(
-        get_bin_indexer(std::declval<n_axis::multi_bin_range<grid_t::Dim>>(),
-                        std::declval<std::make_index_sequence<grid_t::Dim>>()));
+    using bin_indexer_t = decltype(get_bin_indexer(
+        std::declval<n_axis::multi_bin_range<grid_t::Dim>>(),
+        std::declval<std::make_index_sequence<grid_t::Dim>>()));
 
     using iterator_t =
         bin_iterator<grid_t, detray::ranges::iterator_t<bin_indexer_t>>;
@@ -148,9 +148,9 @@ struct bin_iterator {
         map_circular(*m_bin_indexer, lbin,
                      std::make_integer_sequence<std::size_t, grid_t::Dim>{});
         // Transform to global bin index
-        const dindex gbin{m_grid.serializer()(m_grid.axes(), lbin)};
+        const dindex gbin{m_grid.serialize(lbin)};
         // Fetch the bin
-        return (*(m_grid.data().bin_data()))[gbin + m_grid.data().offset()];
+        return m_grid.bins()[gbin];
     }
 
     private:

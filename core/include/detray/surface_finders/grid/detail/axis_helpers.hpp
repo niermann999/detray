@@ -44,8 +44,8 @@ struct multi_axis_data {
     template <typename T>
     using vector_type = typename containers::template vector_type<T>;
 
-    /// Data that the axes keep: bin boundary ranges in the edges container
-    vector_type<dindex_range> m_axes_data{};
+    /// Data that the axes keep: index ranges in the edges container
+    vector_type<dindex_range> m_edge_offsets{};
     /// Contains all bin edges for all axes
     vector_type<scalar_t> m_edges{};
 
@@ -55,38 +55,40 @@ struct multi_axis_data {
     /// Construct containers using a specific memory resources
     DETRAY_HOST
     multi_axis_data(vecmem::memory_resource &resource)
-        : m_axes_data(&resource), m_edges(&resource) {}
+        : m_edge_offsets(&resource), m_edges(&resource) {}
 
     /// Construct from containers - move
     DETRAY_HOST_DEVICE
-    multi_axis_data(vector_type<dindex_range> &&axes_data,
+    multi_axis_data(vector_type<dindex_range> &&edge_offsets,
                     vector_type<scalar_t> &&edges)
-        : m_axes_data(std::move(axes_data)), m_edges(std::move(edges)) {}
+        : m_edge_offsets(std::move(edge_offsets)), m_edges(std::move(edges)) {}
 
     /// Construct containers from vecmem based view types
     ///
-    /// @param axes_view vecmem view on the axes data
+    /// @param axes_view vecmem view on the edge offsets
     /// @param edges_view vecmem view on the bin edges
     DETRAY_HOST_DEVICE
     multi_axis_data(const dvector_view<dindex_range> &axes_view,
                     const dvector_view<scalar_t> &edges_view)
-        : m_axes_data(axes_view), m_edges(edges_view) {}
+        : m_edge_offsets(axes_view), m_edges(edges_view) {}
 
-    /// @returns pointer to all of the axes data
+    /// @returns pointer to all of the edge offsets
     DETRAY_HOST_DEVICE
-    auto axes_data() const -> const vector_type<dindex_range> * {
-        return &m_axes_data;
+    auto edge_offsets() const -> const vector_type<dindex_range> * {
+        return &m_edge_offsets;
     }
 
-    /// @returns pointer to all of the axes data
+    /// @returns pointer to all of the edge offsets
     // TODO: Don't do...
     DETRAY_HOST_DEVICE
-    auto axes_data() -> vector_type<dindex_range> * { return &m_axes_data; }
+    auto edge_offsets() -> vector_type<dindex_range> * {
+        return &m_edge_offsets;
+    }
 
     /// @returns pointer to the data for one particular @param i axis
     DETRAY_HOST_DEVICE
-    auto axis_data(const unsigned int i) const -> const dindex_range * {
-        return &(m_axes_data[i]);
+    auto edge_offsets(const unsigned int i) const -> const dindex_range * {
+        return &(m_edge_offsets[i]);
     }
 
     /// @returns pointer to the entire bin edges collection for every axis
@@ -118,8 +120,8 @@ struct multi_axis_view {
     template <typename T>
     using vector_type = typename containers::template vector_type<T>;
 
-    /// Data that the axes keep: bin boundary ranges in the edges container
-    const vector_type<dindex_range> *m_axes_data{nullptr};
+    /// Data that the axes keep: index ranges in the edges container
+    const vector_type<dindex_range> *m_edge_offsets{nullptr};
     /// Contains all bin edges for all the axes
     const vector_type<scalar_t> *m_edges{nullptr};
     /// Offset for this multi-axis into the global container
@@ -130,30 +132,34 @@ struct multi_axis_view {
 
     /// Construct from explicitly given pointers to global containers
     ///
-    /// @param axes_data_ptr const pointer to axes data
+    /// @param edge_offsets_ptr const pointer to edge offsets
     /// @param edges_ptr const pointer to bin edges
-    /// @param offset in the axes data and bin edges collections pointed to
+    /// @param offset in the edge offsets and bin edges collections pointed to
     DETRAY_HOST_DEVICE
-    multi_axis_view(const vector_type<dindex_range> *axes_data_ptr,
+    multi_axis_view(const vector_type<dindex_range> *edge_offsets_ptr,
                     const vector_type<scalar_t> *edges_ptr,
                     const unsigned int offset)
-        : m_axes_data(axes_data_ptr), m_edges(edges_ptr), m_offset{offset} {}
+        : m_edge_offsets(edge_offsets_ptr),
+          m_edges(edges_ptr),
+          m_offset{offset} {}
 
-    /// @returns pointer to all(!) of the axes data - const
+    /// @returns pointer to all(!) of the edge offsets - const
     DETRAY_HOST_DEVICE
-    auto axes_data() const -> const vector_type<dindex_range> * {
-        return m_axes_data;
+    auto edge_offsets() const -> const vector_type<dindex_range> * {
+        return m_edge_offsets;
     }
 
-    /// @returns pointer to all(!) of the axes data - non-const
+    /// @returns pointer to all(!) of the edge offsets - non-const
     // TODO: Don't do...
     DETRAY_HOST_DEVICE
-    auto axes_data() -> vector_type<dindex_range> * { return m_axes_data; }
+    auto edge_offsets() -> vector_type<dindex_range> * {
+        return m_edge_offsets;
+    }
 
     /// @returns pointer to the data for one particular @param i axis
     DETRAY_HOST_DEVICE
-    auto axis_data(const unsigned i) const -> const dindex_range * {
-        return &((*m_axes_data)[m_offset + i]);
+    auto edge_offsets(const unsigned i) const -> const dindex_range * {
+        return &((*m_edge_offsets)[m_offset + i]);
     }
 
     /// @returns pointer to the entire(!) bin edges collection for every axis

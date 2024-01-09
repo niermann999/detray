@@ -266,8 +266,8 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     // final upper bin edge
     vecmem::vector<scalar> bin_edges = {-100.f, -3.f, 1.f,  2.f, 4.f,
                                         8.f,    12.f, 15.f, 18.f};
-    // Index range for the bin edges [-3, 15]
-    dindex_range edge_range = {1u, 7u};
+    // Index offset and number of bins for the bin edges [-3, 15]
+    dindex_range edge_range = {1u, 6u};
 
     // A closed irregular z-axis
     single_axis<closed<label::e_z>, irregular<>> cir_axis(&edge_range,
