@@ -116,7 +116,7 @@ template <typename T>
 std::string demangle_type_name() {
 #if defined(__clang__)
     constexpr std::string_view prefix{"[T = "};
-    constexpr std::string_view suffix{"; "};
+    constexpr std::string_view suffix{"]"};
     constexpr std::string_view function{__PRETTY_FUNCTION__};
 #elif defined(__GNUC__)
     constexpr std::string_view prefix{"with T = "};

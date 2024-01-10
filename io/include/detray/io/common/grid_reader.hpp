@@ -283,12 +283,12 @@ class grid_reader : public reader_interface<detector_t> {
                             types::list<bounds_ts...>,
                             types::list<binning_ts...>) {
         // Assemble the grid type
-        using populator_t = regular_attacher<bin_capacity>;
         using axes_t =
             n_axis::multi_axis<false, local_frame_t,
                                n_axis::single_axis<bounds_ts, binning_ts>...>;
         // Ok for now: Only have this serializer
-        using grid_t = grid<axes_t, value_t, simple_serializer, populator_t>;
+        using grid_t = grid<axes_t, bins::static_array<value_t, bin_capacity>,
+                            simple_serializer>;
 
         static_assert(grid_t::Dim == Dim,
                       "Grid dimension does not meet dimension of grid reader");
@@ -353,7 +353,8 @@ class grid_reader : public reader_interface<detector_t> {
                 for (const auto c : bin_data.content) {
                     empty_sf.set_volume(volume_idx);
                     empty_sf.set_index(static_cast<dindex>(c));
-                    vgr_builder->get().populate(mbin, empty_sf);
+                    vgr_builder->get().template populate<attach<>>(mbin,
+                                                                   empty_sf);
                 }
             }
         } else {

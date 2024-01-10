@@ -34,53 +34,51 @@ class grid_collection {
 /// Specialization for @c detray::grid
 ///
 /// @todo refactor this, grid_data and grid_view as detray::ranges::grid_view
-template <typename multi_axis_t, typename value_t,
-          template <std::size_t> class serializer_t, typename populator_t>
+template <typename multi_axis_t, typename bin_t,
+          template <std::size_t> class serializer_t>
 class grid_collection<
-    detray::grid<multi_axis_t, value_t, serializer_t, populator_t>,
-    std::enable_if_t<not detray::grid<multi_axis_t, value_t, serializer_t,
-                                      populator_t>::is_owning,
-                     void>> {
+    detray::grid<multi_axis_t, bin_t, serializer_t>,
+    std::enable_if_t<
+        not detray::grid<multi_axis_t, bin_t, serializer_t>::is_owning, void>> {
 
-    using grid_type =
-        detray::grid<multi_axis_t, value_t, serializer_t, populator_t>;
+    using grid_type = detray::grid<multi_axis_t, bin_t, serializer_t>;
     using const_grid_type =
-        const detray::grid<const multi_axis_t, const value_t, serializer_t,
-                           populator_t>;
+        const detray::grid<const multi_axis_t, const bin_t, serializer_t>;
 
     public:
     using value_type = grid_type;
     using size_type = dindex;
 
     /// Backend storage type for the grid
-    using bin_storage_type = typename grid_type::bin_storage_type;
+    using bin_container_type = typename grid_type::bin_container_type;
     /// Offsets into the bin edges container
-    using edge_offset_storage_type =
-        typename multi_axis_t::edge_offset_storage_type;
+    using edge_offset_container_type =
+        typename multi_axis_t::edge_offset_container_type;
     /// Contains all bin edges for all axes
-    using edges_storage_type = typename multi_axis_t::edges_storage_type;
+    using edges_container_type = typename multi_axis_t::edges_container_type;
     template <typename T>
     using vector_type = typename multi_axis_t::template vector_type<T>;
 
     /// Vecmem based grid collection view type
-    using view_type = dmulti_view<dvector_view<size_type>,
-                                  detail::get_view_t<bin_storage_type>,
-                                  detail::get_view_t<edge_offset_storage_type>,
-                                  detail::get_view_t<edges_storage_type>>;
+    using view_type =
+        dmulti_view<dvector_view<size_type>,
+                    detail::get_view_t<bin_container_type>,
+                    detail::get_view_t<edge_offset_container_type>,
+                    detail::get_view_t<edges_container_type>>;
 
     /// Vecmem based grid collection view type
     using const_view_type =
         dmulti_view<dvector_view<const size_type>,
-                    detail::get_view_t<const bin_storage_type>,
-                    detail::get_view_t<const edge_offset_storage_type>,
-                    detail::get_view_t<const edges_storage_type>>;
+                    detail::get_view_t<const bin_container_type>,
+                    detail::get_view_t<const edge_offset_container_type>,
+                    detail::get_view_t<const edges_container_type>>;
 
     /// Vecmem based buffer type
     using buffer_type =
         dmulti_buffer<dvector_buffer<size_type>,
-                      detail::get_buffer_t<bin_storage_type>,
-                      detail::get_buffer_t<edge_offset_storage_type>,
-                      detail::get_buffer_t<edges_storage_type>>;
+                      detail::get_buffer_t<bin_container_type>,
+                      detail::get_buffer_t<edge_offset_container_type>,
+                      detail::get_buffer_t<edges_container_type>>;
 
     /// Make grid collection default constructible: Empty
     grid_collection() = default;
@@ -95,9 +93,9 @@ class grid_collection<
 
     /// Create grid colection from existing data - move
     DETRAY_HOST_DEVICE
-    grid_collection(vector_type<size_type> &&offs, bin_storage_type &&bins,
-                    edge_offset_storage_type &&edge_offs,
-                    edges_storage_type &&edges)
+    grid_collection(vector_type<size_type> &&offs, bin_container_type &&bins,
+                    edge_offset_container_type &&edge_offs,
+                    edges_container_type &&edges)
         : m_bin_offsets(std::move(offs)),
           m_bins(std::move(bins)),
           m_bin_edge_offsets(std::move(edge_offs)),
@@ -171,19 +169,19 @@ class grid_collection<
 
     /// @returns the underlying bin content storage - const
     DETRAY_HOST_DEVICE
-    constexpr auto bin_storage() const -> const bin_storage_type & {
+    constexpr auto bin_storage() const -> const bin_container_type & {
         return m_bins;
     }
 
     /// @returns the underlying axis boundary storage - const
     DETRAY_HOST_DEVICE
-    constexpr auto axes_storage() const -> const edge_offset_storage_type & {
+    constexpr auto axes_storage() const -> const edge_offset_container_type & {
         return m_bin_edge_offsets;
     }
 
     /// @returns the underlying bin edges storage - const
     DETRAY_HOST_DEVICE
-    constexpr auto bin_edges_storage() const -> const edges_storage_type & {
+    constexpr auto bin_edges_storage() const -> const edges_container_type & {
         return m_bin_edges;
     }
 
@@ -264,11 +262,11 @@ class grid_collection<
     /// Offsets for the respective grids into the bin storage
     vector_type<size_type> m_bin_offsets{};
     /// Contains the bin content for all grids
-    bin_storage_type m_bins{};
+    bin_container_type m_bins{};
     /// Contains the offsets/no. bins for the bin edges of all axes of all grids
-    edge_offset_storage_type m_bin_edge_offsets{};
+    edge_offset_container_type m_bin_edge_offsets{};
     /// Contains the bin edges for all grids
-    edges_storage_type m_bin_edges{};
+    edges_container_type m_bin_edges{};
 };
 
 }  // namespace detray

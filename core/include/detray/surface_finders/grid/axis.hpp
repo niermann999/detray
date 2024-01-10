@@ -161,7 +161,7 @@ struct single_axis {
     inline scalar_type max() const { return m_binning.span()[1]; }
 };
 
-/// @brief A collection of single axes.
+/// @brief An N-dimensional collection of single axes.
 ///
 /// Given a point in the grid local coordinate system, which is spanned by the
 /// axes in this multi-axes type, the corresponding bin multi-index or
@@ -206,8 +206,8 @@ class multi_axis {
 
     /// Axes boundary/bin edges storage
     /// @{
-    using edge_offset_storage_type = vector_type<dindex_range>;
-    using edges_storage_type = vector_type<scalar_type>;
+    using edge_offset_container_type = vector_type<dindex_range>;
+    using edges_container_type = vector_type<scalar_type>;
     // Interal storage type depends on whether the class owns the data or not
     using storage_type = std::conditional_t<
         is_owning, detail::multi_axis_data<container_types, scalar_type>,
@@ -257,13 +257,13 @@ class multi_axis {
 
     /// @returns access to the underlying bin offset storage - const
     DETRAY_HOST_DEVICE
-    auto bin_edge_offsets() const -> const edge_offset_storage_type & {
+    auto bin_edge_offsets() const -> const edge_offset_container_type & {
         return *(m_data.edge_offsets());
     }
 
     /// @returns access to the underlying bin edge storage - const
     DETRAY_HOST_DEVICE
-    auto bin_edges() const -> const edges_storage_type & {
+    auto bin_edges() const -> const edges_container_type & {
         return *(m_data.edges());
     }
 
@@ -425,12 +425,12 @@ class multi_axis {
 
 namespace detail {
 
-/// @brief Helper type to assemble an multi-axis from bounds tuple and binnings
+/// @brief Helper type to assemble a multi-axis from bounds and binnings
 template <bool is_owning, typename containers, typename local_frame, typename,
           typename>
 struct multi_axis_assembler;
 
-/// @brief Specialized struct to extract axis bounds from a tuple
+/// @brief Specialized struct to extract axis bounds and binnings from a tuple
 template <bool is_owning, typename containers, typename local_frame,
           typename... axis_bounds, typename... binning_ts>
 struct multi_axis_assembler<is_owning, containers, local_frame,
@@ -447,7 +447,7 @@ struct multi_axis_assembler<is_owning, containers, local_frame,
 
 }  // namespace detail
 
-/// Typedef for easier construction @c multi_axis from mask shapes
+/// Typedef for easier construction of a @c multi_axis from mask shapes
 template <typename shape_t, bool is_owning = true,
           typename containers = host_container_types,
           typename algebra_t = __plugin::transform3<detray::scalar>>

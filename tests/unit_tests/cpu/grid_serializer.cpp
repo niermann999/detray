@@ -13,7 +13,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
-#include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/surface_finders/grid/serializers.hpp"
 #include "detray/test/types.hpp"
 
 // GTest include(s)

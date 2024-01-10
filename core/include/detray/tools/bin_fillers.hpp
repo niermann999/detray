@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/surface_finders/grid/detail/axis_helpers.hpp"
+#include "detray/surface_finders/grid/populators.hpp"
 #include "detray/tools/bin_association.hpp"
 
 // System include(s)
@@ -44,7 +45,8 @@ struct fill_by_bin {
                                 std::vector<bin_data<grid_t>> &bins) const
         -> void {
         for (const bin_data<grid_t> &bd : bins) {
-            grid.populate(bd.local_bin_idx, bd.single_element);
+            grid.template populate<attach<>>(bd.local_bin_idx,
+                                             bd.single_element);
         }
     }
 };
@@ -80,7 +82,7 @@ struct fill_by_pos {
                     grid.global_to_bound(vol.transform(), t, t);
 
                 // Populate
-                grid.populate(loc_pos, sf);
+                grid.template populate<attach<>>(loc_pos, sf);
             }
         }
     }

@@ -15,6 +15,8 @@
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
+#include "detray/surface_finders/grid/populators.hpp"
+#include "detray/surface_finders/grid/serializers.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -29,13 +31,11 @@ namespace detray {
 
 /// @brief Provides functionality to instantiate grids and grid collections.
 ///
-/// @tparam value_t type of entries in the grid bins
+/// @tparam bin_t type bins in the grid
 /// @tparam serialzier_t  type of the serializer to the storage represenations
-/// @tparam populator_impl_t how to fill the bin content
 /// @tparam algebra_t the matrix/vector/point types to use
 /// @tparam container_t the container types to use
-template <typename value_t, template <std::size_t> class serializer_t,
-          typename populator_impl_t,
+template <typename bin_t, template <std::size_t> class serializer_t,
           typename algebra_t = __plugin::transform3<detray::scalar>>
 class grid_factory {
 
@@ -43,10 +43,9 @@ class grid_factory {
     // All grids are owning since they are used to fill the data
     static constexpr bool is_owning = true;
 
-    using value_type = value_t;
+    using bin_type = bin_t;
     template <typename grid_shape_t>
-    using grid_type =
-        grid<grid_shape_t, value_type, serializer_t, populator_impl_t>;
+    using grid_type = grid<grid_shape_t, bin_type, serializer_t>;
 
     using scalar_type = typename algebra_t::scalar_type;
     template <typename T>
@@ -379,7 +378,6 @@ class grid_factory {
         using axes_t =
             n_axis::multi_axis<is_owning, grid_frame_t,
                                n_axis::single_axis<bound_ts, binning_ts>...>;
-        using bin_t = typename grid_type<axes_t>::bin_type;
 
         // Prepare data
         vector_type<dindex_range> axes_data{};
@@ -393,10 +391,8 @@ class grid_factory {
         // Assemble the grid and return it
         axes_t axes(std::move(axes_data), std::move(bin_edges));
 
-        vector_type<bin_t> bin_data{};
-        bin_data.resize(axes.nbins()[0] * axes.nbins()[1],
-                        populator_impl_t::template init<
-                            typename grid_type<axes_t>::value_type>());
+        vector_type<bin_type> bin_data{};
+        bin_data.resize(axes.nbins()[0] * axes.nbins()[1], bin_type{});
 
         return grid_type<axes_t>(std::move(bin_data), std::move(axes));
     }
@@ -445,14 +441,13 @@ class grid_factory {
     vecmem::memory_resource *m_resource{};
 };
 
-template <typename value_t, template <std::size_t> class serializer_t,
-          typename populator_impl_t, typename algebra_t>
+template <typename bin_t, template <std::size_t> class serializer_t,
+          typename algebra_t>
 template <typename grid_t>
-auto grid_factory<value_t, serializer_t, populator_impl_t,
-                  algebra_t>::to_string(const grid_t &gr) const noexcept
-    -> void {
+auto grid_factory<bin_t, serializer_t, algebra_t>::to_string(
+    const grid_t &gr) const noexcept -> void {
 
-    using entry_t = typename grid_t::value_type;
+    using entry_t = typename grid_t::bin_type;
 
     // Loop over the first dimension
     const auto &ax0 = gr.template get_axis<0>();
@@ -517,8 +512,8 @@ auto grid_factory<value_t, serializer_t, populator_impl_t,
 template <typename grid_t,
           typename algebra_t = __plugin::transform3<detray::scalar>>
 using grid_factory_type =
-    grid_factory<typename grid_t::value_type,
+    grid_factory<typename grid_t::bin_type,
                  simple_serializer /*grid_t::template serializer_type*/,
-                 typename grid_t::populator_impl, algebra_t>;
+                 algebra_t>;
 
 }  // namespace detray
