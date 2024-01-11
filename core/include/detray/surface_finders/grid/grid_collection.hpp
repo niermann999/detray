@@ -231,7 +231,7 @@ class grid_collection<
         m_bin_offsets.push_back(static_cast<size_type>(m_bins.size()));
 
         // Add the bins of the new grid to the collection
-        const auto &grid_bins = gr.bin_data();
+        const auto &grid_bins = gr.bins();
         m_bins.insert(m_bins.end(), grid_bins.begin(), grid_bins.end());
 
         // Add the bin edge offsets of the new grid to the collection

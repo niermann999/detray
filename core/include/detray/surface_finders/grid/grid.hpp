@@ -100,27 +100,34 @@ class grid {
     DETRAY_HOST_DEVICE
     grid(const bin_container_type *bin_data_ptr, const axes_type &axes,
          const dindex offset = 0)
-        : m_bins(bin_data_ptr, offset), m_axes(axes) {}
+        : m_bins(*bin_data_ptr,
+                 dindex_range{offset, offset + axes.total_bins()}),
+          m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
     grid(bin_container_type *bin_data_ptr, axes_type &axes,
          const dindex offset = 0u)
-        : m_bins(bin_data_ptr, offset), m_axes(axes) {}
+        : m_bins(*bin_data_ptr,
+                 dindex_range{offset, offset + axes.total_bins()}),
+          m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     // TODO: Remove
     DETRAY_HOST_DEVICE
     grid(const bin_container_type *bin_data_ptr, axes_type &&axes,
          const dindex offset = 0)
-        : m_bins(const_cast<bin_container_type *>(bin_data_ptr), offset),
+        : m_bins(*(const_cast<bin_container_type *>(bin_data_ptr)),
+                 dindex_range{offset, offset + axes.total_bins()}),
           m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
     grid(bin_container_type *bin_data_ptr, axes_type &&axes,
          const dindex offset = 0u)
-        : m_bins(bin_data_ptr, offset), m_axes(axes) {}
+        : m_bins(*bin_data_ptr,
+                 dindex_range{offset, offset + axes.total_bins()}),
+          m_axes(axes) {}
 
     /// Device-side construction from a vecmem based view type
     template <typename grid_view_t,
@@ -129,20 +136,6 @@ class grid {
     DETRAY_HOST_DEVICE grid(grid_view_t &view)
         : m_bins(detray::detail::get<0>(view.m_view)),
           m_axes(detray::detail::get<1>(view.m_view)) {}
-
-    /// @returns the underlying bin storage - const
-    DETRAY_HOST_DEVICE
-    auto bin_data() const -> const bin_container_type & {
-        return *(m_bins.bin_data());
-    }
-
-    /// @returns the underlying bin storage
-    DETRAY_HOST_DEVICE
-    auto bin_data() -> bin_container_type & { return *(m_bins.bin_data()); }
-
-    /// @returns the offset into a global collection - const
-    DETRAY_HOST_DEVICE
-    auto offset() const -> dindex { return m_bins.offset(); }
 
     /// @returns the multi-axis used by the grid - const
     DETRAY_HOST_DEVICE
@@ -172,12 +165,7 @@ class grid {
 
     /// @returns the total number of bins in the grid
     DETRAY_HOST_DEVICE inline constexpr auto nbins() const -> dindex {
-        const auto n_bins_per_axis = m_axes.nbins();
-        dindex n_bins{1u};
-        for (dindex i = 0u; i < Dim; ++i) {
-            n_bins *= n_bins_per_axis[i];
-        }
-        return n_bins;
+        return m_axes.total_bins();
     }
 
     /// @returns the total number of values in the grid
@@ -201,21 +189,13 @@ class grid {
         return serializer()(axes(), mbin);
     }
 
-    /// @returns the full range of bins - const
+    /// @returns the full range of bins
     DETRAY_HOST_DEVICE
-    auto bins() const {
-        dindex first_bin{offset()};
-        return detray::ranges::subrange(
-            bin_data(), dindex_range{first_bin, first_bin + nbins()});
-    }
+    auto bins() const -> const bin_storage & { return m_bins; }
 
     /// @returns the full range of bins
     DETRAY_HOST_DEVICE
-    auto bins() {
-        dindex first_bin{offset()};
-        return detray::ranges::subrange(
-            bin_data(), dindex_range{first_bin, first_bin + nbins()});
-    }
+    auto bins() -> bin_storage & { return m_bins; }
 
     /// @returns the iterable view of the bin content
     /// @{

@@ -99,7 +99,7 @@ struct single_axis {
     /// @returns the width of a bin
     template <typename... Args>
     DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
-        Args &&... args) const {
+        Args &&...args) const {
         return m_binning.bin_width(std::forward<Args &&>(args)...);
     }
 
@@ -300,6 +300,16 @@ class multi_axis {
         // Get the number of bins for every axis
         (single_axis(get_axis<axis_ts>(), n_bins), ...);
 
+        return n_bins;
+    }
+
+    /// @returns the number of bins per axis
+    DETRAY_HOST_DEVICE inline constexpr auto total_bins() const -> dindex {
+        const auto n_bins_per_axis = nbins();
+        dindex n_bins{1u};
+        for (dindex i = 0u; i < Dim; ++i) {
+            n_bins *= n_bins_per_axis[i];
+        }
         return n_bins;
     }
 
