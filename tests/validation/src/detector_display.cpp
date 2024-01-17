@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -19,9 +19,6 @@
 // Actsvg include(s)
 #include "actsvg/core.hpp"
 
-// GTest include(s)
-#include <gtest/gtest.h>
-
 // Boost
 #include <boost/program_options.hpp>
 
@@ -32,7 +29,6 @@
 #include <string>
 
 namespace po = boost::program_options;
-using namespace detray;
 
 int main(int argc, char** argv) {
 
@@ -41,9 +37,6 @@ int main(int argc, char** argv) {
 
     // Visualization style to be applied to the svgs
     auto style = detray::svgtools::styling::tableau_colorblind::style;
-
-    // Filter out the google test flags
-    ::testing::InitGoogleTest(&argc, argv);
 
     // Options parsing
     po::options_description desc("\ndetray detector validation options");

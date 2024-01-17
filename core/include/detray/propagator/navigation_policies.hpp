@@ -110,8 +110,7 @@ struct stepper_rk_policy : actor {
         const auto &stepping = propagation._stepping;
         auto &navigation = propagation._navigation;
 
-        const scalar rel_correction{(stepping.step_size() - navigation()) /
-                                    navigation()};
+        const scalar rel_correction{1.f - stepping.step_size() / navigation()};
 
         // Large correction to the stepsize - re-initialize the volume
         if (rel_correction > pol_state.m_threshold_no_trust) {

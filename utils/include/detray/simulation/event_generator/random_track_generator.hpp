@@ -80,6 +80,7 @@ class random_track_generator
     public:
     using point3 = typename track_t::point3;
     using vector3 = typename track_t::vector3;
+    using track_type = track_t;
 
     /// Configure how tracks are generated
     struct configuration {
@@ -147,6 +148,14 @@ class random_track_generator
             m_is_pT = true;
             assert(low <= high);
             m_mom_range = {low, high};
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& p_tot(scalar p) {
+            mom_range(p, p);
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& p_T(scalar p) {
+            pT_range(p, p);
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& origin(point3 ori) {
@@ -263,14 +272,14 @@ class random_track_generator
             const scalar sin_theta{math_ns::sin(theta)};
 
             // Momentum direction from angles
-            vector3 mom{math_ns::cos(phi) * sin_theta,
-                        math_ns::sin(phi) * sin_theta, math_ns::cos(theta)};
+            vector3 p{math_ns::cos(phi) * sin_theta,
+                      math_ns::sin(phi) * sin_theta, math_ns::cos(theta)};
             // Magnitude of momentum
-            vector::normalize(mom);
+            vector::normalize(p);
 
-            mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag * mom;
+            p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag * p;
 
-            return track_t{vtx, m_cfg.time(), mom, m_cfg.charge()};
+            return track_t{vtx, m_cfg.time(), p, m_cfg.charge()};
         }
 
         /// Random number generator

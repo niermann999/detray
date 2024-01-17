@@ -281,6 +281,7 @@ class illustrator {
                 // Hardcoded until we find a way to scale axes automatically
                 p_eta_lines._r = 1100.f;
                 p_eta_lines._z = 3100.f;
+                p_eta_lines._label_font._size = 40u;
 
                 det_svg.add_object(svgtools::meta::display::eta_lines(
                     "eta_lines_", p_eta_lines));

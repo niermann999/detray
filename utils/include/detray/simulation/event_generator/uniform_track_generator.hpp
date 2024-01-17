@@ -36,6 +36,7 @@ class uniform_track_generator
     public:
     using point3 = typename track_t::point3;
     using vector3 = typename track_t::vector3;
+    using track_type = track_t;
 
     /// Configure how tracks are generated
     struct configuration {

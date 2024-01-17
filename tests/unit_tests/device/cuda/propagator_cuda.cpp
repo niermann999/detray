@@ -104,7 +104,7 @@ INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation8, CudaPropConstBFieldCpy,
                                                      1. * unit<scalar>::T}));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
-TEST(CudaPropagatorValidation10, inhomogeneous_bfield_cpy) {
+TEST(CudaPropagatorValidation9, inhomogeneous_bfield_cpy) {
 
     // VecMem memory resource(s)
     vecmem::host_memory_resource host_mr;

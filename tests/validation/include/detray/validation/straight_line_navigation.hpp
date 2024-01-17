@@ -39,13 +39,17 @@ class straight_line_navigation : public test::fixture_base<> {
     using scalar_t = typename detector_t::scalar_type;
     using transform3_t = typename detector_t::transform3;
     using ray_t = detail::ray<transform3_t>;
+    // using track_generator_t = uniform_track_generator<track_t>;
+    using uniform_gen_t =
+        random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>,
+                       std::seed_seq>;
+    using track_generator_t = random_track_generator<ray_t, uniform_gen_t>;
 
     public:
     using fixture_type = test::fixture_base<>;
 
     struct config : public fixture_type::configuration {
-        using trk_gen_config_t =
-            typename uniform_track_generator<ray_t>::configuration;
+        using trk_gen_config_t = typename track_generator_t::configuration;
 
         std::string m_name{"straight_line_navigation"};
         trk_gen_config_t m_trk_gen_cfg{};
@@ -123,8 +127,7 @@ class straight_line_navigation : public test::fixture_base<> {
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};
-        auto ray_generator =
-            uniform_track_generator<ray_t>(m_cfg.track_generator());
+        auto ray_generator = track_generator_t(m_cfg.track_generator());
 
         std::cout << "INFO: Running straight line navigation check on: "
                   << m_names.at(0) << "\n(" << ray_generator.size()

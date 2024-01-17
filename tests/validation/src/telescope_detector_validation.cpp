@@ -51,7 +51,8 @@ int main(int argc, char **argv) {
     // Navigation link consistency, discovered by ray intersection
     ray_scan<tel_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("telescope_detector_ray_scan");
-    cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    // cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
     cfg_ray_scan.track_generator().origin({0.f, 0.f, -0.05f});
     cfg_ray_scan.track_generator().theta_range(constant<scalar_t>::pi_4,
                                                constant<scalar_t>::pi_2);
@@ -63,7 +64,8 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("telescope_detector_helix_scan");
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
     cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
-    cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    // cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().theta_range(constant<scalar_t>::pi_4,
                                                constant<scalar_t>::pi_2);
     detray::detail::register_checks<detray::helix_scan>(tel_det, tel_names,
@@ -72,7 +74,8 @@ int main(int argc, char **argv) {
     // Comparision of straight line navigation with ray scan
     straight_line_navigation<tel_detector_t>::config cfg_str_nav{};
     cfg_str_nav.name("telescope_detector_straight_line_navigation");
-    cfg_str_nav.track_generator().theta_steps(100u).phi_steps(100u);
+    // cfg_str_nav.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_str_nav.track_generator().n_tracks(10000u);
     cfg_str_nav.track_generator().origin({0.f, 0.f, -0.05f});
     cfg_str_nav.track_generator().theta_range(constant<scalar_t>::pi_4,
                                               constant<scalar_t>::pi_2);
@@ -84,7 +87,8 @@ int main(int argc, char **argv) {
     helix_navigation<tel_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("telescope_detector_helix_navigation");
     cfg_hel_nav.track_generator() = cfg_hel_scan.track_generator();
-    cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
+    // cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_hel_nav.track_generator().n_tracks(10000u);
 
     detail::register_checks<helix_navigation>(tel_det, tel_names, cfg_hel_nav);
 

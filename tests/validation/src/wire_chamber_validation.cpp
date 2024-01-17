@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
     ray_scan<wire_chamber_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("wire_chamber_ray_scan");
     // Number of rays in theta and phi
-    cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    // cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
 
     detail::register_checks<ray_scan>(det, names, cfg_ray_scan);
 
@@ -58,7 +59,8 @@ int main(int argc, char **argv) {
     helix_scan<wire_chamber_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("wire_chamber_helix_scan");
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
-    cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    // cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_hel_scan.track_generator().n_tracks(10000u);
 
     detray::detail::register_checks<detray::helix_scan>(det, names,
                                                         cfg_hel_scan);
@@ -67,7 +69,8 @@ int main(int argc, char **argv) {
     straight_line_navigation<wire_chamber_t>::config cfg_str_nav{};
     cfg_str_nav.name("wire_chamber_straight_line_navigation");
     cfg_str_nav.propagation().search_window = {2u, 2u};
-    cfg_str_nav.track_generator().theta_steps(100u).phi_steps(100u);
+    // cfg_str_nav.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_str_nav.track_generator().n_tracks(10000u);
 
     detail::register_checks<straight_line_navigation>(det, names, cfg_str_nav);
 
@@ -78,7 +81,8 @@ int main(int argc, char **argv) {
     cfg_hel_nav.track_generator() = cfg_hel_scan.track_generator();
     // TODO: Fails for more helices
     // cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
-    cfg_hel_nav.track_generator().theta_steps(25u).phi_steps(25u);
+    // cfg_hel_nav.track_generator().theta_steps(25u).phi_steps(25u);
+    cfg_hel_nav.track_generator().n_tracks(625u);
 
     detail::register_checks<helix_navigation>(det, names, cfg_hel_nav);
 

@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
     ray_scan<toy_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("toy_detector_ray_scan");
     // Number of rays in theta and phi
-    cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    // cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
 
     detail::register_checks<ray_scan>(toy_det, toy_names, cfg_ray_scan);
 
@@ -58,7 +59,7 @@ int main(int argc, char **argv) {
     helix_scan<toy_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("toy_detector_helix_scan");
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
-    cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_hel_scan.track_generator().n_tracks(10000u);
 
     detray::detail::register_checks<detray::helix_scan>(toy_det, toy_names,
                                                         cfg_hel_scan);
@@ -67,7 +68,7 @@ int main(int argc, char **argv) {
     straight_line_navigation<toy_detector_t>::config cfg_str_nav{};
     cfg_str_nav.name("toy_detector_straight_line_navigation");
     cfg_str_nav.propagation().search_window = {3u, 3u};
-    cfg_str_nav.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_str_nav.track_generator().n_tracks(10000u);
 
     detail::register_checks<straight_line_navigation>(toy_det, toy_names,
                                                       cfg_str_nav);
@@ -80,7 +81,7 @@ int main(int argc, char **argv) {
     // TODO: Fails due to mask tolerances for more helices, regardless of edc
     // configuration/precision
     // cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
-    cfg_hel_nav.track_generator().theta_steps(50u).phi_steps(50u);
+    cfg_hel_nav.track_generator().n_tracks(10000u);
 
     detail::register_checks<helix_navigation>(toy_det, toy_names, cfg_hel_nav);
 

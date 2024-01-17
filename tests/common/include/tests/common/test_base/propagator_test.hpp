@@ -63,7 +63,7 @@ constexpr scalar rk_tolerance{1e-4f};
 constexpr scalar overstep_tolerance{-3.f * unit<scalar>::um};
 constexpr scalar constrainted_step_size{2.f * unit<scalar>::mm};
 constexpr scalar is_close{1e-4f};
-constexpr scalar path_limit{2.f * unit<scalar>::m};
+constexpr scalar path_limit{5.f * unit<scalar>::m};
 
 template <template <typename...> class vector_t>
 struct track_inspector : actor {
@@ -120,18 +120,15 @@ using actor_chain_device_t =
                 parameter_resetter<transform3>>;
 
 /// Precompute the tracks
-inline vecmem::vector<track_t> generate_tracks(
-    vecmem::memory_resource *mr, const unsigned int ts = theta_steps,
-    const unsigned int ps = phi_steps) {
+template <typename track_generator_t = uniform_track_generator<track_t>>
+inline auto generate_tracks(vecmem::memory_resource *mr,
+                            typename track_generator_t::config &cfg = {}) {
 
     // Track collection
-    vecmem::vector<track_t> tracks(mr);
-
-    // Set momentum of tracks
-    const scalar p_mag{10.f * unit<scalar>::GeV};
+    vecmem::vector<typename track_generator_t::track_type> tracks(mr);
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<track_t>(ps, ts, p_mag)) {
+    for (auto track : track_generator_t{cfg}) {
         // Put it into vector of trajectories
         tracks.push_back(track);
     }
