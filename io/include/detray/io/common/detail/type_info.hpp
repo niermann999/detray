@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/coordinates.hpp"
+#include "detray/geometry/coordinates/coordinates.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/io/frontend/definitions.hpp"

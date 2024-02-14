@@ -8,11 +8,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
-#include "detray/coordinates/cartesian3.hpp"
 #include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/cartesian2.hpp"
+#include "detray/geometry/coordinates/cartesian3.hpp"
 
 // System include(s)
 #include <limits>

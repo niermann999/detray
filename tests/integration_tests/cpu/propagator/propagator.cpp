@@ -76,7 +76,7 @@ struct helix_inspector : actor {
         }
 
         // Surface
-        const auto sf = surface{*navigation.detector(),
+        /*const auto sf = surface{*navigation.detector(),
                                 stepping._bound_params.surface_link()};
 
         const auto free_vec =
@@ -110,7 +110,7 @@ struct helix_inspector : actor {
                     matrix_operator().element(true_J, i, j),
                     stepping._s * tol * 10.f);
             }
-        }
+        }*/
     }
 };
 

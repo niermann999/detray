@@ -7,32 +7,29 @@
 
 #pragma once
 
-// Project include(s).
-#include "detray/coordinates/coordinate_base.hpp"
+// Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray {
 
-/** Frame projection into a cartesian coordinate frame
- */
+/// Frame projection into a 3D cylindrical coordinate frame
 template <typename transform3_t>
-struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
+struct cylindrical3 {
 
     /// @name Type definitions for the struct
     /// @{
 
-    /// Base type
-    using base_type = coordinate_base<cylindrical3, transform3_t>;
-
+    using transform3_type = transform3_t;
     /// Sclar type
-    using scalar_type = typename base_type::scalar_type;
+    using scalar_type = typename transform3_type::scalar_type;
     /// Point in 2D space
-    using point2 = typename base_type::point2;
+    using point2 = typename transform3_type::point2;
     /// Point in 3D space
-    using point3 = typename base_type::point3;
+    using point3 = typename transform3_type::point3;
     /// Vector in 3D space
-    using vector3 = typename base_type::vector3;
+    using vector3 = typename transform3_type::vector3;
 
     // Local point type in 3D cylindrical coordinates
     using loc_point = point3;
@@ -42,8 +39,9 @@ struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
     /** This method transforms a point from a global cartesian 3D frame to a
      * local 3D cylindrical point */
     DETRAY_HOST_DEVICE
-    inline point3 global_to_local(const transform3_t &trf, const point3 &p,
-                                  const vector3 & /*d*/) const {
+    static inline point3 global_to_local(const transform3_t &trf,
+                                         const point3 &p,
+                                         const vector3 & /*d*/) {
         const auto local3 = trf.point_to_local(p);
         return {getter::perp(local3), getter::phi(local3), local3[2]};
     }
@@ -51,15 +49,15 @@ struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
     /** This method transforms a point from a global cartesian 3D frame to a
      * bound 3D cylindrical point */
     DETRAY_HOST_DEVICE
-    inline loc_point project_to_axes(const transform3_t &trf, const point3 &p,
-                                     const vector3 &d) const {
-        return global_to_local(trf, p, d);
+    static inline loc_point project_to_axes(const transform3_t &trf,
+                                            const point3 &p, const vector3 &d) {
+        return cylindrical3<transform3_t>::global_to_local(trf, p, d);
     }
 
     /** This method transform from a local 3D cylindrical point to a point
      * global cartesian 3D frame*/
-    DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,
-                                                     const point3 &p) const {
+    DETRAY_HOST_DEVICE static inline point3 local_to_global(
+        const transform3_t &trf, const point3 &p) {
         const scalar_type x{p[0] * math::cos(p[1])};
         const scalar_type y{p[0] * math::sin(p[1])};
 

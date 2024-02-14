@@ -13,6 +13,7 @@
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/detail/jacobian_engine.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -644,7 +645,8 @@ bound_track_parameters<transform3_type> get_initial_parameter(
                                                           hlx._qop);
 
     const auto bound_vec =
-        surface{det, departure_sf}.free_to_bound_vector({}, free_par.vector());
+        detray::detail::jacobian_engine<typename mask_t::local_frame_type>::
+            free_to_bound_vector({}, free_par.vector());
 
     bound_track_parameters<transform3_type> ret;
     ret.set_surface_link(geometry::barcode{0u});
@@ -954,7 +956,11 @@ get_displaced_bound_vector_helix(
     unsigned int target_index, scalar displacement, const detector_t& det,
     const scalar helix_tolerance) {
 
-    const auto& departure_sf = det.surface(0u);
+    using mask_t =
+        typename detector_t::mask_container::template get_type<mask_id>;
+
+    using jacobian_engine_t =
+        detray::detail::jacobian_engine<typename mask_t::local_frame_type>;
 
     const auto& destination_sf = det.surface(1u);
     const auto& trf_link = destination_sf.transform();
@@ -965,8 +971,7 @@ get_displaced_bound_vector_helix(
 
     auto dvec = track.vector();
     getter::element(dvec, target_index, 0u) += displacement;
-    const auto free_vec =
-        surface{det, departure_sf}.bound_to_free_vector({}, dvec);
+    const auto free_vec = jacobian_engine_t::bound_to_free_vector({}, dvec);
     detail::helix<transform3_type> hlx(free_vec, &field);
 
     using mask_t =
@@ -981,8 +986,9 @@ get_displaced_bound_vector_helix(
 
     const free_track_parameters<transform3_type> new_free_par(pos, 0, dir,
                                                               hlx._qop);
-    auto new_bound_vec = surface{det, destination_sf}.free_to_bound_vector(
-        {}, new_free_par.vector());
+
+    auto new_bound_vec =
+        jacobian_engine_t::free_to_bound_vector({}, new_free_par.vector());
 
     // phi needs to be wrapped w.r.t. phi of the reference vector
     wrap_angles(dvec, new_bound_vec);
@@ -997,6 +1003,12 @@ void evaluate_jacobian_difference_helix(
     const std::array<scalar, 5u> hs, std::ofstream& file,
     const scalar helix_tolerance) {
 
+    using mask_t =
+        typename detector_t::mask_container::template get_type<mask_id>;
+
+    using jacobian_engine_t =
+        detray::detail::jacobian_engine<typename mask_t::local_frame_type>;
+
     const auto phi0 = track.phi();
     const auto theta0 = track.theta();
     (void)phi0;
@@ -1005,11 +1017,11 @@ void evaluate_jacobian_difference_helix(
     // Get bound to free Jacobi
     const auto& departure_sf = det.surface(0u);
     const auto bound_to_free_jacobi =
-        surface{det, departure_sf}.bound_to_free_jacobian({}, track.vector());
+        jacobian_engine_t::bound_to_free_jacobian({}, track.vector());
 
     // Get fre vector
     const auto free_vec =
-        surface{det, departure_sf}.bound_to_free_vector({}, track.vector());
+        jacobian_engine_t::bound_to_free_vector({}, track.vector());
     // Helix from the departure surface
     detail::helix<transform3_type> hlx(free_vec, &field);
 
@@ -1020,8 +1032,6 @@ void evaluate_jacobian_difference_helix(
     const auto& destination_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    using mask_t =
-        typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, transform3_type> hlx_is{};
     hlx_is.convergence_tolerance = helix_tolerance;
 
@@ -1044,25 +1054,25 @@ void evaluate_jacobian_difference_helix(
     const auto qop = hlx._qop;
 
     // Get correction term
+
     const auto correction_term =
         matrix_operator().template identity<e_free_size, e_free_size>() +
-        surface{det, destination_sf}.path_correction(
+        jacobian_engine_t::path_correction(
             {}, pos, dir, qop * vector::cross(dir, field), 0.f);
 
     const free_track_parameters<transform3_type> free_par(pos, 0.f, dir, qop);
 
     // Get free to bound Jacobi
     const auto free_to_bound_jacobi =
-        surface{det, destination_sf}.free_to_bound_jacobian({},
-                                                            free_par.vector());
+        jacobian_engine_t::free_to_bound_jacobian({}, free_par.vector());
 
     // Get full Jacobi
     const auto reference_jacobian = free_to_bound_jacobi * correction_term *
                                     transport_jacobi * bound_to_free_jacobi;
 
     // Get bound vector
-    const auto bound_vec = surface{det, destination_sf}.free_to_bound_vector(
-        {}, free_par.vector());
+    const auto bound_vec =
+        jacobian_engine_t::free_to_bound_vector({}, free_par.vector());
 
     /******************************
      *  Numerical differentiation

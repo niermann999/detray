@@ -6,7 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/coordinates/cartesian3.hpp"
+#include "detray/geometry/coordinates/cartesian3.hpp"
 
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"

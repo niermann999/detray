@@ -8,8 +8,9 @@
 // detray core
 #include "detray/utils/grid/detail/axis.hpp"
 
-#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates/coordinates.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"

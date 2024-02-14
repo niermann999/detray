@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cylindrical2.hpp"
+#include "detray/geometry/coordinates/cylindrical2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/detail/ray.hpp"

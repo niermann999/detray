@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/coordinates/coordinates.hpp"
+#include "detray/geometry/coordinates/coordinates.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"

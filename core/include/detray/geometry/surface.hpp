@@ -226,7 +226,7 @@ class surface {
     }
 
     /// @returns the track parametrization projected onto the surface (bound)
-    DETRAY_HOST_DEVICE
+    /*DETRAY_HOST_DEVICE
     constexpr auto free_to_bound_vector(
         const context &ctx, const free_vector_type &free_vec) const {
         return visit_mask<typename kernels::free_to_bound_vector>(
@@ -266,7 +266,7 @@ class surface {
                                    const scalar dqopds) const {
         return visit_mask<typename kernels::path_correction>(
             transform(ctx), pos, dir, dtds, dqopds);
-    }
+    }*/
 
     /// @returns the vertices in local frame with @param n_seg the number of
     /// segments used along acrs
@@ -302,7 +302,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&...args) const {
         const auto &masks = m_detector.mask_store();
 
         return masks.template visit<functor_t>(m_desc.mask(),
@@ -314,7 +314,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
         const auto &materials = m_detector.material_store();
 
         return materials.template visit<functor_t>(m_desc.material(),

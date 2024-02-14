@@ -12,6 +12,7 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/detail/jacobian_engine.hpp"
 
 namespace detray {
 
@@ -39,20 +40,22 @@ struct parameter_resetter : actor {
             const mask_group_t& mask_group, const index_t& index,
             const transform3_t& trf3, stepper_state_t& stepping) const {
 
+            using frame_t = typename mask_group_t::value_type::shape::
+                template local_frame_type<transform3_t>;
+            using jacobian_engine_t = detail::jacobian_engine<frame_t>;
+
             // Note: How is it possible with "range"???
             const auto& mask = mask_group[index];
 
-            auto local_coordinate = mask.local_frame();
-
             // Reset the free vector
-            stepping().set_vector(local_coordinate.bound_to_free_vector(
+            stepping().set_vector(jacobian_engine_t::bound_to_free_vector(
                 trf3, mask, stepping._bound_params.vector()));
 
             // Reset the path length
             stepping._s = 0;
 
             // Reset jacobian coordinate transformation at the current surface
-            stepping._jac_to_global = local_coordinate.bound_to_free_jacobian(
+            stepping._jac_to_global = jacobian_engine_t::bound_to_free_jacobian(
                 trf3, mask, stepping._bound_params.vector());
 
             // Reset jacobian transport to identity matrix

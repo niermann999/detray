@@ -151,7 +151,7 @@ struct surface_kernels {
     };
 
     /// A functor to get from a free to a bound vector
-    struct free_to_bound_vector {
+    /*struct free_to_bound_vector {
 
         // Visitor to the detector mask store that is called on the mask
         // collection that contains the mask (shape) type of the surface
@@ -243,7 +243,7 @@ struct surface_kernels {
 
             return mask_group[index].vertices(n_seg);
         }
-    };
+    };*/
 };
 
 }  // namespace detray::detail

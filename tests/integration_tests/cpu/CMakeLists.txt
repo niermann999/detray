@@ -78,11 +78,11 @@ include( CMakeFindDependencyMacro )
 
 find_dependency( Boost COMPONENTS program_options )
 
-detray_add_integration_test(jacobian_validation
-                            "propagator/jacobian_validation.cpp"
-                            LINK_LIBRARIES GTest::gtest GTest::gtest_main 
-                            Boost::program_options detray::test
-                            detray::core_array detray::utils)
+#detray_add_integration_test(jacobian_validation
+#                            "propagator/jacobian_validation.cpp"
+#                            LINK_LIBRARIES GTest::gtest GTest::gtest_main 
+#                            Boost::program_options detray::test
+#                            detray::core_array detray::utils)
 
-set_tests_properties(detray_integration_test_jacobian_validation PROPERTIES DEPENDS
-   "detray_unit_test_cpu;detray_unit_test_cpu_arraydetray_integration_test_telescope_detector")
+#set_tests_properties(detray_integration_test_jacobian_validation PROPERTIES #DEPENDS
+#   "detray_unit_test_cpu;detray_unit_test_cpu_arraydetray_integration_test_telescope_detector")

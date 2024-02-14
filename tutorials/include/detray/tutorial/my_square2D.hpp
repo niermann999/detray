@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
+#include "detray/geometry/coordinates/cartesian2.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)

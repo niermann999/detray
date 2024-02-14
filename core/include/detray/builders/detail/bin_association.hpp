@@ -10,9 +10,9 @@
 
 // Project include(s)
 #include "detray/builders/detail/associator.hpp"
-#include "detray/coordinates/concentric_cylindrical2.hpp"
-#include "detray/coordinates/cylindrical2.hpp"
-#include "detray/coordinates/polar2.hpp"
+#include "detray/geometry/coordinates/concentric_cylindrical2.hpp"
+#include "detray/geometry/coordinates/cylindrical2.hpp"
+#include "detray/geometry/coordinates/polar2.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/vertexing.hpp"
 #include "detray/utils/grid/populators.hpp"

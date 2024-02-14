@@ -8,8 +8,8 @@
 // detray core
 #include "detray/utils/grid/serializers.hpp"
 
-#include "detray/coordinates/cylindrical3.hpp"
-#include "detray/coordinates/polar2.hpp"
+#include "detray/geometry/coordinates/cylindrical3.hpp"
+#include "detray/geometry/coordinates/polar2.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/test/types.hpp"
