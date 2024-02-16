@@ -65,15 +65,6 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         return {getter::perp(local3), getter::phi(local3), local3[2]};
     }
 
-    /** This method transforms a point from a global cartesian 3D frame to a
-     * bound 2D polar point */
-    DETRAY_HOST_DEVICE
-    inline loc_point project_to_axes(const transform3_t &trf, const point3 &p,
-                                     const vector3 & /*d*/) const {
-        const auto local3 = trf.point_to_local(p);
-        return {getter::perp(local3), getter::phi(local3)};
-    }
-
     /** This method transform from a local 2D polar point to a point global
      * cartesian 3D frame*/
     DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,

@@ -8,11 +8,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/geometry/detail/vertexing.hpp"
 
 // System include(s)
@@ -59,7 +60,7 @@ class annulus2D {
 
     /// Local coordinate frame ( focal system )
     template <typename algebra_t>
-    using local_frame_type = polar2<algebra_t>;
+    using local_frame_type = polar2D<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
@@ -106,7 +107,7 @@ class annulus2D {
         // Now go to beam frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
-        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.f};
+        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y]};
         const scalar_t shift_r{getter::perp(shift_xy)};
         const scalar_t shift_phi{getter::phi(shift_xy)};
 

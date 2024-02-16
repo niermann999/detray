@@ -9,30 +9,24 @@
 
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/local_frame.hpp"
 
 namespace detray {
 
 /// Frame projection into a cartesian coordinate frame
-template <typename transform3_t>
-struct cartesian3D final : public local_frame<cartesian3D<algebra_t>> {
+template <typename algebra_t>
+struct cartesian3D final : public local_frame<cartesian3D, algebra_t> {
 
     /// @name Linear algebra types
     /// @{
-
-    // Transform type
     using transform3_type = algebra_t;
-    // Sclar type
     using scalar_type = typename algebra_t::scalar_type;
-    // Point in 2D space
     using point2 = typename algebra_t::point2;
-    // Point in 3D space
     using point3 = typename algebra_t::point3;
-    // Vector in 3D space
     using vector3 = typename algebra_t::vector3;
 
     // Local point type in 3D cartesian coordinates
-    using loc_point = point3;
-
+    using local_point = point3;
     /// @}
 
     /// Projection into the local frame of a reference surface
@@ -46,9 +40,9 @@ struct cartesian3D final : public local_frame<cartesian3D<algebra_t>> {
     ///
     /// @returns the projected point
     DETRAY_HOST_DEVICE
-    static constexpr loc_point project(const transform3 &/*trf*/,
-                                       const point3 &p,
-                                       const vector3 &/*d*/) {
+    static constexpr local_point project(const transform3_type & /*trf*/,
+                                         const point3 &p,
+                                         const vector3 & /*d*/) {
         return p;
     }
 
@@ -57,19 +51,17 @@ struct cartesian3D final : public local_frame<cartesian3D<algebra_t>> {
     /// @param p the point to be projected
     ///
     /// @returns the projected point
-        template <typename mask_t>
-    DETRAY_HOST_DEVICE
-    static constexpr point3 project(
-        const transform3_t &/*trf*/, const mask_t &/*mask*/, const loc_point &p,
-        const vector3 &/*d*/) {
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE static constexpr point3 project(
+        const transform3_type & /*trf*/, const mask_t & /*mask*/,
+        const local_point &p, const vector3 & /*d*/) {
         return p;
     }
 
     /// @returns the normal vector in global coordinates
     template <typename mask_t>
-    DETRAY_HOST_DEVICE static constexpr vector3 normal(const transform3 &trf,
-                                                       const point2 & = {},
-                                                       const mask_t & = {}) {
+    DETRAY_HOST_DEVICE static constexpr vector3 normal(
+        const transform3_type &trf, const point2 & = {}, const mask_t & = {}) {
         return trf.z();
     }
     /// @}

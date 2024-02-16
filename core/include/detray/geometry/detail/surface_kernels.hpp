@@ -99,30 +99,18 @@ struct surface_kernels {
         }
     };
 
-    /// A functor to perform global to local bound transformation
-    struct global_to_bound {
+    /// A functor to perform global to local transformation
+    struct global_to_local {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point2 operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3& trf3, const point3& global,
             const vector3& dir) const {
 
-            const point3 local =
-                mask_group[index].to_local_frame(trf3, global, dir);
+            using local_frame =
+                typename mask_group_t::value_type::local_frame_type;
 
-            return {local[0], local[1]};
-        }
-    };
-
-    /// A functor to perform global to local transformation
-    struct global_to_local {
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point3 operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& global,
-            const vector3& dir) const {
-
-            return mask_group[index].to_local_frame(trf3, global, dir);
+            return local_frame::global_to_local(trf3, global, dir);
         }
     };
 
@@ -132,13 +120,12 @@ struct surface_kernels {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point3 operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point2& bound,
-            const vector3& dir) const {
+            const transform3& trf3, const point2& p, const vector3& d) const {
 
-            const auto& m = mask_group[index];
+            using local_frame =
+                typename mask_group_t::value_type::local_frame_type;
 
-            return mask_group[index].local_frame().bound_local_to_global(
-                trf3, m, bound, dir);
+            return local_frame::local_to_global(trf3, mask_group[index], p, d);
         }
 
         template <typename mask_group_t, typename index_t>

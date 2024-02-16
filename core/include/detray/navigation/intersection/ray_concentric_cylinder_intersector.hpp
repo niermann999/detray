@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -106,7 +106,7 @@ struct ray_concentric_cylinder_intersector {
 
                 const point3 p3 = candidates[cindex];
                 const scalar_type phi{getter::phi(p3)};
-                is.local = {r * phi, p3[2], r};
+                is.local = {r * phi, p3[2]};
 
                 is.path = t01[cindex];
                 // In this case, the point has to be in cylinder3 coordinates

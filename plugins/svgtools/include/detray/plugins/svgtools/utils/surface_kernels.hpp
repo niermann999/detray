@@ -105,14 +105,14 @@ struct link_start_getter {
 
         using shape_t = detray::ring2D;
         using mask_t = detray::mask<shape_t>;
-        using point3_t = typename mask_t::point3_t;
+        using point2_t = typename mask_t::point2_t;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{0.5f *
                          (mask[shape_t::e_inner_r] + mask[shape_t::e_outer_r])};
         const scalar_t phi{detray::constant<scalar_t>::pi_2};
 
-        return mask.to_global_frame(transform, point3_t{r, phi, 0.f});
+        return mask.to_global_frame(transform, point2_t{r, phi});
     }
 
     // Calculates the (optimal) link starting point for annuluses.
@@ -122,14 +122,14 @@ struct link_start_getter {
 
         using shape_t = detray::annulus2D;
         using mask_t = detray::mask<shape_t>;
-        using point3_t = typename mask_t::point3_t;
+        using point2_t = typename mask_t::point2_t;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{(mask[shape_t::e_min_r] + mask[shape_t::e_max_r]) /
                          2.f};
         const scalar_t phi{mask[shape_t::e_average_phi]};
 
-        return mask.to_global_frame(transform, point3_t{r, phi, 0.f});
+        return mask.to_global_frame(transform, point2_t{r, phi});
     }
 
     // Calculates the (optimal) link starting point for cylinders (2D).
@@ -141,7 +141,7 @@ struct link_start_getter {
     auto inline link_start(const detray::mask<shape_t>& mask,
                            const transform_t& transform) const {
         using mask_t = detray::mask<shape_t>;
-        using point3_t = typename mask_t::point3_t;
+        using point2_t = typename mask_t::point2_t;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{mask[shape_t::e_r]};
@@ -149,7 +149,7 @@ struct link_start_getter {
         // Shift the center to the actual cylider bounds
         const scalar_t z{mask.centroid()[2]};
 
-        return mask.to_global_frame(transform, point3_t{r * phi, z, r});
+        return mask.to_global_frame(transform, point2_t{r * phi, z});
     }
 
     // Calculates the (optimal) link starting point for cylinders (3D).

@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/line2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/line2D.hpp"
 #include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
@@ -28,10 +28,11 @@ struct helix_intersector_impl;
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
 template <typename algebra_t>
-struct helix_intersector_impl<line2<algebra_t>, algebra_t> {
+struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
     using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
+    using point2 = typename transform3_type::point2;
     using point3 = typename transform3_type::point3;
     using vector3 = typename transform3_type::vector3;
 
@@ -148,7 +149,7 @@ struct helix_intersector_impl<line2<algebra_t>, algebra_t> {
         sfi.path = s;
         sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
 
-        const point3 local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
+        const point2 local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
         sfi.status = mask.is_inside(local, mask_tolerance);
 
         // Compute some additional information if the intersection is valid

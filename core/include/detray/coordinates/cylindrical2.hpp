@@ -69,16 +69,6 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                 getter::perp(local3)};
     }
 
-    /// @returns the projection of a global position onto the grid axis
-    /// @note Does not scale with r, due to projection effects in the navigation
-    DETRAY_HOST_DEVICE
-    inline loc_point project_to_axes(const transform3_t &trf, const point3 &p,
-                                     const vector3 & /*d*/) const {
-        const auto local3 = trf.point_to_local(p);
-
-        return {getter::perp(local3) * getter::phi(local3), local3[2]};
-    }
-
     /** This method transform from a local 2D cylindrical point to a point
      * global cartesian 3D frame*/
     DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,

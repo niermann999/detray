@@ -13,25 +13,16 @@
 namespace detray {
 
 /// Tranformation to a local coordinate frame
-template <class impl>
+template <template <typename> class impl, typename algebra_t>
 struct local_frame {
 
     /// @name Linear algebra types of the local frame implementation
     /// @{
-
-    // Transform type
-    using transform3_type = typename impl::transform3;
-    // Scalar type
-    using scalar_type = typename impl::scalar_type;
-    // Point in 2D space
-    using point2 = typename impl::point2;
-    // Point in 3D space
-    using point3 = typename impl::point3;
-    // Vector in 3D space
-    using vector3 = typename impl::vector3;
-    // Local point type
-    using local_point = typename impl::local_point;
-
+    using transform3_type = algebra_t;
+    using scalar_type = typename algebra_t::scalar_type;
+    using point2 = typename algebra_t::point2;
+    using point3 = typename algebra_t::point3;
+    using vector3 = typename algebra_t::vector3;
     /// @}
 
     /// @brief Tranform from the global frame to the local frame
@@ -42,12 +33,11 @@ struct local_frame {
     ///
     /// @returns a point in the local frame
     DETRAY_HOST_DEVICE
-    static constexpr local_point global_to_local(const transform3 &trf,
-                                            const point3 &p,
-                                            const vector3 &d) {
-        point3 loc_cartesian3D = trf.point_to_local(p);
+    static constexpr decltype(auto) global_to_local(const transform3_type &trf,
+                                                    const point3 &p,
+                                                    const vector3 &d) {
 
-        return impl::project(trf, loc_cartesian3D, d);
+        return impl<algebra_t>::project(trf, trf.point_to_local(p), d);
     }
 
     /// @brief Tranform from the local frame to the global frame
@@ -57,12 +47,12 @@ struct local_frame {
     /// @param d additional direction needed by some local frames
     ///
     /// @returns a vector in the local frame
-    DETRAY_HOST_DEVICE
-    static constexpr point3 local_to_global(
-        const transform3_t &trf, const mask_t &mask, const loc_point &loc_p,
-        const vector3 &d) {
+    template <typename mask_t, typename loc_point_t>
+    DETRAY_HOST_DEVICE static constexpr point3 local_to_global(
+        const transform3_type &trf, const mask_t &mask,
+        const loc_point_t &loc_p, const vector3 &d) {
 
-        point3 loc_cartesian3D = impl::project(trf, mask, loc_p, d);
+        point3 loc_cartesian3D = impl<algebra_t>::project(trf, mask, loc_p, d);
 
         return trf.point_to_global(loc_cartesian3D);
     }

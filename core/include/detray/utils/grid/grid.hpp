@@ -266,7 +266,7 @@ class grid_impl {
     DETRAY_HOST_DEVICE point_type project(const transform_t &trf,
                                           const point3_t &p,
                                           const vector3_t &d) const {
-        return local_frame().project_to_axes(trf, p, d);
+        return local_frame_type::global_to_local(trf, p, d);
     }
 
     /// Interface for the navigator
@@ -277,7 +277,7 @@ class grid_impl {
 
         // Track position in grid coordinates
         const auto &trf = det.transform_store()[volume.transform()];
-        const auto loc_pos = project(trf, track.pos(), track.dir());
+        const point_type loc_pos = project(trf, track.pos(), track.dir());
 
         // Grid lookup
         return search(loc_pos, cfg.search_window);

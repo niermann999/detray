@@ -191,19 +191,10 @@ class surface {
         return vector::dot(dir, normal(ctx, p));
     }
 
-    /// @returns the bound (2D) position to the global point @param global for
-    /// a given geometry context @param ctx and track direction @param dir
-    DETRAY_HOST_DEVICE
-    constexpr point2 global_to_bound(const context &ctx, const point3 &global,
-                                     const vector3 &dir) const {
-        return visit_mask<typename kernels::global_to_bound>(transform(ctx),
-                                                             global, dir);
-    }
-
     /// @returns the local position to the global point @param global for
     /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
-    constexpr point3 global_to_local(const context &ctx, const point3 &global,
+    constexpr point2 global_to_local(const context &ctx, const point3 &global,
                                      const vector3 &dir) const {
         return visit_mask<typename kernels::global_to_local>(transform(ctx),
                                                              global, dir);
@@ -212,7 +203,7 @@ class surface {
     /// @returns the global position to the given local position @param local
     /// for a given geometry context @param ctx
     DETRAY_HOST_DEVICE constexpr point3 local_to_global(
-        const context &ctx, const point3 &local, const vector3 &dir) const {
+        const context &ctx, const point2 &local, const vector3 &dir) const {
         return visit_mask<typename kernels::local_to_global>(transform(ctx),
                                                              local, dir);
     }
@@ -302,7 +293,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&...args) const {
         const auto &masks = m_detector.mask_store();
 
         return masks.template visit<functor_t>(m_desc.mask(),
@@ -314,7 +305,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
         const auto &materials = m_detector.material_store();
 
         return materials.template visit<functor_t>(m_desc.material(),

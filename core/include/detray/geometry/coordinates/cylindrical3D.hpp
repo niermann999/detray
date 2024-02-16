@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,30 +11,24 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/local_frame.hpp"
 
 namespace detray {
 
-/// Local frame projection into a 2D cylindrical coordinate frame
-template <typename transform3_t>
-struct cylindrical2D final : public local_frame<cylindrical2D<algebra_t>> {
+/// Frame projection into a 3D cylindrical coordinate frame
+template <typename algebra_t>
+struct cylindrical3D final : public local_frame<cylindrical3D, algebra_t> {
 
-    /// @name Linear algebra types
+    /// @name Type definitions for the struct
     /// @{
-
-    // Transform type
     using transform3_type = algebra_t;
-    // Sclar type
     using scalar_type = typename algebra_t::scalar_type;
-    // Point in 2D space
     using point2 = typename algebra_t::point2;
-    // Point in 3D space
     using point3 = typename algebra_t::point3;
-    // Vector in 3D space
     using vector3 = typename algebra_t::vector3;
 
-    // Local point type in 2D cylinderical coordinates
-    using loc_point = point2;
-
+    // Local point type in 3D cylinderical coordinates
+    using local_point = point3;
     /// @}
 
     /// @brief Tranform from the global frame to the local frame
@@ -44,10 +38,10 @@ struct cylindrical2D final : public local_frame<cylindrical2D<algebra_t>> {
     ///
     /// @returns a point in the local 3D cartesian frame
     DETRAY_HOST_DEVICE
-    static constexpr loc_point project(const transform3 &/*trf*/,
-                                       const point3 &p,
-                                       const vector3 &/*d*/) {
-        return {getter::perp(p) * getter::phi(p), p[2]};
+    static constexpr local_point project(const transform3_type & /*trf*/,
+                                         const point3 &p,
+                                         const vector3 & /*d*/) {
+        return {getter::perp(p), getter::phi(p), p[2]};
     }
 
     /// Transforms from a local 2D cartesian point that is constrained to a
@@ -58,28 +52,24 @@ struct cylindrical2D final : public local_frame<cylindrical2D<algebra_t>> {
     ///
     /// @returns the point in global coordinates
     template <typename mask_t>
-    DETRAY_HOST_DEVICE
-    static constexpr point3 project(
-        const transform3_t &/*trf*/, const mask_t &mask, const point2 &p,
-        const vector3 &/*d*/) {
+    DETRAY_HOST_DEVICE static constexpr point3 project(
+        const transform3_type & /*trf*/, const mask_t & /*mask*/,
+        const local_point &p, const vector3 & /*d*/) {
 
-        const scalar_type r{mask[mask_t::shape::e_r]};
-        const scalar_type phi{p[0] / r};
-
-        return {r * math::cos(phi), r * math::sin(phi), p[1]};
+        return {p[0] * math::cos(p[1]), p[0] * math::sin(p[1]), p[2]};
     }
 
     /// @returns the normal vector in global coordinates
     template <typename mask_t>
-    DETRAY_HOST_DEVICE static inline vector3 normal(const transform3_t &trf,
+    DETRAY_HOST_DEVICE static inline vector3 normal(const transform3_type &trf,
                                                     const point2 &p,
-                                                    const mask_t &mask) {
-        const scalar_type phi{p[0] / mask[mask_t::shape::e_r]};
-        const vector3 local_normal{math::cos(phi), math::sin(phi), 0.f};
+                                                    const mask_t & /*mask*/) {
+
+        const vector3 local_normal{math::cos(p[1]), math::sin(p[1]), 0.f};
 
         return trf.vector_to_global(local_normal);
     }
 
-};  // struct cylindrical2
+};  // struct cylindrical3
 
 }  // namespace detray

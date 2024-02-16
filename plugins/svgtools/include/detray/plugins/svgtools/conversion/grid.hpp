@@ -11,6 +11,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/surface_kernels.hpp"
 
@@ -35,11 +36,11 @@ template <typename grid_t, typename view_t,
           std::enable_if_t<
               std::is_same_v<
                   typename grid_t::local_frame_type,
-                  detray::concentric_cylindrical2<
+                  detray::concentric_cylindrical2D<
                       typename grid_t::local_frame_type::transform3_type>> ||
                   std::is_same_v<
                       typename grid_t::local_frame_type,
-                      detray::cylindrical2<
+                      detray::cylindrical2D<
                           typename grid_t::local_frame_type::transform3_type>>,
               bool> = true>
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
@@ -74,9 +75,9 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 template <
     typename grid_t, typename view_t,
     std::enable_if_t<
-        std::is_same_v<
-            typename grid_t::local_frame_type,
-            detray::polar2<typename grid_t::local_frame_type::transform3_type>>,
+        std::is_same_v<typename grid_t::local_frame_type,
+                       detray::polar2D<
+                           typename grid_t::local_frame_type::transform3_type>>,
         bool> = true>
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
@@ -157,7 +158,7 @@ struct bin_association_getter {
             // loop over
             constexpr bool is_cyl{
                 std::is_same_v<typename accel_t::local_frame_type,
-                               detray::cylindrical2<transform3_t>>};
+                               detray::cylindrical2D<transform3_t>>};
             if constexpr (is_cyl) {
                 edges0.swap(edges1);
             }

@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+using point2_t = test::point2;
 
 namespace {
 
@@ -30,12 +30,12 @@ constexpr scalar hz{50.f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a line with a radial cross section
 GTEST_TEST(detray_masks, line_radial_cross_sect) {
-    using point_t = point3_t;
+    using point_t = point2_t;
 
-    const point_t ln_in{0.09f, 0.5f, 0.f};
-    const point_t ln_edge{1.f, 50.f, 0.f};
-    const point_t ln_out1{1.2f, 0.f, 0.f};
-    const point_t ln_out2{0.09f, -51.f, 0.f};
+    const point_t ln_in{0.09f, 0.5f};
+    const point_t ln_edge{1.f, 50.f};
+    const point_t ln_out1{1.2f, 0.f};
+    const point_t ln_out2{0.09f, -51.f};
 
     const mask<line<>> ln{0u, cell_size, hz};
 
@@ -65,12 +65,12 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
 
 /// This tests the basic functionality of a line with a square cross section
 GTEST_TEST(detray_masks, line_square_cross_sect) {
-    using point_t = point3_t;
+    using point_t = point2_t;
 
-    const point_t ln_in{1.1f, 0.9f, constant<scalar>::pi_4};
-    const point_t ln_edge{1.f, 1.f, 0.f};
-    const point_t ln_out1{1.1f, 0.f, 0.f};
-    const point_t ln_out2{0.09f, -51.f, 0.f};
+    const point_t ln_in{1.1f, 0.9f};
+    const point_t ln_edge{1.f, 1.f};
+    const point_t ln_out1{1.1f, 0.f};
+    const point_t ln_out2{0.09f, -51.f};
 
     // 50 mm wire with 1 mm square cell sizes
     const mask<line<true>> ln{0u, cell_size, hz};

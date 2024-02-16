@@ -65,15 +65,6 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         return trf3.point_to_local(p);
     }
 
-    /** This method transforms a point from a global cartesian 3D frame to a
-     * bound 2D cartesian point */
-    DETRAY_HOST_DEVICE
-    inline loc_point project_to_axes(const transform3_t &trf3, const point3 &p,
-                                     const vector3 & /*d*/) const {
-        auto loc_p = trf3.point_to_local(p);
-        return {loc_p[0], loc_p[1]};
-    }
-
     /** This method transform from a local 2D cartesian point to a point global
      * cartesian 3D frame*/
     DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf3,

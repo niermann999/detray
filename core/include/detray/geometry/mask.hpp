@@ -48,7 +48,9 @@ class mask {
     using mask_values = array_t<scalar_type, boundaries::e_size>;
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
+    using local_point_t = typename local_frame_type::local_point;
     // Linear algebra types
+    using vector3_t = typename algebra_t::vector3;
     using point3_t = typename algebra_t::point3;
     using point2_t = typename algebra_t::point2;
 
@@ -123,17 +125,17 @@ class mask {
     template <typename transform3_t>
     DETRAY_HOST_DEVICE inline auto to_local_frame(
         const transform3_t& trf, const point3_t& glob_p,
-        const point3_t& glob_dir = {}) const -> point3_t {
+        const point3_t& glob_dir = {}) const -> local_point_t {
         return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
     }
 
     /// @returns the functor that projects a local point to the global
     /// coordinate system
     template <typename transform3_t>
-    DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3_t& trf,
-                                                   const point3_t& loc) const
-        -> point3_t {
-        return local_frame_type{}.local_to_global(trf, loc);
+    DETRAY_HOST_DEVICE inline auto to_global_frame(
+        const transform3_t& trf, const local_point_t& loc,
+        const vector3_t& d = {}) const -> point3_t {
+        return local_frame_type{}.local_to_global(trf, *this, loc, d);
     }
 
     /// @brief Mask this shape onto a surface.
@@ -148,7 +150,7 @@ class mask {
     /// @return an intersection status e_inside / e_outside
     DETRAY_HOST_DEVICE
     inline auto is_inside(
-        const point3_t& loc_p,
+        const local_point_t& loc_p,
         const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         -> intersection::status {
 

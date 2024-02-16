@@ -114,8 +114,8 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
             vector3 v = vector::cross(z_axis, w);
 
             if (i > 0u &&
-                (std::is_same_v<local_frame_type, cylindrical2<transform3>> ||
-                 std::is_same_v<local_frame_type, line2<transform3>>)) {
+                (std::is_same_v<local_frame_type, cylindrical2D<transform3>> ||
+                 std::is_same_v<local_frame_type, line2D<transform3>>)) {
 
                 const vector3 r_axis = vector::cross(w, z_axis);
 

@@ -112,7 +112,7 @@ struct single_axis {
 
     /// @returns the width of a bin
     template <typename... Args>
-    DETRAY_HOST_DEVICE constexpr scalar_type bin_width(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr scalar_type bin_width(Args &&...args) const {
         return m_binning.bin_width(std::forward<Args &&>(args)...);
     }
 
@@ -202,7 +202,7 @@ class multi_axis {
 
     /// Projection onto local coordinate system that is spanned by the axes
     using local_frame_type = local_frame_t;
-    using point_type = typename local_frame_type::loc_point;
+    using point_type = typename local_frame_type::local_point;
 
     using scalar_type =
         typename detray::detail::first_t<axis_ts...>::scalar_type;
