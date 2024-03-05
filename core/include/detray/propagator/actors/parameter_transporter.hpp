@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
@@ -57,32 +58,32 @@ struct parameter_transporter : actor {
         template <typename mask_group_t, typename index_t,
                   typename propagator_state_t>
         DETRAY_HOST_DEVICE inline void operator()(
-            const mask_group_t& mask_group, const index_t& index,
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3, propagator_state_t& propagation) {
+
+            using frame_type =
+                typename mask_group_t::value_type::local_frame_type;
+            using local_coord = detray::local_coordinate<frame_type>;
 
             // Stepper and Navigator states
             auto& stepping = propagation._stepping;
-
-            // Mask
-            const auto& mask = mask_group[index];
-            auto local_coordinate = mask.local_frame();
 
             // Free vector
             const auto& free_vec = stepping().vector();
 
             // Convert free to bound vector
             stepping._bound_params.set_vector(
-                local_coordinate.free_to_bound_vector(trf3, free_vec));
+                local_coord{}.free_to_bound_vector(trf3, free_vec));
 
             // Free to bound jacobian at the destination surface
             const free_to_bound_matrix free_to_bound_jacobian =
-                local_coordinate.free_to_bound_jacobian(trf3, free_vec);
+                local_coord{}.free_to_bound_jacobian(trf3, free_vec);
 
             // Transport jacobian in free coordinate
             free_matrix& free_transport_jacobian = stepping._jac_transport;
 
             // Path correction factor
-            free_matrix path_correction = local_coordinate.path_correction(
+            free_matrix path_correction = local_coord{}.path_correction(
                 stepping().pos(), stepping().dir(), stepping.dtds(),
                 stepping.dqopds(), trf3);
 

@@ -17,6 +17,7 @@
 
 using namespace detray;
 using point2_t = test::point2;
+using point3_t = test::point3;
 
 namespace {
 
@@ -29,7 +30,7 @@ constexpr scalar hz{50.f * unit<scalar>::mm};
 }  // anonymous namespace
 
 /// This tests the basic functionality of a line with a radial cross section
-GTEST_TEST(detray_masks, line_radial_cross_sect) {
+GTEST_TEST(detray_masks, straw_tube) {
     using point_t = point2_t;
 
     const point_t ln_in{0.09f, 0.5f};
@@ -37,10 +38,10 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
     const point_t ln_out1{1.2f, 0.f};
     const point_t ln_out2{0.09f, -51.f};
 
-    const mask<line<>> ln{0u, cell_size, hz};
+    const mask<straw_tube> ln{0u, cell_size, hz};
 
-    ASSERT_NEAR(ln[line<>::e_cross_section], 1.f * unit<scalar>::mm, tol);
-    ASSERT_NEAR(ln[line<>::e_half_z], 50.f * unit<scalar>::mm, tol);
+    ASSERT_NEAR(ln[straw_tube::e_cross_section], 1.f * unit<scalar>::mm, tol);
+    ASSERT_NEAR(ln[straw_tube::e_half_z], 50.f * unit<scalar>::mm, tol);
 
     ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
@@ -64,19 +65,20 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
 }
 
 /// This tests the basic functionality of a line with a square cross section
-GTEST_TEST(detray_masks, line_square_cross_sect) {
-    using point_t = point2_t;
+GTEST_TEST(detray_masks, wire_cell) {
+    using point_t = point3_t;
 
-    const point_t ln_in{1.1f, 0.9f};
-    const point_t ln_edge{1.f, 1.f};
-    const point_t ln_out1{1.1f, 0.f};
-    const point_t ln_out2{0.09f, -51.f};
+    const point_t ln_in{1.1f * std::cos(constant<scalar>::pi_4),
+                        1.1f * std::sin(constant<scalar>::pi_4), 0.9f};
+    const point_t ln_edge{1.f, 0.f, 1.f};
+    const point_t ln_out1{1.1f, 0.f, 0.f};
+    const point_t ln_out2{0.09f, 0.f, -51.f};
 
     // 50 mm wire with 1 mm square cell sizes
-    const mask<line<true>> ln{0u, cell_size, hz};
+    const mask<wire_cell> ln{0u, cell_size, hz};
 
-    ASSERT_NEAR(ln[line<>::e_cross_section], 1.f * unit<scalar>::mm, tol);
-    ASSERT_NEAR(ln[line<>::e_half_z], 50.f * unit<scalar>::mm, tol);
+    ASSERT_NEAR(ln[wire_cell::e_cross_section], 1.f * unit<scalar>::mm, tol);
+    ASSERT_NEAR(ln[wire_cell::e_half_z], 50.f * unit<scalar>::mm, tol);
 
     ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5f) == intersection::status::e_inside);

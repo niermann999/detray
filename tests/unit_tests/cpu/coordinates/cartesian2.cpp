@@ -6,8 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/coordinates/cartesian2.hpp"
-
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -34,7 +33,7 @@ GTEST_TEST(detray_coordinates, cartesian2) {
     const vector3 x = {1.f, 0.f, 0.f};
     const point3 t = {2.f, 3.f, 4.f};
     const transform3 trf(t, z, x);
-    const cartesian2<transform3> c2;
+    const local_coordinate<cartesian2D<transform3>> c2;
     const point3 global1 = {4.f, 7.f, 4.f};
     const vector3 mom = {1.f, 2.f, 3.f};
     const vector3 d = vector::normalize(mom);

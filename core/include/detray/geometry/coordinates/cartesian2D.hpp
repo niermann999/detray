@@ -30,33 +30,16 @@ struct cartesian2D final : public local_frame<cartesian2D, algebra_t> {
     using local_point = point2;
     /// @}
 
-    /// Projection into the local frame of a reference surface
-    ///
-    /// @param trf3 the transformation of the reference surface
-    /// @param p the point to be projected
-    /// @param d an optional orientation
-    ///
-    /// @note the projected point is contrained to the local frame and not
-    /// meaningful without access to the surface
-    ///
-    /// @returns the projected point
+    /// @returns the point projected onto the reference surface
     DETRAY_HOST_DEVICE
-    static constexpr local_point project(const transform3_type & /*trf*/,
-                                         const point3 &p,
-                                         const vector3 & /*d*/) {
+    static constexpr local_point to(const transform3_type & /*trf*/,
+                                    const point3 &p, const vector3 & /*d*/) {
         return {p[0], p[1]};
     }
 
-    /// Projection into the local frame of a reference surface
-    ///
-    /// @param trf3 the transformation of the reference surface
-    /// @param mask the mask of the reference surface
-    /// @param p the constrained point
-    /// @param d an optional orientation
-    ///
     /// @returns the point in the local 3D cartesian frame
     template <typename mask_t>
-    DETRAY_HOST_DEVICE static constexpr point3 project(
+    DETRAY_HOST_DEVICE static constexpr point3 from(
         const transform3_type & /*trf*/, const mask_t & /*mask*/,
         const local_point &p, const vector3 & /*d*/) {
         return {p[0], p[1], 0.f};
@@ -70,6 +53,6 @@ struct cartesian2D final : public local_frame<cartesian2D, algebra_t> {
         return trf3.z();
     }
 
-};  // struct cartesian2
+};  // struct cartesian2D
 
 }  // namespace detray

@@ -148,9 +148,9 @@ class mask {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return an intersection status e_inside / e_outside
-    DETRAY_HOST_DEVICE
-    inline auto is_inside(
-        const local_point_t& loc_p,
+    template <typename point_t>
+    DETRAY_HOST_DEVICE inline auto is_inside(
+        const point_t& loc_p,
         const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         -> intersection::status {
 

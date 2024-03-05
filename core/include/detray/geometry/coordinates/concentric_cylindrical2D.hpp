@@ -33,25 +33,16 @@ struct concentric_cylindrical2D final
     using local_point = point2;
     /// @}
 
-    /// This method transforms a point from a global cartesian 3D frame to a
-    /// local 2D cylindrical point
+    /// @returns the point projected onto the reference surface
     DETRAY_HOST_DEVICE
-    static constexpr local_point project(const transform3_type & /*trf*/,
-                                         const point3 &p,
-                                         const vector3 & /*d*/) {
+    static constexpr local_point to(const transform3_type & /*trf*/,
+                                    const point3 &p, const vector3 & /*d*/) {
         return {getter::phi(p), p[2]};
     }
 
-    /// Projection into the local frame of a reference surface
-    ///
-    /// @param trf3 the transformation of the reference surface
-    /// @param mask the mask of the reference surface
-    /// @param p the constrained point
-    /// @param d an optional orientation
-    ///
     /// @returns the point in the local 3D cartesian frame
     template <typename mask_t>
-    DETRAY_HOST_DEVICE static constexpr point3 project(
+    DETRAY_HOST_DEVICE static constexpr point3 from(
         const transform3_type & /*trf*/, const mask_t &mask, const point2 &p,
         const vector3 & /*d*/) {
 
@@ -64,13 +55,13 @@ struct concentric_cylindrical2D final
     template <typename mask_t>
     DETRAY_HOST_DEVICE static inline vector3 normal(const transform3_type &trf,
                                                     const local_point &p,
-                                                    const mask_t &mask) {
+                                                    const mask_t & /*mask*/) {
         const scalar_type phi{p[0]};
         const vector3 local_normal{math::cos(phi), math::sin(phi), 0.f};
 
         return trf.vector_to_global(local_normal);
     }
 
-};  // struct concentric_cylindrical2
+};  // struct concentric_cylindrical2D
 
 }  // namespace detray

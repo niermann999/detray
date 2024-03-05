@@ -31,28 +31,16 @@ struct cylindrical2D final : public local_frame<cylindrical2D, algebra_t> {
     using local_point = point2;
     /// @}
 
-    /// @brief Tranform from the global frame to the local frame
-    ///
-    /// @param trf3 the transformation to the local frame
-    /// @param p the point to be transformed
-    ///
-    /// @returns a point in the local 3D cartesian frame
+    /// @returns the point projected onto the reference surface
     DETRAY_HOST_DEVICE
-    static constexpr local_point project(const transform3_type & /*trf*/,
-                                         const point3 &p,
-                                         const vector3 & /*d*/) {
+    static constexpr local_point to(const transform3_type & /*trf*/,
+                                    const point3 &p, const vector3 & /*d*/) {
         return {getter::perp(p) * getter::phi(p), p[2]};
     }
 
-    /// Transforms from a local 2D cartesian point that is constrained to a
-    /// reference surface to a point in the global 3D cartesian frame
-    ///
-    /// @param trf placement of the surface the point is contrained to
-    /// @param p the contrained point
-    ///
-    /// @returns the point in global coordinates
+    /// @returns the point in the local 3D cartesian frame
     template <typename mask_t>
-    DETRAY_HOST_DEVICE static constexpr point3 project(
+    DETRAY_HOST_DEVICE static constexpr point3 from(
         const transform3_type & /*trf*/, const mask_t &mask, const point2 &p,
         const vector3 & /*d*/) {
 
@@ -73,6 +61,6 @@ struct cylindrical2D final : public local_frame<cylindrical2D, algebra_t> {
         return trf.vector_to_global(local_normal);
     }
 
-};  // struct cylindrical2
+};  // struct cylindrical2D
 
 }  // namespace detray

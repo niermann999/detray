@@ -132,7 +132,7 @@ class helix_scan : public test::fixture_base<> {
                     const auto &intersection = single_ir.second;
                     const auto sf =
                         detray::surface{m_det, intersection.sf_desc};
-                    auto glob_pos = sf.local_to_global(gctx, intersection.local,
+                    auto glob_pos = sf.bound_to_global(gctx, intersection.local,
                                                        helix.dir());
                     *outfile
                         << n_tracks << ","

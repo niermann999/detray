@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/line2D.hpp"
+#include "detray/geometry/shapes/line.hpp"
 #include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
@@ -149,8 +150,13 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
         sfi.path = s;
         sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
 
-        const point2 local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
-        sfi.status = mask.is_inside(local, mask_tolerance);
+        // The cellwire perfroms the boundary check in local 3D cartesian coord.
+        if constexpr (std::is_same_v<typename mask_t::shape, wire_cell>) {
+            sfi.status =
+                mask.is_inside(trf.point_to_local(h.pos(s)), mask_tolerance);
+        } else {
+            sfi.status = mask.is_inside(sfi.local, mask_tolerance);
+        }
 
         // Compute some additional information if the intersection is valid
         if (sfi.status == intersection::status::e_inside) {

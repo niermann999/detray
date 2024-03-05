@@ -6,8 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/coordinates/line2.hpp"
-
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -36,7 +35,7 @@ GTEST_TEST(detray_coordinates, line2_case1) {
     x = vector::normalize(x);
     const point3 t = {0.f, 0.f, 0.f};
     const transform3 trf(t, z, x);
-    const line2<transform3> l2;
+    const local_coordinate<line2D<transform3>> l2;
     const point3 global1 = {1.f, 1.5f, 0.5f};
     const vector3 mom = {0.f, 1.f, 1.f};
     const vector3 d = vector::normalize(mom);
@@ -114,7 +113,7 @@ GTEST_TEST(detray_coordinates, line2_case2) {
     x = vector::normalize(x);
     const point3 t = {0.f, 0.f, 0.f};
     const transform3 trf(t, z, x);
-    const line2<transform3> l2;
+    const local_coordinate<line2D<transform3>> l2;
     const point2 local1 = {1.f, 2.f};
     const vector3 mom = {1.f, 6.f, -2.f};
     const vector3 d = vector::normalize(mom);

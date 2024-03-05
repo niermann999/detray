@@ -6,8 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/coordinates/cylindrical2.hpp"
-
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/test/types.hpp"
@@ -40,7 +39,7 @@ GTEST_TEST(detray_coordinates, cylindrical2) {
     const vector3 x = {1.f, 0.f, 0.f};
     const point3 t = {2.f, 3.f, 4.f};
     const transform3 trf(t, z, x);
-    const cylindrical2<transform3> c2;
+    const local_coordinate<cylindrical2D<transform3>> c2;
     // Global position on surface
     const point3 global1 = {3.4142136f, 4.4142136f, 9.f};
     const vector3 mom = {1.f, 2.f, 3.f};

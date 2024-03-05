@@ -50,7 +50,8 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
                       -1.f);
 
     // Infinite wire with 10 mm radial cell size
-    const mask<line<>> ln{0u, 10.f, std::numeric_limits<scalar>::infinity()};
+    const mask<straw_tube> ln{0u, 10.f,
+                              std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     std::vector<intersection_t> is(3u);
@@ -64,7 +65,8 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
     EXPECT_EQ(is[0].path, 1.f);
 
-    const auto global0 = ln.to_global_frame(tf, is[0].local);
+    const auto global0 =
+        ln.to_global_frame(tf, is[0].local, detail::ray(trks[0]).dir());
     EXPECT_EQ(global0, point3({1.f, 0.f, 0.f}));
     EXPECT_EQ(is[0].local[0], -1.f);  // right
     EXPECT_EQ(is[0].local[1], 0.f);
@@ -72,7 +74,8 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
 
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
     EXPECT_EQ(is[1].path, 1.f);
-    const auto global1 = ln.to_global_frame(tf, is[1].local);
+    const auto global1 =
+        ln.to_global_frame(tf, is[1].local, detail::ray(trks[1]).dir());
     EXPECT_NEAR(global1[0], -1.f, tol);
     EXPECT_NEAR(global1[1], 0.f, tol);
     EXPECT_NEAR(global1[2], 0.f, tol);
@@ -82,7 +85,8 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
 
     EXPECT_EQ(is[2].status, intersection::status::e_inside);
     EXPECT_NEAR(is[2].path, constant<scalar>::sqrt2, tol);
-    const auto global2 = ln.to_global_frame(tf, is[2].local);
+    const auto global2 =
+        ln.to_global_frame(tf, is[2].local, detail::ray(trks[2]).dir());
     EXPECT_NEAR(global2[0], 1.f, tol);
     EXPECT_NEAR(global2[1], 0.f, tol);
     EXPECT_NEAR(global2[2], 1.f, tol);
@@ -106,7 +110,8 @@ GTEST_TEST(detray_intersection, line_intersector_case2) {
 
     // Infinite wire with 10 mm
     // radial cell size
-    const mask<line<>> ln{0u, 10.f, std::numeric_limits<scalar>::infinity()};
+    const mask<straw_tube> ln{0u, 10.f,
+                              std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     const intersection_t is = line_intersector_type()(
@@ -114,7 +119,7 @@ GTEST_TEST(detray_intersection, line_intersector_case2) {
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_NEAR(is.path, 2.f, tol);
-    const auto global = ln.to_global_frame(tf, is.local);
+    const auto global = ln.to_global_frame(tf, is.local, dir);
     EXPECT_NEAR(global[0], 1.f, tol);
     EXPECT_NEAR(global[1], 1.f, tol);
     EXPECT_NEAR(global[2], 0.f, tol);
@@ -158,7 +163,7 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
                       -1.f);
 
     // Infinite wire with 1 mm square cell size
-    mask<line<true>, std::uint_least16_t, transform3> ln{
+    mask<wire_cell, std::uint_least16_t, transform3> ln{
         0u, 1.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
@@ -175,7 +180,8 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
         tf,
         detail::ray(trks[0]).pos() + is[0].path * detail::ray(trks[0]).dir(),
         detail::ray(trks[0]).dir());
-    const auto global0 = ln.to_global_frame(tf, local0);
+    const auto global0 =
+        ln.to_global_frame(tf, local0, detail::ray(trks[0]).dir());
     EXPECT_NEAR(global0[0], 1.f, tol);
     EXPECT_NEAR(global0[1], 1.f, tol);
     EXPECT_NEAR(global0[2], 0.f, tol);

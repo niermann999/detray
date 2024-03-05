@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,49 +10,46 @@
 // Project include(s).
 #include "detray/coordinates/coordinate_base.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/line2D.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 
-namespace detray {
+namespace detray::detail {
 
 template <typename transform3_t>
-struct line2 : public coordinate_base<line2, transform3_t> {
+struct coordinate_base<line2D<transform3_t>> {
 
     /// @name Type definitions for the struct
     /// @{
 
     // Transform type
     using transform3_type = transform3_t;
-    // Base type
-    using base_type = coordinate_base<line2, transform3_t>;
+    // The underlying geometric local frame
+    using frame_type = line2D<transform3_t>;
     // Sclar type
-    using scalar_type = typename base_type::scalar_type;
+    using scalar_type = typename transform3_type::scalar_type;
     // Point in 2D space
-    using point2 = typename base_type::point2;
+    using point2 = typename transform3_type::point2;
     // Point in 3D space
-    using point3 = typename base_type::point3;
+    using point3 = typename transform3_type::point3;
     // Vector in 3D space
-    using vector3 = typename base_type::vector3;
-    // Matrix actor
-    using matrix_operator = typename base_type::matrix_operator;
+    using vector3 = typename transform3_type::vector3;
+    // Matrix operator
+    using matrix_operator = typename transform3_type::matrix_actor;
     // Matrix size type
-    using size_type = typename base_type::size_type;
+    using size_type = typename matrix_operator::size_ty;
     // 2D matrix type
     template <size_type ROWS, size_type COLS>
-    using matrix_type = typename base_type::template matrix_type<ROWS, COLS>;
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
     // Rotation Matrix
-    using rotation_matrix = typename base_type::rotation_matrix;
-    // Vector types
-    using bound_vector = typename base_type::bound_vector;
-    using free_vector = typename base_type::free_vector;
-    // Track Helper
-    using track_helper = typename base_type::track_helper;
+    using rotation_matrix = matrix_type<3, 3>;
+    // Shorthand vector/matrix types related to bound track parameters.
+    using bound_vector = matrix_type<e_bound_size, 1>;
+    using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
     // Matrix types
-    using free_to_bound_matrix = typename base_type::free_to_bound_matrix;
-    using bound_to_free_matrix = typename base_type::bound_to_free_matrix;
-    using free_to_path_matrix = typename base_type::free_to_path_matrix;
-
-    // Local point type in line coordinates
-    using loc_point = point2;
+    using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
+    using bound_to_free_matrix = matrix_type<e_free_size, e_bound_size>;
+    using free_to_path_matrix = matrix_type<1, e_free_size>;
 
     /// @}
 
@@ -63,22 +60,9 @@ struct line2 : public coordinate_base<line2, transform3_t> {
                                   const vector3 &d) const {
 
         const auto local3 = trf.point_to_local(p);
+        const auto local2 = frame_type::global_to_local(trf, p, d);
 
-        // Line direction
-        const vector3 z = trf.z();
-
-        // Line center
-        const point3 t = trf.translation();
-
-        // Radial vector
-        const vector3 r = vector::cross(z, d);
-
-        // Assign the sign depending on the position w.r.t line
-        // Right: -1
-        // Left: 1
-        const scalar_type sign = vector::dot(r, t - p) > 0.f ? -1.f : 1.f;
-
-        return {sign * getter::perp(local3), local3[2], getter::phi(local3)};
+        return {local2[0], local2[1], getter::phi(local3)};
     }
 
     /** This method transform from a local 2D line point to a point global
@@ -95,28 +79,18 @@ struct line2 : public coordinate_base<line2, transform3_t> {
      * cartesian 3D frame*/
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline point3 bound_local_to_global(
-        const transform3_t &trf, const mask_t & /*mask*/, const point2 &p,
+        const transform3_t &trf, const mask_t &mask, const point2 &p,
         const vector3 &d) const {
 
-        // Line direction
-        const vector3 z = trf.z();
-
-        // Radial vector
-        const vector3 r = vector::cross(z, d);
-
-        // Local Z poisition in global cartesian coordinate
-        const point3 locZ_in_global =
-            trf.point_to_global(point3{0.f, 0.f, p[1]});
-
-        return locZ_in_global + p[0] * vector::normalize(r);
+        return frame_type::local_to_global(trf, mask, p, d);
     }
 
     /// @returns the normal vector
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
-                                             const point2 & = {},
-                                             const mask_t & = {}) const {
-        return trf3.z();
+                                             const point2 &p = {},
+                                             const mask_t &m = {}) const {
+        return frame_type::normal(trf3, p, m);
     }
 
     /// @returns the normal vector
@@ -290,4 +264,4 @@ struct line2 : public coordinate_base<line2, transform3_t> {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::detail

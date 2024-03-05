@@ -194,16 +194,25 @@ class surface {
     /// @returns the local position to the global point @param global for
     /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
-    constexpr point2 global_to_local(const context &ctx, const point3 &global,
+    constexpr point3 global_to_local(const context &ctx, const point3 &global,
                                      const vector3 &dir) const {
         return visit_mask<typename kernels::global_to_local>(transform(ctx),
+                                                             global, dir);
+    }
+
+    /// @returns the local position to the global point @param global for
+    /// a given geometry context @param ctx and track direction @param dir
+    DETRAY_HOST_DEVICE
+    constexpr point2 global_to_bound(const context &ctx, const point3 &global,
+                                     const vector3 &dir) const {
+        return visit_mask<typename kernels::global_to_bound>(transform(ctx),
                                                              global, dir);
     }
 
     /// @returns the global position to the given local position @param local
     /// for a given geometry context @param ctx
     DETRAY_HOST_DEVICE constexpr point3 local_to_global(
-        const context &ctx, const point2 &local, const vector3 &dir) const {
+        const context &ctx, const point3 &local, const vector3 &dir) const {
         return visit_mask<typename kernels::local_to_global>(transform(ctx),
                                                              local, dir);
     }

@@ -30,13 +30,11 @@ struct line2D final : public local_frame<line2D, algebra_t> {
     using local_point = point2;
     /// @}
 
-    /// This method transforms a point from a global cartesian 3D frame to a
-    /// local 3D line point
+    /// @returns the point projected onto the reference surface
     DETRAY_HOST_DEVICE
     static constexpr local_point global_to_local(const transform3_type &trf,
                                                  const point3 &p,
                                                  const vector3 &d) {
-
         const auto local3 = trf.point_to_local(p);
 
         // Line direction
@@ -56,10 +54,7 @@ struct line2D final : public local_frame<line2D, algebra_t> {
         return {sign * getter::perp(local3), local3[2]};
     }
 
-    /// This method transform from a local 2D line point to a point global
-    /// cartesian 3D frame
-    ///
-    /// @note overwrites the base class implementation of @c local_to_global
+    /// @returns the point in the local 3D cartesian frame
     template <typename mask_t>
     DETRAY_HOST_DEVICE static constexpr point3 local_to_global(
         const transform3_type &trf, const mask_t & /*mask*/,
@@ -85,6 +80,7 @@ struct line2D final : public local_frame<line2D, algebra_t> {
                                                     const mask_t & = {}) {
         return trf.z();
     }
-};
+
+};  // struct line2D
 
 }  // namespace detray

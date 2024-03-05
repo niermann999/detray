@@ -6,6 +6,7 @@
  */
 
 // Project include(s).
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
@@ -37,8 +38,8 @@ using rectangle_type = detray::mask<detray::rectangle2D>;
 using trapezoid_type = detray::mask<detray::trapezoid2D>;
 using ring_type = detray::mask<detray::ring2D>;
 using cylinder_type = detray::mask<detray::cylinder2D>;
-using straw_wire_type = detray::mask<detray::line<false>>;
-using cell_wire_type = detray::mask<detray::line<true>>;
+using straw_wire_type = detray::mask<detray::straw_tube>;
+using cell_wire_type = detray::mask<detray::wire_cell>;
 
 // Test class for covariance transport
 template <typename T>
@@ -58,21 +59,22 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
     // First mask at the origin is always rectangle
     using first_mask_type = rectangle_type;
     using first_local_frame_type = typename first_mask_type::local_frame_type;
+    using local_coordinate_type = local_coordinate<local_frame_type>;
 
     // Transform3 type
-    using transform3_type = typename local_frame_type::transform3_type;
+    using transform3_type = typename local_coordinate_type::transform3_type;
     // Scalar type
     using scalar_type = typename transform3_type::scalar_type;
 
     // Vector and matrix types
-    using free_vector = typename local_frame_type::free_vector;
-    using bound_vector = typename local_frame_type::bound_vector;
-    using bound_matrix = typename local_frame_type::bound_matrix;
+    using free_vector = typename local_coordinate_type::free_vector;
+    using bound_vector = typename local_coordinate_type::bound_vector;
+    using bound_matrix = typename local_coordinate_type::bound_matrix;
     using free_to_bound_matrix =
-        typename local_frame_type::free_to_bound_matrix;
+        typename local_coordinate_type::free_to_bound_matrix;
     using bound_to_free_matrix =
-        typename local_frame_type::bound_to_free_matrix;
-    using free_matrix = typename local_frame_type::free_matrix;
+        typename local_coordinate_type::bound_to_free_matrix;
+    using free_matrix = typename local_coordinate_type::free_matrix;
 
     std::tuple<annulus_type, rectangle_type, trapezoid_type, ring_type,
                cylinder_type, straw_wire_type, cell_wire_type>
@@ -158,9 +160,9 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
         scalar_type& total_path_length, std::vector<intersection_t>& sfis) {
 
         const auto departure_frame =
-            typename departure_mask_type::local_frame_type{};
-        const auto destination_frame =
-            typename destination_mask_type::local_frame_type{};
+            local_coordinate<typename departure_mask_type::local_frame_type>{};
+        const auto destination_frame = local_coordinate<
+            typename destination_mask_type::local_frame_type>{};
 
         const bound_vector& bound_vec_0 = bound_params.vector();
         const bound_matrix& bound_cov_0 = bound_params.covariance();
@@ -282,8 +284,8 @@ TYPED_TEST(HelixCovarianceTransportValidation, one_loop_test) {
 
     // Set the initial bound vector
     typename bound_track_parameters<transform3>::vector_type bound_vec_0 =
-        typename TestFixture::first_local_frame_type{}.free_to_bound_vector(
-            trfs[0], free_trk.vector());
+        local_coordinate<typename TestFixture::first_local_frame_type>{}
+            .free_to_bound_vector(trfs[0], free_trk.vector());
 
     // Set the initial bound covariance
     typename bound_track_parameters<transform3>::covariance_type bound_cov_0 =

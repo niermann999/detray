@@ -37,7 +37,7 @@ struct local_frame {
                                                     const point3 &p,
                                                     const vector3 &d) {
 
-        return impl<algebra_t>::project(trf, trf.point_to_local(p), d);
+        return impl<algebra_t>::to(trf, trf.point_to_local(p), d);
     }
 
     /// @brief Tranform from the local frame to the global frame
@@ -52,7 +52,7 @@ struct local_frame {
         const transform3_type &trf, const mask_t &mask,
         const loc_point_t &loc_p, const vector3 &d) {
 
-        point3 loc_cartesian3D = impl<algebra_t>::project(trf, mask, loc_p, d);
+        point3 loc_cartesian3D = impl<algebra_t>::from(trf, mask, loc_p, d);
 
         return trf.point_to_global(loc_cartesian3D);
     }

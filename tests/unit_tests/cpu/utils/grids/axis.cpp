@@ -10,6 +10,7 @@
 
 #include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/cartesian3D.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
