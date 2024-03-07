@@ -106,7 +106,7 @@ struct ray_concentric_cylinder_intersector {
 
                 const point3 p3 = candidates[cindex];
                 const scalar_type phi{getter::phi(p3)};
-                is.local = {r * phi, p3[2], r};
+                is.local = {r * phi, p3[2]};
 
                 is.path = t01[cindex];
                 // In this case, the point has to be in cylinder3 coordinates

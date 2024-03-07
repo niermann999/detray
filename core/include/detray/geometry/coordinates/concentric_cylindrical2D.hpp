@@ -34,10 +34,9 @@ struct concentric_cylindrical2D {
     static inline point3 global_to_local_3D(const transform3_type &trf,
                                             const point3 &p,
                                             const vector3 & /*dir*/) {
-        const point3 local3 = p - trf.translation();
-        const scalar_type r{getter::perp(local3)};
+        const auto local3 = p - trf.translation();
 
-        return {r * getter::phi(local3), local3[2], r};
+        return {getter::phi(local3), local3[2], getter::perp(local3)};
     }
 
     /// This method transforms a point from a global cartesian 3D frame to a
@@ -46,7 +45,7 @@ struct concentric_cylindrical2D {
     static inline loc_point global_to_local(const transform3_type &trf,
                                             const point3 &p,
                                             const vector3 & /*dir*/) {
-        const point3 local3 = p - trf.translation();
+        const auto local3 = p - trf.translation();
 
         return {getter::phi(local3), local3[2]};
     }
@@ -56,10 +55,8 @@ struct concentric_cylindrical2D {
     DETRAY_HOST_DEVICE static inline point3 local_to_global(
         const transform3_type &trf, const point3 &p) {
 
-        const scalar_type r{p[2]};
-        const scalar_type phi{p[0] / r};
-        const scalar_type x{r * math::cos(phi)};
-        const scalar_type y{r * math::sin(phi)};
+        const scalar_type x{p[2] * math::cos(p[0])};
+        const scalar_type y{p[2] * math::sin(p[0])};
         const scalar_type z{p[1]};
 
         return point3{x, y, z} + trf.translation();
@@ -94,10 +91,9 @@ struct concentric_cylindrical2D {
     /// @returns the normal vector given a local position @param p
     DETRAY_HOST_DEVICE static inline vector3 normal(const transform3_type &,
                                                     const point3 &p) {
-        const scalar_type phi{p[0] / p[2]};
         // normal vector in global coordinates (concentric cylinders have no
         // rotation)
-        return {math::cos(phi), math::sin(phi), 0.f};
+        return {math::cos(p[0]), math::sin(p[0]), 0.f};
     }
 
 };  // struct concentric_cylindrical2D

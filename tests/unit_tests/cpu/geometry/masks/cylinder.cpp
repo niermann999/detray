@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
+using point2_t = test::point2;
 using point3_t = test::point3;
 
 constexpr scalar tol{1e-7f};
@@ -25,11 +26,11 @@ constexpr scalar hz{4.f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a 2D cylinder
 GTEST_TEST(detray_masks, cylinder2D) {
-    using point_t = point3_t;
+    using point_t = point2_t;
 
-    point_t p2_in = {r, -1.f, r};
-    point_t p2_edge = {r, hz, r};
-    point_t p2_out = {3.5f, 4.5f, 3.5f};
+    point_t p2_in = {r, -1.f};
+    point_t p2_edge = {r, hz};
+    point_t p2_out = {3.5f, 4.5f};
 
     mask<cylinder2D> c{0u, r, -hz, hz};
 

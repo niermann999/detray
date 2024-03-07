@@ -16,17 +16,17 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+using point2_t = test::point2;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a ring
 GTEST_TEST(detray_masks, ring2D) {
-    using point_t = point3_t;
+    using point_t = point2_t;
 
-    point_t p2_pl_in = {0.5f, -2.f, 0.f};
-    point_t p2_pl_edge = {0.f, 3.5f, 0.f};
-    point_t p2_pl_out = {3.6f, 5.f, 0.f};
+    point_t p2_pl_in = {0.5f, -2.f};
+    point_t p2_pl_edge = {0.f, 3.5f};
+    point_t p2_pl_out = {3.6f, 5.f};
 
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
     constexpr scalar outer_r{3.5f * unit<scalar>::mm};

@@ -126,24 +126,16 @@ GTEST_TEST(detray_geometry, surface) {
 
     // Coordinate transformations
     const point3_t glob_pos = {4.f, 7.f, 4.f};
-    const point3_t local = disc.global_to_local(ctx, glob_pos, {});
-    const point2_t bound = disc.global_to_bound(ctx, glob_pos, {});
+    const auto local = disc.global_to_local(ctx, glob_pos, {});
 
     ASSERT_NEAR(local[0], std::sqrt(65.f), tol);
     ASSERT_NEAR(local[1], std::atan2(7.f, 4.f), tol);
-    ASSERT_NEAR(bound[0], local[0], tol);
-    ASSERT_NEAR(bound[1], local[1], tol);
 
     // Roundtrip
     const point3_t global = disc.local_to_global(ctx, local, {});
-    const point3_t global2 = disc.bound_to_global(ctx, bound, {});
 
-    ASSERT_NEAR(glob_pos[0], global[0], tol);
-    ASSERT_NEAR(glob_pos[1], global[1], tol);
-    ASSERT_NEAR(glob_pos[2], global[2], tol);
-
-    ASSERT_NEAR(global2[0], glob_pos[0], tol);
-    ASSERT_NEAR(global2[1], glob_pos[1], tol);
+    ASSERT_NEAR(global[0], glob_pos[0], tol);
+    ASSERT_NEAR(global[1], glob_pos[1], tol);
     // The bound transform assumes the point is on surface
-    ASSERT_NEAR(global2[2], disc_translation[2], tol);
+    ASSERT_NEAR(global[2], disc_translation[2], tol);
 }

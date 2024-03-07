@@ -21,6 +21,7 @@
 #include <type_traits>
 
 using namespace detray;
+using point2_t = test::point2;
 using point3_t = test::point3;
 using transform3_t = test::transform3;
 
@@ -50,7 +51,7 @@ GTEST_TEST(detray_masks, unbounded) {
     EXPECT_TRUE(unbounded_t::name == "unbounded rectangle2D");
 
     // Test boundary check
-    typename mask<unbounded_t>::point3_t p2 = {0.5f, -9.f, 0.f};
+    point2_t p2 = {0.5f, -9.f};
     ASSERT_TRUE(u.is_inside(p2, 0.f) == intersection::status::e_inside);
 
     // Check bounding box

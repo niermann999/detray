@@ -164,7 +164,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
 
     // Create a translated cylinder and test untersection
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
-    helix_intersector<concentric_cylinder2D, transform3_t> hi;
+    helix_intersector<cylinder2D, transform3_t> hi;
 
     // Test helix
     const point3 pos{3.f, 2.f, 5.f};
@@ -173,8 +173,8 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
                     &B_0);
 
     // Intersect
-    mask<concentric_cylinder2D, std::uint_least16_t, transform3_t> cylinder{
-        0u, r, -hz, hz};
+    mask<cylinder2D, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
+                                                                 hz};
     const auto hits_bound =
         hi(h, surface_descriptor<>{}, cylinder, shifted, tol);
 
@@ -257,6 +257,61 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     EXPECT_NEAR(global1[0], pos_far[0], tol);
     EXPECT_NEAR(global1[1], pos_far[1], tol);
     EXPECT_NEAR(global1[2], pos_far[2], tol);
+}
+
+/// This checks the closest solution of a helix-concentric cylinder intersection
+GTEST_TEST(detray_intersection,
+           helix_concentric_cylinder_intersector_no_bfield) {
+
+    const scalar r{4.f * unit<scalar>::mm};
+    const scalar hz{10.f * unit<scalar>::mm};
+
+    // Create a translated cylinder and test untersection
+    const transform3_t shifted(vector3{3.f, 2.f, 10.f});
+    helix_intersector<concentric_cylinder2D, transform3_t> c_hi;
+
+    // Test helix
+    const point3 pos{3.f, 2.f, 5.f};
+    const vector3 mom{1.f, 0.f, 0.f};
+    const helix_t h({pos, 0.f * unit<scalar>::s, mom, -1 * unit<scalar>::e},
+                    &B_0);
+
+    // Intersect
+    mask<concentric_cylinder2D, std::uint_least16_t, transform3_t> cylinder{
+        0u, r, -hz, hz};
+    const auto hits_bound =
+        c_hi(h, surface_descriptor<>{}, cylinder, shifted, tol);
+
+    // No magnetic field, so the solutions must be the same as for a ray
+
+    // second intersection lies in front of the track
+    EXPECT_TRUE(hits_bound[0].status == intersection::status::e_inside);
+    EXPECT_TRUE(hits_bound[0].direction == intersection::direction::e_opposite);
+
+    const auto global0 = cylinder.to_global_frame(shifted, hits_bound[0].local);
+
+    EXPECT_NEAR(global0[0], -1.f, tol);
+    EXPECT_NEAR(global0[1], 2.f, tol);
+    EXPECT_NEAR(global0[2], 5.f, tol);
+    ASSERT_TRUE(hits_bound[0].local[0] != not_defined &&
+                hits_bound[0].local[1] != not_defined);
+    // p2[0] = phi : 180deg in the opposite direction
+    EXPECT_NEAR(hits_bound[0].local[0], M_PI, tol);
+    EXPECT_NEAR(hits_bound[0].local[1], -5.f, tol);
+    EXPECT_TRUE(detail::is_invalid_value(hits_bound[0].cos_incidence_angle));
+
+    // first intersection lies behind the track
+    const auto global1 = cylinder.to_global_frame(shifted, hits_bound[1].local);
+    EXPECT_TRUE(hits_bound[1].status == intersection::status::e_inside);
+    EXPECT_TRUE(hits_bound[1].direction == intersection::direction::e_along);
+    EXPECT_NEAR(global1[0], 7.f, tol);
+    EXPECT_NEAR(global1[1], 2.f, tol);
+    EXPECT_NEAR(global1[2], 5.f, tol);
+    ASSERT_TRUE(hits_bound[1].local[0] != not_defined &&
+                hits_bound[1].local[1] != not_defined);
+    EXPECT_NEAR(hits_bound[1].local[0], 0.f, tol);
+    EXPECT_NEAR(hits_bound[1].local[1], -5., tol);
+    EXPECT_TRUE(detail::is_invalid_value(hits_bound[1].cos_incidence_angle));
 }
 
 /// Test the intersection between a helical trajectory and a line

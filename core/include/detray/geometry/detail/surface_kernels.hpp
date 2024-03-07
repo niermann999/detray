@@ -94,30 +94,18 @@ struct surface_kernels {
         }
     };
 
-    /// A functor to perform global to local bound transformation
-    struct global_to_bound {
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point2 operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& global,
-            const vector3& dir) const {
-
-            const point3 local =
-                mask_group[index].to_local_frame(trf3, global, dir);
-
-            return {local[0], local[1]};
-        }
-    };
-
     /// A functor to perform global to local transformation
     struct global_to_local {
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point3 operator()(
-            const mask_group_t& mask_group, const index_t& index,
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3& trf3, const point3& global,
             const vector3& dir) const {
 
-            return mask_group[index].to_local_frame(trf3, global, dir);
+            using frame_type =
+                typename mask_group_t::value_type::local_frame_type;
+
+            return frame_type::global_to_local(trf3, global, dir);
         }
     };
 
@@ -130,18 +118,47 @@ struct surface_kernels {
             const transform3& trf3, const point2& bound,
             const vector3& dir) const {
 
-            const auto& m = mask_group[index];
+            using frame_type =
+                typename mask_group_t::value_type::local_frame_type;
 
-            return mask_group[index].local_frame().local_to_global(trf3, m,
-                                                                   bound, dir);
+            return frame_type::local_to_global(trf3, mask_group[index], bound,
+                                               dir);
         }
 
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point3 operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& local, const vector3&) const {
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
+            const transform3& trf3, const point3& local) const {
 
-            return mask_group[index].to_global_frame(trf3, local);
+            using frame_type =
+                typename mask_group_t::value_type::local_frame_type;
+
+            return frame_type::local_to_global(trf3, local);
+        }
+    };
+
+    /// A functor to get the local min bounds.
+    struct local_min_bounds {
+
+        template <typename mask_group_t, typename index_t, typename scalar_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const scalar_t env =
+                std::numeric_limits<scalar_t>::epsilon()) const {
+
+            return mask_group[index].local_min_bounds(env);
+        }
+    };
+
+    /// A functor to get the vertices in local coordinates.
+    struct local_vertices {
+
+        template <typename mask_group_t, typename index_t, typename scalar_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const dindex n_seg) const {
+
+            return mask_group[index].vertices(n_seg);
         }
     };
 
@@ -217,31 +234,6 @@ struct surface_kernels {
 
             return detail::jacobian_engine<frame_t>::path_correction(
                 pos, dir, dtds, dqopds, trf3);
-        }
-    };
-
-    /// A functor to get the local min bounds.
-    struct local_min_bounds {
-
-        template <typename mask_group_t, typename index_t, typename scalar_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const scalar_t env =
-                std::numeric_limits<scalar_t>::epsilon()) const {
-
-            return mask_group[index].local_min_bounds(env);
-        }
-    };
-
-    /// A functor to get the vertices in local coordinates.
-    struct local_vertices {
-
-        template <typename mask_group_t, typename index_t, typename scalar_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const dindex n_seg) const {
-
-            return mask_group[index].vertices(n_seg);
         }
     };
 };

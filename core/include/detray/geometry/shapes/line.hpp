@@ -80,11 +80,9 @@ class line {
         // size and (2) the distance to the point of closest approach on thw
         // line from the line center is less than the half line length
         if constexpr (square_cross_sect) {
-            return (math::abs(loc_p[0] * math::cos(loc_p[2])) <=
-                        bounds[e_cross_section] + tol &&
-                    math::abs(loc_p[0] * math::sin(loc_p[2])) <=
-                        bounds[e_cross_section] + tol &&
-                    math::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+            return (math::abs(loc_p[0]) <= bounds[e_cross_section] + tol &&
+                    math::abs(loc_p[1]) <= bounds[e_cross_section] + tol &&
+                    math::abs(loc_p[2]) <= bounds[e_half_z] + tol);
 
         }
         // For a circular cross section (e.g. straw tube), we check if (1) the
@@ -177,5 +175,10 @@ class line {
         return true;
     }
 };
+
+// radial crossection, boundary check in polar coordiantes
+using straw_tube = line<false>;
+// square crossection, boundary check in cartesian coordiantes
+using wire_cell = line<true>;
 
 }  // namespace detray

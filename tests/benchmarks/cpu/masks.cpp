@@ -55,7 +55,7 @@ void BM_RECTANGLE_2D_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
+                    const auto loc_p{r.to_local_frame(trf, {x, y, z})};
                     if (r.is_inside(loc_p) == intersection::status::e_inside) {
                         ++inside;
                     } else {
@@ -107,7 +107,7 @@ void BM_TRAPEZOID_2D_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    const point3 loc_p{t.to_local_frame(trf, {x, y, z})};
+                    const auto loc_p{t.to_local_frame(trf, {x, y, z})};
                     if (t.is_inside(loc_p) == intersection::status::e_inside) {
                         ++inside;
                     } else {
@@ -159,7 +159,7 @@ void BM_DISC_2D_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
+                    const auto loc_p{r.to_local_frame(trf, {x, y, z})};
                     if (r.is_inside(loc_p) == intersection::status::e_inside) {
                         ++inside;
                     } else {
@@ -211,7 +211,7 @@ void BM_RING_2D_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
+                    const auto loc_p{r.to_local_frame(trf, {x, y, z})};
                     if (r.is_inside(loc_p) == intersection::status::e_inside) {
                         ++inside;
                     } else {
@@ -263,7 +263,7 @@ void BM_CYLINDER_2D_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    const point3 loc_p{c.to_local_frame(trf, {x, y, z})};
+                    const auto loc_p{c.to_local_frame(trf, {x, y, z})};
                     if (c.is_inside(loc_p, 0.1f) ==
                         intersection::status::e_inside) {
                         ++inside;
@@ -314,7 +314,7 @@ void BM_ANNULUS_2D_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    const point3 loc_p{ann.to_local_frame(trf, {x, y, z})};
+                    const auto loc_p{ann.to_local_frame(trf, {x, y, z})};
                     if (ann.is_inside(loc_p) ==
                         intersection::status::e_inside) {
                         ++inside;

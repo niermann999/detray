@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/line2D.hpp"
+#include "detray/geometry/shapes/line.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
@@ -100,7 +101,12 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
 
             is.local = mask.to_local_frame(trf, m, _d);
 
-            is.status = mask.is_inside(is.local, mask_tolerance);
+            if constexpr (std::is_same_v<typename mask_t::shape, wire_cell>) {
+                is.status =
+                    mask.is_inside(trf.point_to_local(m), mask_tolerance);
+            } else {
+                is.status = mask.is_inside(is.local, mask_tolerance);
+            }
 
             // prepare some additional information in case the intersection
             // is valid

@@ -16,17 +16,17 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+using point2_t = test::point2;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a trapezoid
 GTEST_TEST(detray_masks, trapezoid2D) {
-    using point_t = point3_t;
+    using point_t = point2_t;
 
-    point_t p2_in = {1.f, -0.5f, 0.f};
-    point_t p2_edge = {2.5f, 1.f, 0.f};
-    point_t p2_out = {3.f, 1.5f, 0.f};
+    point_t p2_in = {1.f, -0.5f};
+    point_t p2_edge = {2.5f, 1.f};
+    point_t p2_out = {3.f, 1.5f};
 
     constexpr scalar hx_miny{1.f * unit<scalar>::mm};
     constexpr scalar hx_maxy{3.f * unit<scalar>::mm};

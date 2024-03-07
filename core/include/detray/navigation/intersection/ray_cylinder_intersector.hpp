@@ -182,8 +182,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
                 is.volume_link = mask.volume_link();
 
                 // Get incidence angle
-                const scalar_type phi{is.local[0] / is.local[2]};
-                const vector3 normal = {math::cos(phi), math::sin(phi), 0.f};
+                using local_frame = typename mask_t::local_frame_type;
+                const vector3 normal = local_frame::normal(trf, is.local, mask);
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }
         } else {

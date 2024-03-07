@@ -57,8 +57,7 @@ struct intersection2D {
     surface_descr_t sf_desc;
 
     /// Local position of the intersection on the surface
-    point3 local{detail::invalid_value<scalar_type>(),
-                 detail::invalid_value<scalar_type>(),
+    point2 local{detail::invalid_value<scalar_type>(),
                  detail::invalid_value<scalar_type>()};
 
     /// Distance between track and candidate

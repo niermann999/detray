@@ -15,13 +15,13 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+using point2_t = test::point2;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unmasked plane
 GTEST_TEST(detray_masks, unmasked) {
-    point3_t p2 = {0.5f, -9.f, 0.f};
+    point2_t p2 = {0.5f, -9.f};
 
     mask<unmasked> u{};
 
