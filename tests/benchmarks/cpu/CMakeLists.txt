@@ -27,6 +27,9 @@ macro( detray_add_cpu_benchmark algebra )
                      detray::core_${algebra} detray::test_common
                      detray::utils_${algebra} )
 
+   target_compile_options( detray_benchmark_cpu_${algebra} PRIVATE
+   "-march=native" "-ftree-vectorize")
+
    # Set the benchmark specific compilation options.
    if( DETRAY_BENCHMARKS_MULTITHREAD )
       target_compile_definitions( detray_benchmark_cpu_${algebra} PRIVATE
@@ -70,7 +73,13 @@ if( DETRAY_VC_SOA_PLUGIN )
       # Build the benchmark executable.
       detray_add_executable( benchmark_soa_${algebra}
          "intersectors.cpp"
-         LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::test_common detray::utils_${algebra} )
+         LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_vc_aos detray::test_common detray::utils_${algebra} )
+
+      target_compile_options( detray_benchmark_soa_${algebra} PRIVATE
+      "-march=native" "-ftree-vectorize")
+
+      target_compile_options( detray_benchmark_soa_${algebra}
+         INTERFACE ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS} )
 
       # Set the benchmark specific compilation options.
       if( DETRAY_BENCHMARKS_MULTITHREAD )
