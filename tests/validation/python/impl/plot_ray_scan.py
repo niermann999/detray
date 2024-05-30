@@ -13,7 +13,7 @@ import pandas as pd
 import os
 
 """ Read the detector scan data from files and prepare data frames """
-def read_scan_data(inputdir, logging):
+def read_detector_scan_data(inputdir, logging):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)

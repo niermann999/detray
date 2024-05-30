@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 # detray imports
-from impl import read_scan_data, read_navigation_data
+from impl import read_detector_scan_data, read_navigation_data
 from impl import plot_intersection_points_xy, plot_intersection_points_rz
 from impl import compare_track_pos_xy, compare_track_pos_rz, plot_track_pos_dist, plot_track_pos_res
 from options import (common_options, detector_io_options,
@@ -127,7 +127,7 @@ def __main__():
     plot_factory = plt_factory(out_dir, logging)
 
     # Plot the truth data
-    det_name, ray_scan_df, helix_scan_df = read_scan_data(datadir, logging)
+    det_name, ray_scan_df, helix_scan_df = read_detector_scan_data(datadir, logging)
 
     plot_intersection_points_xy(args, ray_scan_df, det_name, "ray",
                                 plot_factory, out_format)

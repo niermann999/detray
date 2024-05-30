@@ -69,15 +69,19 @@ int main(int argc, char **argv) {
     const auto [det, names] =
         detray::io::read_detector<detector_t>(host_mr, reader_cfg);
 
+    const std::string& det_name = det.name(names);
+
     auto white_board = std::make_shared<test::whiteboard>();
 
     // Print the detector's material as recorded by a ray scan
+    mat_scan_cfg.name(det_name + "_material_scan");
     mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true);
     detray::detail::register_checks<test::material_scan>(det, names,
                                                          mat_scan_cfg);
 
     // Now trace the material during navigation and compare
+    mat_val_cfg.name(det_name + "_material_validation");
     mat_val_cfg.whiteboard(white_board);
 
     detail::register_checks<detray::test::material_validation>(det, names,
