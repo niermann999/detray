@@ -33,7 +33,7 @@ auto toy_cfg = toy_det_config{}
                    .n_brl_layers(4u)
                    .n_edc_layers(7u)
                    .do_check(false)
-                   .use_material_maps(true);
+                   .use_material_maps(false);
 
 void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
@@ -57,57 +57,6 @@ void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
 }
 
 template <propagate_option opt>
-static void BM_PROPAGATOR_CPU(benchmark::State &state) {
-
-    // Create the toy geometry and bfield
-    auto [det, names] = build_toy_detector(host_mr, toy_cfg);
-    test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-    auto bfield = bfield::create_const_field(B);
-
-    // Create propagator
-    propagation::config cfg{};
-    cfg.navigation.search_window = {3u, 3u};
-    propagator_host_type p{cfg};
-
-    std::size_t total_tracks = 0;
-
-    // Get tracks
-    vecmem::vector<free_track_parameters<algebra_t>> tracks(&host_mr);
-    fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
-                static_cast<std::size_t>(state.range(0)));
-
-    total_tracks += tracks.size();
-
-    for (auto _ : state) {
-
-#pragma omp parallel for
-        for (auto &track : tracks) {
-
-            parameter_transporter<algebra_t>::state transporter_state{};
-            pointwise_material_interactor<algebra_t>::state interactor_state{};
-            parameter_resetter<algebra_t>::state resetter_state{};
-
-            auto actor_states =
-                tie(transporter_state, interactor_state, resetter_state);
-
-            // Create the propagator state
-            propagator_host_type::state p_state(track, bfield, det);
-
-            // Run propagation
-            if constexpr (opt == propagate_option::e_unsync) {
-                ::benchmark::DoNotOptimize(p.propagate(p_state, actor_states));
-            } else if constexpr (opt == propagate_option::e_sync) {
-                ::benchmark::DoNotOptimize(
-                    p.propagate_sync(p_state, actor_states));
-            }
-        }
-    }
-
-    state.counters["TracksPropagated"] = benchmark::Counter(
-        static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
-}
-
-template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
@@ -115,11 +64,12 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
     test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
     auto bfield = bfield::create_const_field(B);
 
-    // Get detector data
-    auto det_data = detray::get_data(det);
-
     // vecmem copy helper object
     vecmem::cuda::copy copy;
+
+    // Copy the detector to device and get its view
+    auto det_buffer = detray::get_buffer(det, dev_mr, copy);
+    auto det_view = detray::get_data(det_buffer);
 
     std::size_t total_tracks = 0;
 
@@ -130,18 +80,18 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     total_tracks += tracks.size();
 
+    // Get tracks data
+    auto track_buffer =
+        detray::get_buffer(vecmem::get_data(tracks), dev_mr, copy);
+
+    // Create navigator candidates buffer
+    auto candidates_buffer =
+        create_candidates_buffer(det, tracks.size(), dev_mr, &mng_mr);
+    copy.setup(candidates_buffer);
+
     for (auto _ : state) {
-
-        // Get tracks data
-        auto tracks_data = vecmem::get_data(tracks);
-
-        // Create navigator candidates buffer
-        auto candidates_buffer =
-            create_candidates_buffer(det, tracks.size(), dev_mr, &mng_mr);
-        copy.setup(candidates_buffer);
-
         // Run the propagator test for GPU device
-        propagator_benchmark(det_data, bfield, tracks_data, candidates_buffer,
+        propagator_benchmark(det_view, bfield, track_buffer, candidates_buffer,
                              opt);
     }
 
