@@ -19,7 +19,6 @@ using point2 = dpoint2D<algebra>;
 using point3 = dpoint3D<algebra>;
 using vector3 = dvector3D<algebra>;
 using transform3 = dtransform3D<algebra>;
-using matrix_operator = dmatrix_operator<algebra>;
 template <std::size_t ROWS, std::size_t COLS>
 using matrix = dmatrix<algebra, ROWS, COLS>;
 

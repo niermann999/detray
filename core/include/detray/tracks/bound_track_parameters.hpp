@@ -26,23 +26,21 @@ struct bound_track_parameters {
     using scalar_type = dscalar<algebra_t>;
     using point2_type = dpoint2D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
 
     // Shorthand vector/matrix types related to bound track parameters.
     using vector_type = bound_vector<algebra_t>;
     using covariance_type = bound_matrix<algebra_t>;
 
     // Track helper
-    using track_helper = detail::track_helper<matrix_operator>;
+    using track_helper = detail::track_helper<algebra_t>;
 
     /// @}
 
     DETRAY_HOST_DEVICE
     bound_track_parameters()
         : m_barcode(),
-          m_vector(matrix_operator().template zero<e_bound_size, 1>()),
-          m_covariance(
-              matrix_operator().template zero<e_bound_size, e_bound_size>()) {}
+          m_vector(matrix::zero<vector_type>()),
+          m_covariance(matrix::zero<covariance_type>()) {}
 
     DETRAY_HOST_DEVICE
     bound_track_parameters(const geometry::barcode sf_idx,
@@ -58,8 +56,8 @@ struct bound_track_parameters {
         }
 
         for (unsigned int i = 0u; i < e_bound_size; i++) {
-            const auto lhs_val = matrix_operator().element(m_vector, i, 0u);
-            const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0u);
+            const auto lhs_val = getter::element(m_vector, i, 0u);
+            const auto rhs_val = getter::element(rhs.vector(), i, 0u);
 
             if (math::fabs(lhs_val - rhs_val) >
                 std::numeric_limits<scalar_type>::epsilon()) {
@@ -68,10 +66,8 @@ struct bound_track_parameters {
         }
         for (unsigned int i = 0u; i < e_bound_size; i++) {
             for (unsigned int j = 0u; j < e_bound_size; j++) {
-                const auto lhs_val =
-                    matrix_operator().element(m_covariance, i, j);
-                const auto rhs_val =
-                    matrix_operator().element(rhs.covariance(), i, j);
+                const auto lhs_val = getter::element(m_covariance, i, j);
+                const auto rhs_val = getter::element(rhs.covariance(), i, j);
 
                 if (math::fabs(lhs_val - rhs_val) >
                     std::numeric_limits<scalar_type>::epsilon()) {
@@ -113,12 +109,12 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type phi() const {
-        return matrix_operator().element(m_vector, e_bound_phi, 0u);
+        return getter::element(m_vector, e_bound_phi, 0u);
     }
 
     DETRAY_HOST_DEVICE
     scalar_type theta() const {
-        return matrix_operator().element(m_vector, e_bound_theta, 0u);
+        return getter::element(m_vector, e_bound_theta, 0u);
     }
 
     DETRAY_HOST_DEVICE
@@ -132,7 +128,7 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
-        matrix_operator().element(m_vector, e_bound_qoverp, 0u) = qop;
+        getter::element(m_vector, e_bound_qoverp, 0u) = qop;
     }
 
     DETRAY_HOST_DEVICE
@@ -154,7 +150,7 @@ struct bound_track_parameters {
     DETRAY_HOST_DEVICE
     scalar_type pT(const scalar_type q) const {
         assert(this->qop() != 0.f);
-        return math::fabs(q / this->qop() * getter::perp(this->dir()));
+        return math::fabs(q / this->qop() * vector::perp(this->dir()));
     }
 
     DETRAY_HOST_DEVICE

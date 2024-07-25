@@ -288,28 +288,28 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     // trigger all code paths
     constexpr scalar_t r{25.f * unit<scalar_t>::mm};
     const vector3_t x_axis{1.f, 0.f, 0.f};
-    ASSERT_NEAR(getter::norm(cyl.normal(ctx, point3_t{0.f, 0.f, r}) - x_axis),
+    ASSERT_NEAR(vector::norm(cyl.normal(ctx, point3_t{0.f, 0.f, r}) - x_axis),
                 0.f, tol);
-    ASSERT_NEAR(getter::norm(cyl.normal(ctx, point2_t{0.f, 0.f}) - x_axis), 0.f,
+    ASSERT_NEAR(vector::norm(cyl.normal(ctx, point2_t{0.f, 0.f}) - x_axis), 0.f,
                 tol);
     ASSERT_NEAR(
-        getter::norm(
+        vector::norm(
             cyl.normal(ctx, point3_t{r * constant<scalar_t>::pi, 0.f, r}) +
             x_axis),
         0.f, tol);
-    ASSERT_NEAR(getter::norm(
+    ASSERT_NEAR(vector::norm(
                     cyl.normal(ctx, point2_t{r * constant<scalar_t>::pi, 0.f}) +
                     x_axis),
                 0.f, tol);
 
     const vector3_t y_axis{0.f, 1.f, 0.f};
     ASSERT_NEAR(
-        getter::norm(
+        vector::norm(
             cyl.normal(ctx, point3_t{r * constant<scalar_t>::pi_2, 0.f, r}) -
             y_axis),
         0.f, tol);
     ASSERT_NEAR(
-        getter::norm(
+        vector::norm(
             cyl.normal(ctx, point2_t{r * constant<scalar_t>::pi_2, 0.f}) -
             y_axis),
         0.f, tol);

@@ -75,7 +75,7 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
 
     // Set transport matrix (D) and update Jacobian transport
     //( JacTransport = D * JacTransport )
-    auto D = matrix_operator().template identity<e_free_size, e_free_size>();
+    auto D = matrix::identity<free_matrix<algebra_t>>();
 
     const auto& sd = this->_step_data;
     const scalar_type h{this->_step_size};
@@ -88,7 +88,7 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
     const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
 
     // 3X3 Identity matrix
-    const matrix_type<3, 3> I33 = matrix_operator().template identity<3, 3>();
+    const auto I33 = matrix::identity<matrix_type<3, 3>>();
 
     // Initialize derivatives
     std::array<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
@@ -370,31 +370,31 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
                                                  dBdr_tmp, sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
-        auto dFdr = matrix_operator().template identity<3, 3>();
-        auto dGdr = matrix_operator().template identity<3, 3>();
+        auto dFdr = matrix::identity<matrix_type<3, 3>>();
+        auto dGdr = matrix::identity<matrix_type<3, 3>>();
         dFdr = dFdr + h * h_6 * (dkndr[0u] + dkndr[1u] + dkndr[2u]);
         dGdr = h_6 * (dkndr[0u] + 2.f * (dkndr[1u] + dkndr[2u]) + dkndr[3u]);
 
-        matrix_operator().set_block(D, dFdr, 0u, 0u);
-        matrix_operator().set_block(D, dGdr, 4u, 0u);
+        getter::set_block(D, dFdr, 0u, 0u);
+        getter::set_block(D, dGdr, 4u, 0u);
     }
 
     // Set dF/dt1 and dG/dt1
-    auto dFdt = matrix_operator().template identity<3, 3>();
-    auto dGdt = matrix_operator().template identity<3, 3>();
+    auto dFdt = matrix::identity<matrix_type<3, 3>>();
+    auto dGdt = matrix::identity<matrix_type<3, 3>>();
     dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
     dFdt = h * dFdt;
     dGdt = dGdt + h_6 * (dkndt[0u] + 2.f * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
 
-    matrix_operator().set_block(D, dFdt, 0u, 4u);
-    matrix_operator().set_block(D, dGdt, 4u, 4u);
+    getter::set_block(D, dFdt, 0u, 4u);
+    getter::set_block(D, dGdt, 4u, 4u);
 
     // Set dF/dqop1 and dG/dqop1
     vector3_type dFdqop = h * h_6 * (dkndqop[0u] + dkndqop[1u] + dkndqop[2u]);
     vector3_type dGdqop =
         h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) + dkndqop[3u]);
-    matrix_operator().set_block(D, dFdqop, 0u, 7u);
-    matrix_operator().set_block(D, dGdqop, 4u, 7u);
+    getter::set_block(D, dFdqop, 0u, 7u);
+    getter::set_block(D, dGdqop, 4u, 7u);
 
     this->_jac_transport = D * this->_jac_transport;
 }
@@ -468,7 +468,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     array_t>::state::evaluate_field_gradient(const point3_type& pos)
     -> matrix_type<3, 3> {
 
-    matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
+    auto dBdr = matrix::zero<matrix_type<3, 3>>();
 
     constexpr auto delta{1e-1f * unit<scalar_type>::mm};
 
@@ -707,7 +707,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         const vector3_type err_vec =
             one_sixth * h2 *
             (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
-        error_estimate = getter::norm(err_vec);
+        error_estimate = vector::norm(err_vec);
 
         return error_estimate;
     };

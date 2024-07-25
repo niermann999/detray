@@ -37,76 +37,50 @@ struct vc_soa {
     /// Linear Algebra type definitions
     /// @{
     using scalar = simd<value_type>;
+    using size_type = algebra::vc_soa::size_type;
     using transform3D = algebra::vc_soa::transform3<value_type>;
     using point2D = algebra::vc_soa::point2<value_type>;
     using point3D = algebra::vc_soa::point3<value_type>;
     using vector3D = algebra::vc_soa::vector3<value_type>;
+
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix = algebra::vc_soa::matrix_type<value_type, ROWS, COLS>;
     /// @}
 };
 /// @}
+
+namespace getter {
+
+using algebra::vc_soa::storage::block;
+using algebra::vc_soa::storage::element;
+using algebra::vc_soa::storage::set_block;
+using algebra::vc_soa::storage::vector;
+
+}  // namespace getter
 
 namespace vector {
 
 using algebra::vc_soa::math::cross;
 using algebra::vc_soa::math::dot;
-using algebra::vc_soa::math::normalize;
-
-}  // namespace vector
-
-namespace getter {
-
 using algebra::vc_soa::math::eta;
 using algebra::vc_soa::math::norm;
+using algebra::vc_soa::math::normalize;
 using algebra::vc_soa::math::perp;
 using algebra::vc_soa::math::phi;
 using algebra::vc_soa::math::theta;
 
-/// Function extracting a slice from the matrix used by
-/// @c algebra::vc::transform3<float>
-template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
-ALGEBRA_HOST_DEVICE inline auto vector(
-    const algebra::vc_soa::transform3<float>::matrix44& m,
-    [[maybe_unused]] std::size_t row, std::size_t col) {
+}  // namespace vector
 
-    assert(row == 0);
-    assert(col < 4);
-    switch (col) {
-        case 0:
-            return m.x;
-        case 1:
-            return m.y;
-        case 2:
-            return m.z;
-        case 3:
-            return m.t;
-        default:
-            return m.x;
-    }
-}
+namespace matrix {
 
-/// Function extracting a slice from the matrix used by
-/// @c algebra::vc::transform3<double>
-template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
-ALGEBRA_HOST_DEVICE inline auto vector(
-    const algebra::vc_soa::transform3<double>::matrix44& m,
-    [[maybe_unused]] std::size_t row, std::size_t col) {
+using algebra::vc_soa::math::determinant;
+using algebra::vc_soa::math::identity;
+using algebra::vc_soa::math::inverse;
+using algebra::vc_soa::math::set_identity;
+using algebra::vc_soa::math::set_zero;
+using algebra::vc_soa::math::transpose;
+using algebra::vc_soa::math::zero;
 
-    assert(row == 0);
-    assert(col < 4);
-    switch (col) {
-        case 0:
-            return m.x;
-        case 1:
-            return m.y;
-        case 2:
-            return m.z;
-        case 3:
-            return m.t;
-        default:
-            return m.x;
-    }
-}
-
-}  // namespace getter
+}  // namespace matrix
 
 }  // namespace detray

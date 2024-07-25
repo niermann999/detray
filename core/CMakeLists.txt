@@ -88,10 +88,10 @@ if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
       detray_test_public_headers( detray_core_smatrix
          ${_detray_core_public_headers} )
    endif()
-   #if( DETRAY_VC_AOS_PLUGIN )
-   #   detray_test_public_headers( detray_core_vc_aos
-   #      ${_detray_core_public_headers} )
-   #endif()
+   if( DETRAY_VC_AOS_PLUGIN )
+      detray_test_public_headers( detray_core_vc_aos
+         ${_detray_core_public_headers} )
+   endif()
 endif()
 
 # Clean up.

@@ -28,7 +28,6 @@ struct parameter_resetter : actor {
 
         // Matrix actor
         using transform3_type = dtransform3D<algebra_t>;
-        using matrix_operator = dmatrix_operator<algebra_t>;
 
         template <typename mask_group_t, typename index_t,
                   typename stepper_state_t>
@@ -54,7 +53,7 @@ struct parameter_resetter : actor {
                 trf3, mask, stepping._bound_params.vector());
 
             // Reset jacobian transport to identity matrix
-            matrix_operator().set_identity(stepping._jac_transport);
+            matrix::set_identity(stepping._jac_transport);
         }
     };
 

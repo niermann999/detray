@@ -152,7 +152,7 @@ struct object_tracer {
         if ((is_status(state.status(), navigation_status) || ...)) {
             // Reached a new position: log it
             // Also log volume switches that happen without position update
-            if ((getter::norm(last_pos - pos) >=
+            if ((vector::norm(last_pos - pos) >=
                  10.f * std::numeric_limits<scalar_t>::epsilon()) ||
                 (state.is_on_portal() && current_vol != state.volume())) {
 
@@ -195,7 +195,7 @@ struct print_inspector {
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
-        debug_stream << "Track pos: [r:" << getter::perp(track_pos)
+        debug_stream << "Track pos: [r:" << vector::perp(track_pos)
                      << ", z:" << track_pos[2] << "], dir: [" << track_dir[0]
                      << ", " << track_dir[1] << ", " << track_dir[2] << "]"
                      << std::endl;
@@ -212,7 +212,7 @@ struct print_inspector {
                     .local_to_global(geo_ctx_t{}, local, track_dir);
 
             debug_stream << sf_cand;
-            debug_stream << ", glob: [r:" << getter::perp(pos)
+            debug_stream << ", glob: [r:" << vector::perp(pos)
                          << ", z:" << pos[2] << "]" << std::endl;
         }
         if (not state.candidates().empty()) {

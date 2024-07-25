@@ -182,7 +182,8 @@ class cuboid_portal_generator final
                                                   h_x, h_z);
 
         // Rotate by 90deg around x-axis, plus shift in y
-        shift = {0.f, detail::is_invalid_value(h_y) ? max_shift : h_y, 0.f};
+        shift = vector3_t{0.f, detail::is_invalid_value(h_y) ? max_shift : h_y,
+                          0.f};
         vector3_t new_x{1.f, 0.f, 0.f};
         vector3_t new_z{0.f, -1.f, 0.f};
         transforms.emplace_back(ctx, static_cast<vector3_t>(center + shift),
@@ -206,7 +207,8 @@ class cuboid_portal_generator final
                                                   h_z, h_y);
 
         // Rotate by 90deg around y-axis, plus shift in x
-        shift = {detail::is_invalid_value(h_x) ? max_shift : h_x, 0.f, 0.f};
+        shift = vector3_t{detail::is_invalid_value(h_x) ? max_shift : h_x, 0.f,
+                          0.f};
         new_x = {0.f, 0.f, -1.f};
         new_z = {1.f, 0.f, 0.f};
         transforms.emplace_back(ctx, static_cast<vector3_t>(center + shift),

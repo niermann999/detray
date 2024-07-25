@@ -124,9 +124,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
     DETRAY_HOST_DEVICE inline auto solve_intersection(
         const detail::ray<other_algebra_t> &ray, const mask_t &mask,
         const transform3_type &trf) const {
-        const auto &m = trf.matrix();
-        const vector3_type sz = getter::vector<3>(m, 0u, 2u);
-        const vector3_type sc = getter::vector<3>(m, 0u, 3u);
+
+        const vector3_type &sz = trf.z();
+        const point3_type &sc = trf.translation();
 
         const scalar_type r = mask[mask_t::shape::e_r];
 

@@ -31,11 +31,6 @@ struct parameter_transporter : actor {
         using transform3_type = dtransform3D<algebra_t>;
         // scalar_type
         using scalar_type = dscalar<algebra_t>;
-        // Matrix actor
-        using matrix_operator = dmatrix_operator<algebra_t>;
-        // 2D matrix type
-        template <std::size_t ROWS, std::size_t COLS>
-        using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
 
         /// @}
 
@@ -73,29 +68,27 @@ struct parameter_transporter : actor {
                 jacobian_engine_t::free_to_bound_jacobian(trf3, free_vec);
 
             // Transport jacobian in free coordinate
-            free_matrix_t& free_transport_jacobian = stepping._jac_transport;
+            const free_matrix_t& free_transport_jacobian =
+                stepping._jac_transport;
 
             // Path correction factor
             free_matrix_t path_correction = jacobian_engine_t::path_correction(
                 stepping().pos(), stepping().dir(), stepping.dtds(),
                 stepping.dqopds(), trf3);
 
-            const free_matrix_t correction_term =
-                matrix_operator()
-                    .template identity<e_free_size, e_free_size>() +
-                path_correction;
+            const auto correction_term =
+                matrix::identity<free_matrix_t>() + path_correction;
 
-            bound_matrix_t new_cov =
-                matrix_operator().template zero<e_bound_size, e_bound_size>();
+            auto new_cov = matrix::zero<bound_matrix_t>();
 
             if (propagation.param_type() == parameter_type::e_free) {
 
-                const matrix_type<e_bound_size, e_free_size> full_jacobian =
+                const free_to_bound_matrix_t full_jacobian =
                     free_to_bound_jacobian * correction_term *
                     free_transport_jacobian;
 
                 new_cov = full_jacobian * stepping().covariance() *
-                          matrix_operator().transpose(full_jacobian);
+                          matrix::transpose(full_jacobian);
 
                 propagation.set_param_type(parameter_type::e_bound);
 
@@ -110,7 +103,7 @@ struct parameter_transporter : actor {
 
                 new_cov = stepping._full_jacobian *
                           stepping._bound_params.covariance() *
-                          matrix_operator().transpose(stepping._full_jacobian);
+                          matrix::transpose(stepping._full_jacobian);
             }
 
             // Calculate surface-to-surface covariance transport

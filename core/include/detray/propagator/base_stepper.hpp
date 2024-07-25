@@ -44,8 +44,6 @@ class base_stepper {
     using scalar_type = dscalar<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
 
-    using matrix_operator = dmatrix_operator<algebra_t>;
-
     using free_track_parameters_type = free_track_parameters<algebra_t>;
     using bound_track_parameters_type = bound_track_parameters<algebra_t>;
 
@@ -83,15 +81,14 @@ class base_stepper {
 
         /// Full jacobian
         bound_matrix_type _full_jacobian =
-            matrix_operator().template identity<e_bound_size, e_bound_size>();
+            matrix::identity<bound_matrix_type>();
 
         /// jacobian transport matrix
-        free_matrix_type _jac_transport =
-            matrix_operator().template identity<e_free_size, e_free_size>();
+        free_matrix_type _jac_transport = matrix::identity<free_matrix_type>();
 
         /// bound-to-free jacobian from departure surface
         bound_to_free_matrix_type _jac_to_global =
-            matrix_operator().template zero<e_free_size, e_bound_size>();
+            matrix::zero<bound_to_free_matrix_type>();
 
         /// bound covariance
         bound_track_parameters_type _bound_params;

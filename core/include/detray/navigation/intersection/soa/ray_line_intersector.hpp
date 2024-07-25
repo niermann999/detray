@@ -62,10 +62,10 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, true> {
         intersection_type<surface_descr_t> is;
 
         // line direction
-        const vector3_type sz = getter::vector<3>(trf.matrix(), 0u, 2u);
+        const vector3_type &sz = trf.z();
 
         // line center
-        const point3_type st = trf.translation();
+        const point3_type &st = trf.translation();
 
         // Broadcast ray data
         const auto &pos = ray.pos();

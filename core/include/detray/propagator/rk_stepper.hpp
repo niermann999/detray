@@ -42,8 +42,7 @@ class rk_stepper final
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
-    using mat_helper = matrix_helper<matrix_operator>;
+    using mat_helper = matrix_helper<algebra_t>;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =

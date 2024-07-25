@@ -27,7 +27,6 @@ struct pointwise_material_interactor : actor {
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
     using interaction_type = interaction<scalar_type>;
     using bound_vector_type = bound_vector<algebra_t>;
     using bound_matrix_type = bound_matrix<algebra_t>;
@@ -164,7 +163,7 @@ struct pointwise_material_interactor : actor {
         // Closest approach of the track to a line surface. Otherwise this is
         // ignored.
         const auto approach{
-            matrix_operator().element(bound_params.vector(), e_bound_loc0, 0)};
+            getter::element(bound_params.vector(), e_bound_loc0, 0)};
         const scalar_type cos_inc_angle{math::fabs(sf.cos_angle(
             gctx, bound_params.dir(), bound_params.bound_local()))};
 
@@ -210,8 +209,7 @@ struct pointwise_material_interactor : actor {
                            const scalar_type e_loss, const int sign) const {
         const scalar_type m = ptc.mass();
         const scalar_type q = ptc.charge();
-        const scalar_type p =
-            detail::track_helper<matrix_operator>().p(vector, q);
+        const scalar_type p = detail::track_helper<algebra_type>().p(vector, q);
 
         // Get new Energy
         const scalar_type nextE{
@@ -224,8 +222,9 @@ struct pointwise_material_interactor : actor {
 
         // For neutral particles, qoverp = 1/p
         constexpr auto inv{detail::invalid_value<scalar_type>()};
-        getter::element(vector, e_bound_qoverp, 0) =
-            (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
+        getter::element(vector, e_bound_qoverp, 0) = (nextP == 0.f) ? inv
+                                                     : (q != 0.f)   ? q / nextP
+                                                                  : 1.f / nextP;
     }
 
     /// @brief Update the variance of q over p of bound track parameter
@@ -239,7 +238,7 @@ struct pointwise_material_interactor : actor {
 
         const scalar_type variance_qop{sigma_qop * sigma_qop};
 
-        matrix_operator().element(covariance, e_bound_qoverp, e_bound_qoverp) +=
+        getter::element(covariance, e_bound_qoverp, e_bound_qoverp) +=
             math::copysign(variance_qop, static_cast<scalar_type>(sign));
     }
 
@@ -259,11 +258,11 @@ struct pointwise_material_interactor : actor {
             static_cast<scalar_type>(sign))};
 
         constexpr auto inv{detail::invalid_value<scalar_type>()};
-        matrix_operator().element(covariance, e_bound_phi, e_bound_phi) +=
+        getter::element(covariance, e_bound_phi, e_bound_phi) +=
             (dir[2] == 1.f) ? inv
                             : var_scattering_angle / (1.f - dir[2] * dir[2]);
 
-        matrix_operator().element(covariance, e_bound_theta, e_bound_theta) +=
+        getter::element(covariance, e_bound_theta, e_bound_theta) +=
             var_scattering_angle;
     }
 };

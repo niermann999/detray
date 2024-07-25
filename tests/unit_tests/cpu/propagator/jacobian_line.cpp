@@ -24,9 +24,6 @@ using point2 = test::point2;
 using point3 = test::point3;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
-using matrix_operator = test::matrix_operator;
-template <std::size_t ROWS, std::size_t COLS>
-using matrix_type = test::matrix<ROWS, COLS>;
 
 constexpr scalar isclose{1e-5f};
 
@@ -58,22 +55,22 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
         detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_vec1);
     const auto free_vec2 = detail::bound_to_free_vector(trf, ln, bound_vec);
 
-    const matrix_operator m;
-
     // Check if the bound vector is correct
-    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), -constant<scalar>::inv_sqrt2,
+    ASSERT_NEAR(getter::element(bound_vec, 0u, 0u),
+                -constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(getter::element(bound_vec, 1u, 0u), std::sqrt(3.f), isclose);
+    ASSERT_NEAR(getter::element(bound_vec, 2u, 0u), constant<scalar>::pi_2,
                 isclose);
-    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), std::sqrt(3.f), isclose);
-    ASSERT_NEAR(m.element(bound_vec, 2u, 0u), constant<scalar>::pi_2, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 3u, 0u), constant<scalar>::pi_4, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 4u, 0u), -constant<scalar>::inv_sqrt2,
+    ASSERT_NEAR(getter::element(bound_vec, 3u, 0u), constant<scalar>::pi_4,
                 isclose);
-    ASSERT_NEAR(m.element(bound_vec, 5u, 0u), 0.1f, isclose);
+    ASSERT_NEAR(getter::element(bound_vec, 4u, 0u),
+                -constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(getter::element(bound_vec, 5u, 0u), 0.1f, isclose);
 
     // Check if the same free vector is obtained
     for (unsigned int i = 0u; i < 8u; i++) {
-        ASSERT_NEAR(m.element(free_vec1, i, 0u), m.element(free_vec2, i, 0u),
-                    isclose);
+        ASSERT_NEAR(getter::element(free_vec1, i, 0u),
+                    getter::element(free_vec2, i, 0u), isclose);
     }
 
     // Test Jacobian transformation
@@ -84,9 +81,9 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
             if (i == j) {
-                EXPECT_NEAR(m.element(J, i, j), 1.f, isclose);
+                EXPECT_NEAR(getter::element(J, i, j), 1.f, isclose);
             } else {
-                EXPECT_NEAR(m.element(J, i, j), 0.f, isclose);
+                EXPECT_NEAR(getter::element(J, i, j), 0.f, isclose);
             }
         }
     }
@@ -124,14 +121,12 @@ GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
         jac_engine::free_to_bound_jacobian(trf, free_vec) *
         jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
 
-    const matrix_operator m;
-
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
             if (i == j) {
-                EXPECT_NEAR(m.element(J, i, j), 1.f, isclose);
+                EXPECT_NEAR(getter::element(J, i, j), 1.f, isclose);
             } else {
-                EXPECT_NEAR(m.element(J, i, j), 0.f, isclose);
+                EXPECT_NEAR(getter::element(J, i, j), 0.f, isclose);
             }
         }
     }

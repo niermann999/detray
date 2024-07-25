@@ -83,7 +83,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
             scalar_type s;
             if (denom == 0.f) {
-                s = getter::norm(dist);
+                s = vector::norm(dist);
             }
             s = math::fabs(vector::dot(sn, dist) / denom);
 
@@ -140,10 +140,10 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             const vector3_type dist{trf.point_to_global(mask.centroid()) -
                                     h.pos(0.f)};
             scalar_type denom{
-                vector::dot(sn, h.dir(0.5f * getter::norm(dist)))};
+                vector::dot(sn, h.dir(0.5f * vector::norm(dist)))};
             scalar_type s_ini;
             if (denom == 0.f) {
-                s_ini = getter::norm(dist);
+                s_ini = vector::norm(dist);
             } else {
                 s_ini = vector::dot(sn, dist) / denom;
             }

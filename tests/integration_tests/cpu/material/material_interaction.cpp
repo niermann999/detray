@@ -39,7 +39,6 @@
 using namespace detray;
 
 using algebra_t = test::algebra;
-using matrix_operator = test::matrix_operator;
 
 // Test is done for muon
 namespace {
@@ -89,8 +88,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
     getter::element(bound_vector, e_bound_time, 0) = 0.f;
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::zero<
+        typename bound_track_parameters<algebra_t>::covariance_type>();
 
     // bound track parameter at first physical plane
     const bound_track_parameters<algebra_t> bound_param(
@@ -126,8 +125,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // New qop variance
     const scalar new_var_qop{
-        matrix_operator().element(state._stepping._bound_params.covariance(),
-                                  e_bound_qoverp, e_bound_qoverp)};
+        getter::element(state._stepping._bound_params.covariance(),
+                        e_bound_qoverp, e_bound_qoverp)};
 
     // Interaction object
     interaction<scalar> I;
@@ -257,13 +256,13 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
     // Initial track parameters directing x-axis
-    typename bound_track_parameters<algebra_t>::vector_type bound_vector =
-        matrix_operator().template zero<e_bound_size, 1>();
+    auto bound_vector =
+        matrix::zero<typename bound_track_parameters<algebra_t>::vector_type>();
     getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
 
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::zero<
+        typename bound_track_parameters<algebra_t>::covariance_type>();
 
     // bound track parameter
     const bound_track_parameters<algebra_t> bound_param(
@@ -349,8 +348,8 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
     getter::element(bound_vector, e_bound_time, 0) = 0.f;
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::zero<
+        typename bound_track_parameters<algebra_t>::covariance_type>();
 
     // bound track parameter at first physical plane
     const bound_track_parameters<algebra_t> bound_param(

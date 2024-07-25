@@ -107,8 +107,8 @@ struct ray_concentric_cylinder_intersector {
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
 
                 const point3_type p3 = candidates[cindex];
-                const scalar_type phi{getter::phi(p3)};
-                is.local = {r * phi, p3[2], r};
+                const scalar_type phi{vector::phi(p3)};
+                is.local = point3_type{r * phi, p3[2], r};
 
                 is.path = t01[cindex];
                 // In this case, the point has to be in cylinder3 coordinates

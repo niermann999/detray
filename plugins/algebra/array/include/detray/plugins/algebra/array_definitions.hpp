@@ -29,51 +29,53 @@ struct cmath {
 
     using boolean = bool;
     using scalar = value_type;
+    using size_type = algebra::array::size_type;
     using transform3D = algebra::array::transform3<value_type>;
     using point2D = algebra::array::point2<value_type>;
     using point3D = algebra::array::point3<value_type>;
     using vector3D = algebra::array::vector3<value_type>;
 
-    // Define matrix/vector operator
-    using matrix_operator = algebra::matrix::actor<
-        value_type, algebra::matrix::determinant::preset0<value_type>,
-        algebra::matrix::inverse::preset0<value_type>>;
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix = algebra::array::matrix_type<value_type, ROWS, COLS>;
 };
 /// @}
 
-// Define namespace(s)
-namespace matrix = algebra::matrix;
+namespace getter {
+
+using algebra::cmath::storage::block;
+using algebra::cmath::storage::element;
+using algebra::cmath::storage::set_block;
+using algebra::cmath::storage::vector;
+
+}  // namespace getter
 
 namespace vector {
 
-using algebra::cmath::cross;
+// array specific implementations
 using algebra::cmath::dot;
 using algebra::cmath::normalize;
 
-}  // namespace vector
-
-namespace getter {
-
+// generic implementations
+using algebra::cmath::cross;
 using algebra::cmath::eta;
 using algebra::cmath::norm;
 using algebra::cmath::perp;
 using algebra::cmath::phi;
 using algebra::cmath::theta;
 
-using algebra::cmath::element;
+}  // namespace vector
 
-/// Function extracting a slice from a matrix
-template <std::size_t SIZE, std::size_t ROWS, std::size_t COLS,
-          typename scalar_t>
-ALGEBRA_HOST_DEVICE inline auto vector(
-    const algebra::array::matrix_type<scalar_t, ROWS, COLS>& m, std::size_t row,
-    std::size_t col) {
+namespace matrix {
 
-    return algebra::cmath::vector_getter<
-        std::size_t, algebra::array::storage_type, scalar_t, SIZE>()(m, row,
-                                                                     col);
-}
+using algebra::cmath::identity;
+using algebra::cmath::set_identity;
+using algebra::cmath::set_zero;
+using algebra::cmath::zero;
 
-}  // namespace getter
+using algebra::cmath::determinant;
+using algebra::cmath::inverse;
+using algebra::cmath::transpose;
+
+}  // namespace matrix
 
 }  // namespace detray

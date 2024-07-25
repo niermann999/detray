@@ -35,11 +35,11 @@ if( DETRAY_SMATRIX_PLUGIN )
       INTERFACE detray::utils detray::algebra_smatrix )
 endif()
 
-#if( DETRAY_VC_AOS_PLUGIN )
-#   detray_add_library( detray_utils_vc_aos utils_vc_aos )
-#   target_link_libraries( detray_utils_vc_aos
-#      INTERFACE detray::utils detray::algebra_vc_aos )
-#endif()
+if( DETRAY_VC_AOS_PLUGIN )
+   detray_add_library( detray_utils_vc_aos utils_vc_aos )
+   target_link_libraries( detray_utils_vc_aos
+      INTERFACE detray::utils detray::algebra_vc_aos )
+endif()
 
 # Test the public headers of the detray utils libraries.
 if( BUILD_TESTING AND DETRAY_BUILD_TESTING )

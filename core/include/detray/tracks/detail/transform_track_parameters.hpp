@@ -52,9 +52,8 @@ DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
 
     // Matrix operator
     using algebra_t = typename local_frame_t::algebra_type;
-    using matrix_operator = dmatrix_operator<algebra_t>;
     // Track helper
-    using track_helper = detail::track_helper<matrix_operator>;
+    using track_helper = detail::track_helper<algebra_t>;
 
     const auto pos = track_helper().pos(free_vec);
     const auto dir = track_helper().dir(free_vec);
@@ -63,16 +62,14 @@ DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
         free_to_bound_position<local_frame_t>(trf3, pos, dir);
 
     bound_vector<algebra_t> bound_vec;
-    matrix_operator().element(bound_vec, e_bound_loc0, 0u) = bound_local[0];
-    matrix_operator().element(bound_vec, e_bound_loc1, 0u) = bound_local[1];
+    getter::set_block(bound_vec, bound_local, e_bound_loc0, 0u);
     // The angles are defined in the global frame!
-    matrix_operator().element(bound_vec, e_bound_phi, 0u) = getter::phi(dir);
-    matrix_operator().element(bound_vec, e_bound_theta, 0u) =
-        getter::theta(dir);
-    matrix_operator().element(bound_vec, e_bound_time, 0u) =
-        matrix_operator().element(free_vec, e_free_time, 0u);
-    matrix_operator().element(bound_vec, e_bound_qoverp, 0u) =
-        matrix_operator().element(free_vec, e_free_qoverp, 0u);
+    getter::element(bound_vec, e_bound_phi, 0u) = vector::phi(dir);
+    getter::element(bound_vec, e_bound_theta, 0u) = vector::theta(dir);
+    getter::element(bound_vec, e_bound_time, 0u) =
+        getter::element(free_vec, e_free_time, 0u);
+    getter::element(bound_vec, e_bound_qoverp, 0u) =
+        getter::element(free_vec, e_free_qoverp, 0u);
 
     return bound_vec;
 }
@@ -84,9 +81,8 @@ DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
 
     // Matrix operator
     using algebra_t = typename mask_t::algebra_type;
-    using matrix_operator = dmatrix_operator<algebra_t>;
     // Track helper
-    using track_helper = detail::track_helper<matrix_operator>;
+    using track_helper = detail::track_helper<algebra_t>;
 
     const auto bound_local = track_helper().bound_local(bound_vec);
 
@@ -95,16 +91,12 @@ DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
     const auto pos = bound_to_free_position(trf3, mask, bound_local, dir);
 
     free_vector<algebra_t> free_vec;
-    matrix_operator().element(free_vec, e_free_pos0, 0u) = pos[0];
-    matrix_operator().element(free_vec, e_free_pos1, 0u) = pos[1];
-    matrix_operator().element(free_vec, e_free_pos2, 0u) = pos[2];
-    matrix_operator().element(free_vec, e_free_time, 0u) =
-        matrix_operator().element(bound_vec, e_bound_time, 0u);
-    matrix_operator().element(free_vec, e_free_dir0, 0u) = dir[0];
-    matrix_operator().element(free_vec, e_free_dir1, 0u) = dir[1];
-    matrix_operator().element(free_vec, e_free_dir2, 0u) = dir[2];
-    matrix_operator().element(free_vec, e_free_qoverp, 0u) =
-        matrix_operator().element(bound_vec, e_bound_qoverp, 0u);
+    getter::set_block(free_vec, pos, e_free_pos0, 0u);
+    getter::element(free_vec, e_free_time, 0u) =
+        getter::element(bound_vec, e_bound_time, 0u);
+    getter::set_block(free_vec, dir, e_free_dir0, 0u);
+    getter::element(free_vec, e_free_qoverp, 0u) =
+        getter::element(bound_vec, e_bound_qoverp, 0u);
 
     return free_vec;
 }

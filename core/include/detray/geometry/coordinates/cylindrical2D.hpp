@@ -35,9 +35,9 @@ struct cylindrical2D {
                                                  const point3_type &p,
                                                  const vector3_type & /*dir*/) {
         const point3_type local3{trf.point_to_local(p)};
-        const scalar_type r{getter::perp(local3)};
+        const scalar_type r{vector::perp(local3)};
 
-        return {r * getter::phi(local3), local3[2], r};
+        return {r * vector::phi(local3), local3[2], r};
     }
 
     /// This method transforms a point from a global cartesian 3D frame to a
@@ -48,7 +48,7 @@ struct cylindrical2D {
                                             const vector3_type & /*dir*/) {
         const point3_type local3{trf.point_to_local(p)};
 
-        return {getter::perp(local3) * getter::phi(local3), local3[2]};
+        return {vector::perp(local3) * vector::phi(local3), local3[2]};
     }
 
     /// This method transform from a local 3D cylindrical point to a point in

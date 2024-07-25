@@ -54,8 +54,6 @@ struct helix_inspector : actor {
         std::vector<navigation::status> _nav_status;
     };
 
-    using matrix_operator = test::matrix_operator;
-
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
@@ -86,8 +84,7 @@ struct helix_inspector : actor {
         const auto free_vec =
             sf.bound_to_free_vector(ctx, stepping._bound_params.vector());
 
-        const auto last_pos =
-            detail::track_helper<matrix_operator>().pos(free_vec);
+        const auto last_pos = detail::track_helper<algebra_t>().pos(free_vec);
 
         free_track_parameters<algebra_t> free_params;
         free_params.set_vector(free_vec);
@@ -103,16 +100,15 @@ struct helix_inspector : actor {
         const point3 relative_error{1.f / stepping._s *
                                     (stepping().pos() - true_pos)};
 
-        ASSERT_NEAR(getter::norm(relative_error), 0.f, tol);
+        ASSERT_NEAR(vector::norm(relative_error), 0.f, tol);
 
         auto true_J = hlx.jacobian(stepping._s);
 
         for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
-                ASSERT_NEAR(
-                    matrix_operator().element(stepping._jac_transport, i, j),
-                    matrix_operator().element(true_J, i, j),
-                    stepping._s * tol * 10.f);
+                ASSERT_NEAR(getter::element(stepping._jac_transport, i, j),
+                            getter::element(true_J, i, j),
+                            stepping._s * tol * 10.f);
             }
         }
     }

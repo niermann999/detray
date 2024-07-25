@@ -46,7 +46,7 @@ macro( detray_add_cpu_benchmark algebra )
    if( OpenMP_CXX_FOUND )
       target_link_libraries( detray_benchmark_cpu_${algebra} PRIVATE OpenMP::OpenMP_CXX )
     endif()
-    
+
 endmacro()
 
 # Build the array benchmark.
@@ -63,9 +63,9 @@ if( DETRAY_SMATRIX_PLUGIN )
 endif()
 
 # Build the Vc benchmark executable (defunct at the moment)
-#if( DETRAY_VC_AOS_PLUGIN )
-#   detray_add_cpu_benchmark( vc_aos )
-#endif()
+if( DETRAY_VC_AOS_PLUGIN )
+   detray_add_cpu_benchmark( vc_aos )
+endif()
 
 if( DETRAY_VC_SOA_PLUGIN )
 

@@ -337,7 +337,7 @@ class cylinder_portal_generator final
 
         for (const auto &sf_desc : surfaces) {
             const auto &trf = transforms[sf_desc.transform()];
-            mean += getter::perp(trf.translation());
+            mean += vector::perp(trf.translation());
         }
 
         return static_cast<scalar_t>(mean /

@@ -38,9 +38,9 @@ if( DETRAY_SMATRIX_PLUGIN )
 endif()
 
 # Build the Vc tests (defunct at the moment)
-#if( DETRAY_VC_AOS_PLUGIN )
-#   detray_add_cpu_test( vc_aos )
-#endif()
+if( DETRAY_VC_AOS_PLUGIN )
+   detray_add_cpu_test( vc_aos )
+endif()
 
 # Detector navigation tests
 detray_add_integration_test(telescope_detector

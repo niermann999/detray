@@ -30,8 +30,6 @@ struct jacobian<line2D<algebra_t>> {
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
 
-    // Matrix operator
-    using matrix_operator = dmatrix_operator<algebra_t>;
     // Rotation Matrix
     using rotation_matrix = dmatrix<algebra_t, 3, 3>;
 
@@ -45,11 +43,10 @@ struct jacobian<line2D<algebra_t>> {
                                                   const point3_type & /*pos*/,
                                                   const vector3_type &dir) {
 
-        rotation_matrix rot = matrix_operator().template zero<3, 3>();
+        auto rot = matrix::zero<rotation_matrix>();
 
         // y axis of the new frame is the z axis of line coordinate
-        const auto new_yaxis =
-            matrix_operator().template block<3, 1>(trf3.matrix(), 0u, 2u);
+        const auto &new_yaxis = trf3.z();
 
         // x axis of the new frame is (yaxis x track direction)
         const auto new_xaxis = vector::normalize(vector::cross(new_yaxis, dir));
@@ -57,13 +54,9 @@ struct jacobian<line2D<algebra_t>> {
         // z axis
         const auto new_zaxis = vector::cross(new_xaxis, new_yaxis);
 
-        matrix_operator().element(rot, 0u, 0u) = new_xaxis[0];
-        matrix_operator().element(rot, 1u, 0u) = new_xaxis[1];
-        matrix_operator().element(rot, 2u, 0u) = new_xaxis[2];
-        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0u, 1u);
-        matrix_operator().element(rot, 0u, 2u) = new_zaxis[0];
-        matrix_operator().element(rot, 1u, 2u) = new_zaxis[1];
-        matrix_operator().element(rot, 2u, 2u) = new_zaxis[2];
+        getter::set_block(rot, new_xaxis, 0u, 0u);
+        getter::set_block(rot, new_yaxis, 0u, 1u);
+        getter::set_block(rot, new_zaxis, 0u, 2u);
 
         return rot;
     }
@@ -72,8 +65,7 @@ struct jacobian<line2D<algebra_t>> {
         const transform3_type &trf3, const point3_type &pos,
         const vector3_type &dir, const vector3_type &dtds) {
 
-        free_to_path_matrix_type derivative =
-            matrix_operator().template zero<1u, e_free_size>();
+        auto derivative = matrix::zero<free_to_path_matrix_type>();
 
         // The vector between position and center
         const point3_type center = trf3.translation();
@@ -98,12 +90,12 @@ struct jacobian<line2D<algebra_t>> {
         const vector3_type pos_term = norm * (dir - dz * local_zaxis);
         const vector3_type dir_term = norm * pc_x;
 
-        matrix_operator().element(derivative, 0u, e_free_pos0) = pos_term[0];
-        matrix_operator().element(derivative, 0u, e_free_pos1) = pos_term[1];
-        matrix_operator().element(derivative, 0u, e_free_pos2) = pos_term[2];
-        matrix_operator().element(derivative, 0u, e_free_dir0) = dir_term[0];
-        matrix_operator().element(derivative, 0u, e_free_dir1) = dir_term[1];
-        matrix_operator().element(derivative, 0u, e_free_dir2) = dir_term[2];
+        getter::element(derivative, 0u, e_free_pos0) = pos_term[0];
+        getter::element(derivative, 0u, e_free_pos1) = pos_term[1];
+        getter::element(derivative, 0u, e_free_pos2) = pos_term[2];
+        getter::element(derivative, 0u, e_free_dir0) = dir_term[0];
+        getter::element(derivative, 0u, e_free_dir1) = dir_term[1];
+        getter::element(derivative, 0u, e_free_dir2) = dir_term[2];
 
         return derivative;
     }
@@ -118,11 +110,11 @@ struct jacobian<line2D<algebra_t>> {
 
         // Get d(x,y,z)/d(loc0, loc1)
         const auto bound_pos_to_free_pos_derivative =
-            matrix_operator().template block<3, 2>(frame, 0u, 0u);
+            getter::block<3, 2>(frame, 0u, 0u);
 
-        matrix_operator().template set_block(bound_to_free_jacobian,
-                                             bound_pos_to_free_pos_derivative,
-                                             e_free_pos0, e_bound_loc0);
+        getter::set_block(bound_to_free_jacobian,
+                          bound_pos_to_free_pos_derivative, e_free_pos0,
+                          e_bound_loc0);
     }
 
     DETRAY_HOST_DEVICE
@@ -132,15 +124,15 @@ struct jacobian<line2D<algebra_t>> {
         const vector3_type &dir) {
 
         const auto frame = reference_frame(trf3, pos, dir);
-        const auto frameT = matrix_operator().transpose(frame);
+        const auto frameT = matrix::transpose(frame);
 
         // Get d(loc0, loc1)/d(x,y,z)
         const auto free_pos_to_bound_pos_derivative =
-            matrix_operator().template block<2, 3>(frameT, 0u, 0u);
+            getter::block<2, 3>(frameT, 0u, 0u);
 
-        matrix_operator().template set_block(free_to_bound_jacobian,
-                                             free_pos_to_bound_pos_derivative,
-                                             e_bound_loc0, e_free_pos0);
+        getter::set_block(free_to_bound_jacobian,
+                          free_pos_to_bound_pos_derivative, e_bound_loc0,
+                          e_free_pos0);
     }
 
     DETRAY_HOST_DEVICE
@@ -168,15 +160,15 @@ struct jacobian<line2D<algebra_t>> {
         const scalar_type ipdn{1.f / vector::dot(dir, new_zaxis)};
 
         // d(n_x,n_y,n_z)/dPhi
-        const auto dNdPhi = matrix_operator().template block<3, 1>(
-            bound_to_free_jacobian, e_free_dir0, e_bound_phi);
+        const auto dNdPhi =
+            getter::vector<3>(bound_to_free_jacobian, e_free_dir0, e_bound_phi);
 
         // Get new_yaxis X d(n_x,n_y,n_z)/dPhi
         auto y_cross_dNdPhi = vector::cross(new_yaxis, dNdPhi);
 
         // d(n_x,n_y,n_z)/dTheta
-        const auto dNdTheta = matrix_operator().template block<3, 1>(
-            bound_to_free_jacobian, e_free_dir0, e_bound_theta);
+        const auto dNdTheta = getter::vector<3>(bound_to_free_jacobian,
+                                                e_free_dir0, e_bound_theta);
 
         // build the cross product of d(D)/d(eBoundPhi) components with y axis
         auto y_cross_dNdTheta = vector::cross(new_yaxis, dNdTheta);
@@ -195,21 +187,10 @@ struct jacobian<line2D<algebra_t>> {
         theta_to_free_pos_derivative = C * theta_to_free_pos_derivative;
 
         // Set the jacobian components
-        matrix_operator().element(bound_to_free_jacobian, e_free_pos0,
-                                  e_bound_phi) = phi_to_free_pos_derivative[0];
-        matrix_operator().element(bound_to_free_jacobian, e_free_pos1,
-                                  e_bound_phi) = phi_to_free_pos_derivative[1];
-        matrix_operator().element(bound_to_free_jacobian, e_free_pos2,
-                                  e_bound_phi) = phi_to_free_pos_derivative[2];
-        matrix_operator().element(bound_to_free_jacobian, e_free_pos0,
-                                  e_bound_theta) =
-            theta_to_free_pos_derivative[0];
-        matrix_operator().element(bound_to_free_jacobian, e_free_pos1,
-                                  e_bound_theta) =
-            theta_to_free_pos_derivative[1];
-        matrix_operator().element(bound_to_free_jacobian, e_free_pos2,
-                                  e_bound_theta) =
-            theta_to_free_pos_derivative[2];
+        getter::set_block(bound_to_free_jacobian, phi_to_free_pos_derivative,
+                          e_free_pos0, e_bound_phi);
+        getter::set_block(bound_to_free_jacobian, theta_to_free_pos_derivative,
+                          e_free_pos0, e_bound_theta);
     }
 };
 

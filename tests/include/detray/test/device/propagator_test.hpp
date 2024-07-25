@@ -42,7 +42,6 @@ using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
 using scalar_t = dscalar<algebra_t>;
 using vector3_t = dvector3D<algebra_t>;
 using point3_t = dpoint3D<algebra_t>;
-using matrix_operator = dmatrix_operator<algebra_t>;
 using track_t = free_track_parameters<algebra_t>;
 using free_matrix_t = free_matrix<algebra_t>;
 
@@ -225,7 +224,7 @@ inline void compare_propagation_results(
             auto relative_error =
                 static_cast<point3_t>(1. / host_pl * (host_pos - device_pos));
 
-            ASSERT_NEAR(getter::norm(relative_error), 0.f, is_close);
+            ASSERT_NEAR(vector::norm(relative_error), 0.f, is_close);
         }
     }
 
@@ -241,11 +240,9 @@ inline void compare_propagation_results(
             for (std::size_t row = 0u; row < e_free_size; row++) {
                 for (std::size_t col = 0u; col < e_free_size; col++) {
 
-                    scalar_t host_val =
-                        matrix_operator().element(host_J, row, col);
+                    scalar_t host_val = getter::element(host_J, row, col);
 
-                    scalar_t device_val =
-                        matrix_operator().element(device_J, row, col);
+                    scalar_t device_val = getter::element(device_J, row, col);
 
                     ASSERT_NEAR((host_val - device_val) / pl, 0.f, is_close);
                 }

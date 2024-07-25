@@ -18,7 +18,6 @@ using namespace detray;
 using algebra_t = test::algebra;
 using vector3 = test::vector3;
 using point3 = test::point3;
-using matrix_operator = test::matrix_operator;
 
 constexpr scalar tol{1e-5f};
 
@@ -30,19 +29,19 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
     scalar time = 0.1f;
     vector3 mom = {10.f, 20.f, 30.f};
 
-    typename free_track_parameters<algebra_t>::vector_type free_vec =
-        matrix_operator().template zero<e_free_size, 1>();
+    auto free_vec =
+        matrix::zero<typename free_track_parameters<algebra_t>::vector_type>();
     getter::element(free_vec, e_free_pos0, 0u) = pos[0];
     getter::element(free_vec, e_free_pos1, 0u) = pos[1];
     getter::element(free_vec, e_free_pos2, 0u) = pos[2];
     getter::element(free_vec, e_free_time, 0u) = time;
-    getter::element(free_vec, e_free_dir0, 0u) = mom[0] / getter::norm(mom);
-    getter::element(free_vec, e_free_dir1, 0u) = mom[1] / getter::norm(mom);
-    getter::element(free_vec, e_free_dir2, 0u) = mom[2] / getter::norm(mom);
-    getter::element(free_vec, e_free_qoverp, 0u) = charge / getter::norm(mom);
+    getter::element(free_vec, e_free_dir0, 0u) = mom[0] / vector::norm(mom);
+    getter::element(free_vec, e_free_dir1, 0u) = mom[1] / vector::norm(mom);
+    getter::element(free_vec, e_free_dir2, 0u) = mom[2] / vector::norm(mom);
+    getter::element(free_vec, e_free_qoverp, 0u) = charge / vector::norm(mom);
 
-    typename free_track_parameters<algebra_t>::covariance_type free_cov =
-        matrix_operator().template zero<e_free_size, e_free_size>();
+    auto free_cov = matrix::zero<
+        typename free_track_parameters<algebra_t>::covariance_type>();
 
     // first constructor
     free_track_parameters<algebra_t> free_param1(free_vec, free_cov);
@@ -58,7 +57,7 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
                 getter::element(free_vec, e_free_dir1, 0u), tol);
     EXPECT_NEAR(free_param1.dir()[2],
                 getter::element(free_vec, e_free_dir2, 0u), tol);
-    EXPECT_NEAR(getter::norm(free_param1.mom(charge)), getter::norm(mom), tol);
+    EXPECT_NEAR(vector::norm(free_param1.mom(charge)), vector::norm(mom), tol);
     EXPECT_NEAR(free_param1.time(), getter::element(free_vec, e_free_time, 0u),
                 tol);
     EXPECT_NEAR(free_param1.qop(), getter::element(free_vec, e_free_qoverp, 0u),
@@ -80,12 +79,12 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
     EXPECT_NEAR(free_param2.pos()[0], pos[0], tol);
     EXPECT_NEAR(free_param2.pos()[1], pos[1], tol);
     EXPECT_NEAR(free_param2.pos()[2], pos[2], tol);
-    EXPECT_NEAR(free_param2.dir()[0], mom[0] / getter::norm(mom), tol);
-    EXPECT_NEAR(free_param2.dir()[1], mom[1] / getter::norm(mom), tol);
-    EXPECT_NEAR(free_param2.dir()[2], mom[2] / getter::norm(mom), tol);
-    EXPECT_NEAR(getter::norm(free_param2.mom(charge)), getter::norm(mom), tol);
+    EXPECT_NEAR(free_param2.dir()[0], mom[0] / vector::norm(mom), tol);
+    EXPECT_NEAR(free_param2.dir()[1], mom[1] / vector::norm(mom), tol);
+    EXPECT_NEAR(free_param2.dir()[2], mom[2] / vector::norm(mom), tol);
+    EXPECT_NEAR(vector::norm(free_param2.mom(charge)), vector::norm(mom), tol);
     EXPECT_NEAR(free_param2.time(), time, tol);
-    EXPECT_NEAR(free_param2.qop(), charge / getter::norm(mom), tol);
+    EXPECT_NEAR(free_param2.qop(), charge / vector::norm(mom), tol);
     EXPECT_NEAR(free_param2.pT(charge),
                 std::sqrt(std::pow(mom[0], 2.f) + std::pow(mom[1], 2.f)), tol);
     EXPECT_NEAR(free_param2.mom(charge)[0],

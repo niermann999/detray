@@ -72,7 +72,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
         vector3 result = track.mom(trk_gen_cfg.charge());
 
         // Compare with for loop
-        EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
+        EXPECT_NEAR(vector::norm(expected - result), 0.f, tol)
             << "Track: \n"
             << expected[0] << "\t" << result[0] << "\n"
             << expected[1] << "\t" << result[1] << "\n"
@@ -89,7 +89,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
         vector3 result = r.dir();
 
         // Compare with for loop
-        EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
+        EXPECT_NEAR(vector::norm(expected - result), 0.f, tol)
             << "Ray: \n"
             << expected[0] << "\t" << result[0] << "\n"
             << expected[1] << "\t" << result[1] << "\n"
@@ -109,7 +109,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
         vector3 result = helix_traj.dir(0.f);
 
         // Compare with for loop
-        EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
+        EXPECT_NEAR(vector::norm(expected - result), 0.f, tol)
             << "Helix: \n"
             << expected[0] << "\t" << result[0] << "\n"
             << expected[1] << "\t" << result[1] << "\n"
@@ -170,7 +170,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator_eta) {
         vector3 result = track.mom(trk_generator.config().charge());
 
         // Compare with for loop
-        EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
+        EXPECT_NEAR(vector::norm(expected - result), 0.f, tol)
             << "Expected\tResult: \n"
             << expected[0] << "\t" << result[0] << "\n"
             << expected[1] << "\t" << result[1] << "\n"
@@ -195,7 +195,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator_with_range) {
 
     for (const auto track : generator_t{trk_gen_cfg}) {
         const auto dir = track.dir();
-        theta_phi.push_back({getter::theta(dir), getter::phi(dir)});
+        theta_phi.push_back({vector::theta(dir), vector::phi(dir)});
     }
 
     EXPECT_EQ(theta_phi.size(), 8u);
@@ -260,8 +260,8 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
         y[n_tracks] = pos[1];
         z[n_tracks] = pos[2];
         mom[n_tracks] = track.p(trk_gen_cfg.charge());
-        phi[n_tracks] = getter::phi(track.dir());
-        theta[n_tracks] = getter::theta(track.dir());
+        phi[n_tracks] = vector::phi(track.dir());
+        theta[n_tracks] = vector::theta(track.dir());
 
         ++n_tracks;
     }
@@ -344,8 +344,8 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
         y[n_tracks] = pos[1];
         z[n_tracks] = pos[2];
         mom[n_tracks] = track.p(trk_gen_cfg.charge());
-        phi[n_tracks] = getter::phi(track.dir());
-        theta[n_tracks] = getter::theta(track.dir());
+        phi[n_tracks] = vector::phi(track.dir());
+        theta[n_tracks] = vector::theta(track.dir());
 
         ++n_tracks;
     }

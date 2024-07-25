@@ -63,10 +63,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, true> {
         intersection_type<surface_descr_t> is;
 
         // Retrieve the surface normal & translation (context resolved)
-        const auto &sm = trf.matrix();
-        // const vector3 sn = getter::vector<3>(sm, 0u, 2u);
-        const vector3_type sn = sm.z;
-        const vector3_type st = trf.translation();
+        const vector3_type &sn = trf.z();
+        const vector3_type &st = trf.translation();
 
         // Broadcast ray data
         const auto &pos = ray.pos();

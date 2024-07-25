@@ -60,16 +60,19 @@ struct get_algebra<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
 template <typename T>
 struct get_algebra<
     T, std::enable_if_t<!std::is_same_v<typename T::point3D, void>, void>> {
+    using size_type = typename T::size_type;
     using point2D = typename T::point2D;
     using point3D = typename T::point3D;
     using vector3D = typename T::vector3D;
     using transform3D = typename T::transform3D;
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix = typename T::template matrix<ROWS, COLS>;
 };
 /// @}
 
 /// The detray matrix types
 /// @{
-template <typename T, typename = void>
+/*template <typename T, typename = void>
 struct get_matrix {};
 
 template <typename T>
@@ -82,7 +85,7 @@ struct get_matrix<
     template <std::size_t ROWS, std::size_t COLS>
     using matrix = typename matrix_operator::template matrix_type<
         static_cast<size_type>(ROWS), static_cast<size_type>(COLS)>;
-};
+};*/
 /// @}
 
 }  // namespace detail
@@ -105,14 +108,14 @@ using dvector3D = typename detail::get_algebra<A>::vector3D;
 template <typename A>
 using dtransform3D = typename detail::get_algebra<A>::transform3D;
 
-template <typename A>
-using dmatrix_operator = typename detail::get_matrix<A>::matrix_operator;
+// template <typename A>
+// using dmatrix_operator = typename detail::get_matrix<A>::matrix_operator;
 
 template <typename A>
-using dsize_type = typename detail::get_matrix<A>::size_type;
+using dsize_type = typename detail::get_algebra<A>::size_type;
 
 template <typename A, std::size_t R, std::size_t C>
-using dmatrix = typename detail::get_matrix<A>::template matrix<R, C>;
+using dmatrix = typename detail::get_algebra<A>::template matrix<R, C>;
 
 namespace detail {
 

@@ -34,7 +34,6 @@ using namespace detray;
 // Algebra types
 using algebra_t = test::algebra;
 using vector3 = test::vector3;
-using matrix_operator = test::matrix_operator;
 using intersection_t = intersection2D<surface_descriptor<>, algebra_t>;
 
 // Mask types to be tested
@@ -81,8 +80,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     getter::element(bound_vector, e_bound_time, 0u) = 0.f;
 
     // Bound covariance
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template identity<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::identity<
+        typename bound_track_parameters<algebra_t>::covariance_type>();
 
     // Note: Set angle error as ZERO, to constrain the loc0 and loc1 divergence
     getter::element(bound_cov, e_bound_phi, e_bound_phi) = 0.f;
@@ -121,16 +120,16 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     // Check covaraince
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
-            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
-                        matrix_operator().element(bound_cov1, i, j), tol);
+            EXPECT_NEAR(getter::element(bound_cov0, i, j),
+                        getter::element(bound_cov1, i, j), tol);
         }
     }
 
     // Check covaraince
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
-            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
-                        matrix_operator().element(bound_cov1, i, j), tol);
+            EXPECT_NEAR(getter::element(bound_cov0, i, j),
+                        getter::element(bound_cov1, i, j), tol);
         }
     }
 }

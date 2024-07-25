@@ -10,6 +10,8 @@
 // Algebra-Plugins include
 #include "algebra/vc_aos.hpp"
 
+#define ALGEBRA_PLUGIN detray::vc_aos
+
 namespace detray {
 
 /// Define scalar type
@@ -27,87 +29,54 @@ struct vc_aos {
 
     using boolean = bool;
     using scalar = value_type;
+    using size_type = algebra::vc_aos::size_type;
     using transform3D = algebra::vc_aos::transform3<value_type>;
     using point2D = algebra::vc_aos::point2<value_type>;
     using point3D = algebra::vc_aos::point3<value_type>;
     using vector3D = algebra::vc_aos::vector3<value_type>;
+
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix = algebra::vc_aos::matrix_type<value_type, ROWS, COLS>;
 };
 /// @}
 
-namespace vector {
-
-using algebra::vc_aos::math::cross;
-using algebra::vc_aos::math::dot;
-using algebra::vc_aos::math::normalize;
-
-}  // namespace vector
-
 namespace getter {
 
+using algebra::vc_aos::storage::block;
+using algebra::vc_aos::storage::element;
+using algebra::vc_aos::storage::set_block;
+using algebra::vc_aos::storage::vector;
+
+}  // namespace getter
+
+namespace vector {
+
+// Vc array specific
+using algebra::vc_aos::math::cross;
+using algebra::vc_aos::math::dot;
 using algebra::vc_aos::math::eta;
 using algebra::vc_aos::math::norm;
+using algebra::vc_aos::math::normalize;
+
+// No specific vectorized implementation needed
 using algebra::vc_aos::math::perp;
 using algebra::vc_aos::math::phi;
 using algebra::vc_aos::math::theta;
 
-using algebra::cmath::element;
+}  // namespace vector
 
-/// Function extracting a slice from the matrix used by
-/// @c algebra::vc_aos::transform3<float>
-template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
-ALGEBRA_HOST_DEVICE inline algebra::vc_aos::vector3<float> vector(
-    const algebra::vc_aos::transform3<float>::matrix44& m,
-    std::size_t
-#ifndef NDEBUG
-        row
-#endif  // not NDEBUG
-    ,
-    std::size_t col) {
+namespace matrix {
 
-    assert(row == 0);
-    assert(col < 4);
-    switch (col) {
-        case 0:
-            return m.x;
-        case 1:
-            return m.y;
-        case 2:
-            return m.z;
-        case 3:
-            return m.t;
-        default:
-            return m.x;
-    }
-}
+using algebra::vc_aos::math::identity;
+using algebra::vc_aos::math::set_identity;
+using algebra::vc_aos::math::set_zero;
+using algebra::vc_aos::math::transpose;
+using algebra::vc_aos::math::zero;
 
-/// Function extracting a slice from the matrix used by
-/// @c algebra::vc_aos::transform3<double>
-template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
-ALGEBRA_HOST_DEVICE inline algebra::vc_aos::vector3<double> vector(
-    const algebra::vc_aos::transform3<double>::matrix44& m,
-    std::size_t
-#ifndef NDEBUG
-        row
-#endif  // not NDEBUG
-    ,
-    std::size_t col) {
+// Placeholder, until vectorization-friendly version is available
+using algebra::vc_aos::math::determinant;
+using algebra::vc_aos::math::inverse;
 
-    assert(row == 0);
-    assert(col < 4);
-    switch (col) {
-        case 0:
-            return m.x;
-        case 1:
-            return m.y;
-        case 2:
-            return m.z;
-        case 3:
-            return m.t;
-        default:
-            return m.x;
-    }
-}
-
-}  // namespace getter
+}  // namespace matrix
 
 }  // namespace detray
