@@ -52,34 +52,33 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
     // Free track parameter
     const free_track_parameters<algebra_t> free_params(global1, time, mom,
                                                        charge);
-    const auto free_vec1 = free_params.vector();
 
     const auto bound_vec =
-        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_vec1);
-    const auto free_vec2 = detail::bound_to_free_vector(trf, ln, bound_vec);
+        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_params);
 
-    const matrix_operator m;
+    const auto free_params2 = detail::bound_to_free_param(trf, ln, bound_vec);
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), -constant<scalar>::inv_sqrt2,
-                isclose);
-    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), std::sqrt(3.f), isclose);
-    ASSERT_NEAR(m.element(bound_vec, 2u, 0u), constant<scalar>::pi_2, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 3u, 0u), constant<scalar>::pi_4, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 4u, 0u), -constant<scalar>::inv_sqrt2,
-                isclose);
-    ASSERT_NEAR(m.element(bound_vec, 5u, 0u), 0.1f, isclose);
+    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc0],
+                -constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc1], std::sqrt(3.f), isclose);
+    ASSERT_NEAR(bound_vec.phi(), constant<scalar>::pi_2, isclose);  // atan(2)
+    ASSERT_NEAR(bound_vec.theta(), constant<scalar>::pi_4,
+                isclose);  // atan(sqrt(5)/3)
+    ASSERT_NEAR(bound_vec.qop(), -constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(bound_vec.time(), 0.1f, isclose);
 
     // Check if the same free vector is obtained
     for (unsigned int i = 0u; i < 8u; i++) {
-        ASSERT_NEAR(m.element(free_vec1, i, 0u), m.element(free_vec2, i, 0u),
-                    isclose);
+        ASSERT_NEAR(free_params[i], free_params2[i], isclose);
     }
 
     // Test Jacobian transformation
     const bound_matrix<algebra_t> J =
-        jac_engine::free_to_bound_jacobian(trf, free_vec1) *
+        jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
+
+    const matrix_operator m;
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
@@ -110,18 +109,18 @@ GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
 
     const point2 bound1 = {1.f, 2.f};
 
-    const point3 global = detail::bound_to_free_position(trf, ln, bound1, d);
+    const point3 global =
+        line2D<algebra_t>::local_to_global(trf, ln, bound1, d);
 
     // Free track parameter
     const free_track_parameters<algebra_t> free_params(global, time, mom,
                                                        charge);
-    const auto free_vec = free_params.vector();
     const auto bound_vec =
-        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_vec);
+        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_params);
 
     // Test Jacobian transformation
     const bound_matrix<algebra_t> J =
-        jac_engine::free_to_bound_jacobian(trf, free_vec) *
+        jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
 
     const matrix_operator m;

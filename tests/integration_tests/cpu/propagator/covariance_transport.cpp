@@ -166,16 +166,11 @@ class detray_propagation_HelixCovarianceTransportValidation
         using destination_jacobian_engine =
             detail::jacobian_engine<destination_frame>;
 
-        const bound_vector_t& bound_vec_0 = bound_params.vector();
         const bound_matrix_t& bound_cov_0 = bound_params.covariance();
 
-        // Free vector at the departure surface
-        const auto free_vec_0 =
-            detail::bound_to_free_vector(trf_0, mask_0, bound_vec_0);
-
         // Free track at the departure surface
-        free_track_parameters<algebra_type> free_trk_0;
-        free_trk_0.set_vector(free_vec_0);
+        const auto free_trk_0 =
+            detail::bound_to_free_param(trf_0, mask_0, bound_params);
 
         // Helix from the departure surface
         detail::helix<algebra_type> hlx(free_trk_0, &B);
@@ -183,7 +178,7 @@ class detray_propagation_HelixCovarianceTransportValidation
         // Bound-to-free jacobian at the departure surface
         const bound_to_free_matrix_t bound_to_free_jacobi =
             departure_jacobian_engine::bound_to_free_jacobian(trf_0, mask_0,
-                                                              bound_vec_0);
+                                                              bound_params);
 
         // Get the intersection on the next surface
         helix_intersector<typename destination_mask_type::shape, algebra_type>
@@ -235,13 +230,8 @@ class detray_propagation_HelixCovarianceTransportValidation
 
         // Free-to-bound jacobian at the destination surface
         const free_to_bound_matrix_t free_to_bound_jacobi =
-            destination_jacobian_engine::free_to_bound_jacobian(
-                trf_1, free_trk_1.vector());
-
-        // Bound vector at the destination surface
-        const bound_vector_t bound_vec_1 =
-            detail::free_to_bound_vector<destination_frame>(
-                trf_1, free_trk_1.vector());
+            destination_jacobian_engine::free_to_bound_jacobian(trf_1,
+                                                                free_trk_1);
 
         // Full jacobian
         const bound_matrix_t full_jacobi = free_to_bound_jacobi *
@@ -253,11 +243,9 @@ class detray_propagation_HelixCovarianceTransportValidation
             full_jacobi * bound_cov_0 *
             matrix_operator().transpose(full_jacobi);
 
-        bound_track_parameters<algebra_type> ret;
-        ret.set_vector(bound_vec_1);
-        ret.set_covariance(bound_cov_1);
-
-        return ret;
+        // Bound track parameters at the destination surface
+        return detail::free_to_bound_param<destination_frame>(
+            trf_1, free_trk_1, is.sf_desc.barcode(), bound_cov_1);
     }
 
     const intersection_t get_intersection(
@@ -293,11 +281,6 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
         this->create_transforms(reference_helix, n_planes);
     ASSERT_EQ(trfs.size(), 10u);
 
-    // Set the initial bound vector
-    bound_vector<algebra_t> bound_vec_0 = detail::free_to_bound_vector<
-        typename TestFixture::first_local_frame_type>(trfs[0],
-                                                      free_trk.vector());
-
     // Set the initial bound covariance
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov_0 =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
@@ -309,10 +292,14 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     getter::element(bound_cov_0, e_bound_qoverp, e_bound_qoverp) = 1.f;
     getter::element(bound_cov_0, e_bound_time, e_bound_time) = 0.f;
 
-    // Set bound track parameters
-    bound_track_parameters<algebra_t> bound_params;
-    bound_params.set_vector(bound_vec_0);
-    bound_params.set_covariance(bound_cov_0);
+    // Set the initial bound track parameters at surface 0
+    bound_track_parameters<algebra_t> bound_params =
+        detail::free_to_bound_param<
+            typename TestFixture::first_local_frame_type>(
+            trfs[0], free_trk, geometry::barcode{}.set_index(0u), bound_cov_0);
+
+    // Make a copy of the initial bound vector
+    const bound_track_vector<algebra_t> bound_vec_0 = bound_params;
 
     // Create masks
     const auto first_mask = std::get<rectangle_type>(this->masks);
@@ -360,10 +347,9 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
 
     // Check if the same vector is obtained after one loop
     for (unsigned int i = 0u; i < e_bound_size; i++) {
-        EXPECT_NEAR(matrix_operator().element(bound_vec_0, i, 0u),
-                    matrix_operator().element(bound_params.vector(), i, 0u),
-                    this->tolerance);
+        EXPECT_NEAR(bound_vec_0[i], bound_params[i], this->tolerance);
     }
+
     // Check if the same covariance is obtained after one loop
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {

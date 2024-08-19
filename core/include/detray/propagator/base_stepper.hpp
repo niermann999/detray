@@ -67,15 +67,7 @@ class base_stepper {
             curvilinear_frame<algebra_t> cf(free_params);
 
             // Set bound track parameters
-            _bound_params.set_vector(cf.m_bound_vec);
-
-            // A dummy covariance - should not be used
-            _bound_params.set_covariance(
-                matrix_operator()
-                    .template identity<e_bound_size, e_bound_size>());
-
-            // A dummy barcode - should not be used
-            _bound_params.set_surface_link(geometry::barcode{});
+            _bound_params = cf.bound_params();
 
             // Set the bound to free jacobian
             _jac_to_global = cf.bound_to_free_jacobian();
