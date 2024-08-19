@@ -41,7 +41,7 @@ using namespace detray;
 using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
 using transform3_type = dtransform3D<algebra_type>;
 using vector3 = dvector3D<algebra_type>;
-using bound_vector_type = bound_track_parameters<algebra_type>::vector_type;
+using bound_track_vector_type = bound_track_vector<algebra_type>;
 using bound_covariance_type =
     bound_track_parameters<algebra_type>::covariance_type;
 using matrix_operator = dmatrix_operator<algebra_type>;
@@ -138,26 +138,19 @@ struct ridders_derivative {
     std::array<scalar, 5u> err{big, big, big, big, big};
     std::array<bool, 5u> complete{false, false, false, false, false};
 
-    void initialize(const bound_vector_type& nvec1,
-                    const bound_vector_type& nvec2, const scalar delta) {
+    void initialize(const bound_track_vector_type& nvec1,
+                    const bound_track_vector_type& nvec2, const scalar delta) {
         for (unsigned int j = 0; j < 5u; j++) {
-
-            const scalar v1 = getter::element(nvec1, j, 0u);
-            const scalar v2 = getter::element(nvec2, j, 0u);
-
-            Arr[j][0][0] = (v1 - v2) / (2.f * delta);
+            Arr[j][0][0] = (nvec1[j] - nvec2[j]) / (2.f * delta);
         }
     }
 
-    void run(const bound_vector_type& nvec1, const bound_vector_type& nvec2,
-             const scalar delta, const unsigned int p, const unsigned int i,
+    void run(const bound_track_vector_type& nvec1,
+             const bound_track_vector_type& nvec2, const scalar delta,
+             const unsigned int p, const unsigned int i,
              bound_covariance_type& differentiated_jacobian) {
         for (unsigned int j = 0; j < 5u; j++) {
-
-            const scalar v1 = getter::element(nvec1, j, 0u);
-            const scalar v2 = getter::element(nvec2, j, 0u);
-
-            Arr[j][0][p] = (v1 - v2) / (2.f * delta);
+            Arr[j][0][p] = (nvec1[j] - nvec2[j]) / (2.f * delta);
         }
 
         const scalar con2 = con[i] * con[i];
@@ -219,11 +212,11 @@ struct ridders_derivative {
     }
 };
 
-void wrap_angles(const bound_vector_type& ref_vector,
-                 bound_vector_type& target_vector) {
+void wrap_angles(const bound_track_vector_type& ref_param,
+                 bound_track_vector_type& target_param) {
 
-    const scalar rphi = getter::element(ref_vector, e_bound_phi, 0u);
-    const scalar tphi = getter::element(target_vector, e_bound_phi, 0u);
+    const scalar rphi = ref_param.phi();
+    const scalar tphi = target_param.phi();
     scalar new_tphi = tphi;
 
     if (rphi >= constant<scalar>::pi_2) {
@@ -236,7 +229,7 @@ void wrap_angles(const bound_vector_type& ref_vector,
         }
     }
 
-    getter::element(target_vector, e_bound_phi, 0u) = new_tphi;
+    target_param.set_phi(new_tphi);
 }
 
 scalar get_relative_difference(scalar ref_val, scalar num_val) {
@@ -302,14 +295,17 @@ bound_covariance_type get_random_initial_covariance(const scalar ini_qop) {
 }
 
 // Input covariance should be the diagonal matrix
-bound_vector_type get_smeared_bound_vector(const bound_covariance_type& ini_cov,
-                                           const bound_vector_type& ini_vec) {
+bound_track_vector_type get_smeared_bound_vector(
+    const bound_covariance_type& ini_cov,
+    const bound_track_vector_type& ini_vec) {
+
+    using bound_vector_type = bound_vector<algebra_type>;
 
     // Do the Cholesky Decomposition
     const bound_covariance_type L =
         matrix_helper<matrix_operator>().cholesky_decompose(ini_cov);
 
-    // Vecor with random elements from a normal distribution
+    // Vector with random elements from a normal distribution
     bound_vector_type k = matrix_operator().template zero<e_bound_size, 1u>();
     std::normal_distribution<scalar> normal_dist(0.f, 1.f);
     for (unsigned int i = 0u; i < 5u; i++) {
@@ -317,9 +313,7 @@ bound_vector_type get_smeared_bound_vector(const bound_covariance_type& ini_cov,
         getter::element(k, i, 0) = normal_dist(mt2);
     }
 
-    const bound_vector_type new_vec = ini_vec + L * k;
-
-    return new_vec;
+    return bound_track_vector_type{ini_vec.vector() + L * k};
 }
 
 template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
@@ -501,7 +495,7 @@ bound_getter<algebra_type>::state evaluate_bound_param(
 }
 
 template <typename propagator_t, typename field_t>
-bound_vector_type get_displaced_bound_vector(
+bound_track_vector_type get_displaced_bound_vector(
     const std::size_t trk_count,
     const bound_track_parameters<algebra_type>& ref_param,
     const typename propagator_t::detector_type& det,
@@ -520,10 +514,7 @@ bound_vector_type get_displaced_bound_vector(
     propagator_t p(cfg);
 
     bound_track_parameters<algebra_type> dparam = ref_param;
-    auto dvec = dparam.vector();
-    getter::element(dvec, target_index, 0u) += displacement;
-
-    dparam.set_vector(dvec);
+    dparam[target_index] += displacement;
 
     typename propagator_t::state dstate(dparam, field, det);
 
@@ -543,10 +534,11 @@ bound_vector_type get_displaced_bound_vector(
 
     p.propagate(dstate, actor_states);
 
-    auto new_vec = bound_getter_state.m_param_destination.vector();
+    // Copy track vector
+    bound_track_vector_type new_vec = bound_getter_state.m_param_destination;
 
     // phi needs to be wrapped w.r.t. phi of the reference vector
-    wrap_angles(ref_param.vector(), new_vec);
+    wrap_angles(ref_param, new_vec);
 
     return new_vec;
 }
@@ -654,15 +646,8 @@ bound_track_parameters<algebra_type> get_initial_parameter(
 
     const free_track_parameters<algebra_type> free_par(pos, 0, dir, hlx._qop);
 
-    const auto bound_vec =
-        tracking_surface{det, departure_sf}.free_to_bound_vector(
-            {}, free_par.vector());
-
-    bound_track_parameters<algebra_type> ret;
-    ret.set_surface_link(geometry::barcode{0u});
-    ret.set_vector(bound_vec);
-
-    return ret;
+    return tracking_surface{det, departure_sf}.free_to_bound_param({}, free_par,
+                                                                   {});
 }
 
 template <typename propagator_t, typename field_t>
@@ -680,11 +665,6 @@ void evaluate_jacobian_difference(
     [[maybe_unused]] bound_covariance_type precal_diff_jacobi = {},
     [[maybe_unused]] std::array<unsigned int, 5u> precal_num_iterations = {},
     [[maybe_unused]] std::array<bool, 25u> precal_convergence = {}) {
-
-    const auto phi0 = track.phi();
-    const auto theta0 = track.theta();
-    (void)phi0;
-    (void)theta0;
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, track, det, field, overstep_tolerance,
@@ -850,9 +830,7 @@ void evaluate_covariance_transport(
         false);
 
     const auto reference_param = bound_getter.m_param_departure;
-    const auto ini_vec = reference_param.vector();
     const auto final_param = bound_getter.m_param_destination;
-    const auto fin_vec = final_param.vector();
     const auto fin_cov = final_param.covariance();
 
     // Sanity check
@@ -879,30 +857,31 @@ void evaluate_covariance_transport(
     ASSERT_GE(bound_getter.m_abs_path_length, bound_getter.m_path_length);
 
     // Get smeared initial bound vector
-    const bound_vector_type smeared_ini_vec =
-        get_smeared_bound_vector(ini_cov, reference_param.vector());
+    const bound_track_vector_type smeared_ini_vec =
+        get_smeared_bound_vector(ini_cov, reference_param);
 
     // Make smeared bound track parameter
-    auto smeared_track = track_copy;
-    smeared_track.set_vector(smeared_ini_vec);
+    bound_track_parameters<algebra_type> smeared_track{
+        track_copy.surface_link(), smeared_ini_vec, track_copy.covariance()};
 
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, smeared_track, det, field,
         overstep_tolerance, path_tolerance, rk_tolerance_dis, constraint_step,
         use_field_gradient, false, false);
 
-    // Get smeared final bound vector
-    bound_vector_type smeared_fin_vec =
-        smeared_bound_getter.m_param_destination.vector();
+    // Get copy of smeared final bound vector
+    bound_track_vector_type smeared_fin_vec =
+        smeared_bound_getter.m_param_destination;
 
     // phi needs to be wrapped w.r.t. phi of the reference vector
-    wrap_angles(fin_vec, smeared_fin_vec);
+    wrap_angles(final_param, smeared_bound_getter.m_param_destination);
 
     // Get pull values
     std::array<scalar, 5u> pulls;
 
-    const bound_vector_type diff = smeared_fin_vec - fin_vec;
+    bound_vector<algebra_type> diff{};
     for (unsigned int i = 0u; i < 5u; i++) {
+        getter::element(diff, i, 0u) = smeared_fin_vec[i] - final_param[i];
         pulls[i] = getter::element(diff, i, 0u) /
                    math::sqrt(getter::element(fin_cov, i, i));
     }
@@ -920,11 +899,10 @@ void evaluate_covariance_transport(
          << euler_angles_F[2u] << ",";
 
     // File writing
-    file << getter::element(ini_vec, e_bound_loc0, 0u) << ","
-         << getter::element(ini_vec, e_bound_loc1, 0u) << ","
-         << getter::element(ini_vec, e_bound_phi, 0u) << ","
-         << getter::element(ini_vec, e_bound_theta, 0u) << ","
-         << getter::element(ini_vec, e_bound_qoverp, 0u) << ",";
+    file << reference_param[e_bound_loc0] << ","
+         << reference_param[e_bound_loc1] << "," << reference_param[e_bound_phi]
+         << "," << reference_param[e_bound_theta] << ","
+         << reference_param[e_bound_qoverp] << ",";
 
     for (unsigned int i = 0; i < 5u; i++) {
         for (unsigned int j = 0; j < 5u; j++) {
@@ -932,11 +910,9 @@ void evaluate_covariance_transport(
         }
     }
 
-    file << getter::element(fin_vec, e_bound_loc0, 0u) << ","
-         << getter::element(fin_vec, e_bound_loc1, 0u) << ","
-         << getter::element(fin_vec, e_bound_phi, 0u) << ","
-         << getter::element(fin_vec, e_bound_theta, 0u) << ","
-         << getter::element(fin_vec, e_bound_qoverp, 0u) << ",";
+    file << final_param[e_bound_loc0] << "," << final_param[e_bound_loc1] << ","
+         << final_param[e_bound_phi] << "," << final_param[e_bound_theta] << ","
+         << final_param[e_bound_qoverp] << ",";
 
     for (unsigned int i = 0; i < 5u; i++) {
         for (unsigned int j = 0; j < 5u; j++) {
@@ -944,17 +920,15 @@ void evaluate_covariance_transport(
         }
     }
 
-    file << getter::element(smeared_ini_vec, e_bound_loc0, 0u) << ","
-         << getter::element(smeared_ini_vec, e_bound_loc1, 0u) << ","
-         << getter::element(smeared_ini_vec, e_bound_phi, 0u) << ","
-         << getter::element(smeared_ini_vec, e_bound_theta, 0u) << ","
-         << getter::element(smeared_ini_vec, e_bound_qoverp, 0u) << ",";
+    file << smeared_ini_vec[e_bound_loc0] << ","
+         << smeared_ini_vec[e_bound_loc1] << "," << smeared_ini_vec[e_bound_phi]
+         << "," << smeared_ini_vec[e_bound_theta] << ","
+         << smeared_ini_vec[e_bound_qoverp] << ",";
 
-    file << getter::element(smeared_fin_vec, e_bound_loc0, 0u) << ","
-         << getter::element(smeared_fin_vec, e_bound_loc1, 0u) << ","
-         << getter::element(smeared_fin_vec, e_bound_phi, 0u) << ","
-         << getter::element(smeared_fin_vec, e_bound_theta, 0u) << ","
-         << getter::element(smeared_fin_vec, e_bound_qoverp, 0u) << ",";
+    file << smeared_fin_vec[e_bound_loc0] << ","
+         << smeared_fin_vec[e_bound_loc1] << "," << smeared_fin_vec[e_bound_phi]
+         << "," << smeared_fin_vec[e_bound_theta] << ","
+         << smeared_fin_vec[e_bound_qoverp] << ",";
 
     file << pulls[0] << "," << pulls[1] << "," << pulls[2] << "," << pulls[3]
          << "," << pulls[4] << ",";
@@ -989,9 +963,8 @@ void evaluate_covariance_transport(
 }
 
 template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
-typename bound_track_parameters<algebra_type>::vector_type
-get_displaced_bound_vector_helix(
-    const bound_track_parameters<algebra_type>& track, const vector3& field,
+bound_track_vector_type get_displaced_bound_vector_helix(
+    const bound_track_vector_type& track_vec, const vector3& field,
     unsigned int target_index, scalar displacement, const detector_t& det,
     const scalar helix_tolerance) {
 
@@ -1004,11 +977,11 @@ get_displaced_bound_vector_helix(
     const auto& destination_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    auto dvec = track.vector();
-    getter::element(dvec, target_index, 0u) += displacement;
-    const auto free_vec =
-        tracking_surface{det, departure_sf}.bound_to_free_vector({}, dvec);
-    detail::helix<algebra_type> hlx(free_vec, &field);
+    bound_track_vector_type dvec = track_vec;
+    dvec[target_index] += displacement;
+    const auto free_param =
+        tracking_surface{det, departure_sf}.bound_to_free_param({}, dvec);
+    detail::helix<algebra_type> hlx(free_param, &field);
 
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
@@ -1024,8 +997,8 @@ get_displaced_bound_vector_helix(
     const free_track_parameters<algebra_type> new_free_par(pos, 0, dir,
                                                            hlx._qop);
     auto new_bound_vec =
-        tracking_surface{det, destination_sf}.free_to_bound_vector(
-            {}, new_free_par.vector());
+        detail::free_to_bound_vector<typename mask_t::local_frame_type>(
+            {}, new_free_par);
 
     // phi needs to be wrapped w.r.t. phi of the reference vector
     wrap_angles(dvec, new_bound_vec);
@@ -1042,23 +1015,15 @@ void evaluate_jacobian_difference_helix(
     const std::array<scalar, 5u> hs, std::ofstream& file,
     const scalar helix_tolerance) {
 
-    const auto phi0 = track.phi();
-    const auto theta0 = track.theta();
-    (void)phi0;
-    (void)theta0;
-
     // Get bound to free Jacobi
-    const auto& departure_sf = det.surface(0u);
+    const auto departure_sf = tracking_surface{det, det.surface(0u)};
     const auto bound_to_free_jacobi =
-        tracking_surface{det, departure_sf}.bound_to_free_jacobian(
-            {}, track.vector());
+        departure_sf.bound_to_free_jacobian({}, track);
 
     // Get fre vector
-    const auto free_vec =
-        tracking_surface{det, departure_sf}.bound_to_free_vector(
-            {}, track.vector());
+    const auto free_param = departure_sf.bound_to_free_param({}, track);
     // Helix from the departure surface
-    detail::helix<algebra_type> hlx(free_vec, &field);
+    detail::helix<algebra_type> hlx(free_param, &field);
 
     const auto& destination_sf = det.surface(1u);
     const auto& trf_link = destination_sf.transform();
@@ -1101,8 +1066,8 @@ void evaluate_jacobian_difference_helix(
 
     // Get free to bound Jacobi
     const auto free_to_bound_jacobi =
-        tracking_surface{det, destination_sf}.free_to_bound_jacobian(
-            {}, free_par.vector());
+        tracking_surface{det, destination_sf}.free_to_bound_jacobian({},
+                                                                     free_par);
 
     // Get full Jacobi
     const auto reference_jacobian = free_to_bound_jacobi * correction_term *
@@ -1110,8 +1075,8 @@ void evaluate_jacobian_difference_helix(
 
     // Get bound vector
     const auto bound_vec =
-        tracking_surface{det, destination_sf}.free_to_bound_vector(
-            {}, free_par.vector());
+        detail::free_to_bound_vector<typename mask_t::local_frame_type>(
+            {}, free_par);
 
     /******************************
      *  Numerical differentiation
@@ -1171,11 +1136,9 @@ void evaluate_jacobian_difference_helix(
     file << track.bound_local()[0] << "," << track.bound_local()[1] << ","
          << track.phi() << "," << track.theta() << "," << track.qop() << ",";
 
-    file << getter::element(bound_vec, e_bound_loc0, 0u) << ","
-         << getter::element(bound_vec, e_bound_loc1, 0u) << ","
-         << getter::element(bound_vec, e_bound_phi, 0u) << ","
-         << getter::element(bound_vec, e_bound_theta, 0u) << ","
-         << getter::element(bound_vec, e_bound_qoverp, 0u) << ",";
+    file << bound_vec[e_bound_loc0] << "," << bound_vec[e_bound_loc1] << ","
+         << bound_vec.phi() << "," << bound_vec.theta() << ","
+         << bound_vec.qop() << ",";
 
     // Ridders number of iterations
     for (unsigned int i = 0; i < 5u; i++) {

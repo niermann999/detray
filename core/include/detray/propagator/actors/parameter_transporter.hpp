@@ -60,17 +60,14 @@ struct parameter_transporter : actor {
 
             // Stepper and Navigator states
             auto& stepping = propagation._stepping;
+            const auto& navigation = propagation._navigation;
 
             // Free vector
-            const auto& free_vec = stepping().vector();
-
-            // Convert free to bound vector
-            stepping._bound_params.set_vector(
-                detail::free_to_bound_vector<frame_t>(trf3, free_vec));
+            const auto& free_param = stepping();
 
             // Free to bound jacobian at the destination surface
             const free_to_bound_matrix_t free_to_bound_jacobian =
-                jacobian_engine_t::free_to_bound_jacobian(trf3, free_vec);
+                jacobian_engine_t::free_to_bound_jacobian(trf3, free_param);
 
             // Transport jacobian in free coordinate
             free_matrix_t& free_transport_jacobian = stepping._jac_transport;
@@ -97,8 +94,9 @@ struct parameter_transporter : actor {
                 stepping._full_jacobian * stepping._bound_params.covariance() *
                 matrix_operator().transpose(stepping._full_jacobian);
 
-            // Calculate surface-to-surface covariance transport
-            stepping._bound_params.set_covariance(new_cov);
+            // Convert free to bound track parameters
+            stepping._bound_params = detail::free_to_bound_param<frame_t>(
+                trf3, free_param, navigation.barcode(), new_cov);
         }
     };
 
@@ -121,9 +119,6 @@ struct parameter_transporter : actor {
         const auto sf = navigation.get_surface();
 
         sf.template visit_mask<kernel>(sf.transform(ctx), propagation);
-
-        // Set surface link
-        propagation._stepping._bound_params.set_surface_link(sf.barcode());
     }
 };  // namespace detray
 
