@@ -19,19 +19,17 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     const scalar_type h{this->_step_size};
     const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
     auto& track = this->_track;
-    auto pos = track.pos();
-    auto dir = track.dir();
+    auto& pos = track.pos();
+    auto& dir = track.dir();
 
     // Update the track parameters according to the equations of motion
     // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
     pos = pos + h * (sd.t[0u] + h_6 * (sd.dtds[0] + sd.dtds[1] + sd.dtds[2]));
-    track.set_pos(pos);
 
     // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
     dir =
         dir + h_6 * (sd.dtds[0] + 2.f * (sd.dtds[1] + sd.dtds[2]) + sd.dtds[3]);
     dir = vector::normalize(dir);
-    track.set_dir(dir);
 
     auto qop = track.qop();
     if (!(this->_mat == nullptr)) {
@@ -446,7 +444,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
                                    const vector3_type& dtds_prev,
                                    const scalar_type qop) -> vector3_type {
     auto& track = this->_track;
-    const auto dir = track.dir();
+    const auto& dir = track.dir();
     auto& sd = this->_step_data;
 
     if (i == 0u) {
@@ -511,7 +509,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 
     // In case there was no step before
     if (this->_path_length == 0.f) {
-        const point3_type pos = this->_track.pos();
+        const point3_type& pos = this->_track.pos();
 
         const auto bvec_tmp = this->_magnetic_field.at(pos[0], pos[1], pos[2]);
         vector3_type bvec;
@@ -631,7 +629,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         stepping._step_size = math::max(stepping._step_size, navigation());
     }
 
-    const point3_type pos = stepping().pos();
+    const point3_type& pos = stepping().pos();
 
     auto vol = tracking_volume{*navigation.detector(), navigation.volume()};
     if (vol.has_material()) {

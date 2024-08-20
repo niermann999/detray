@@ -69,8 +69,8 @@ struct jacobian_engine {
         const free_track_parameters<algebra_type> free_param =
             bound_to_free_param(trf3, mask, bound_vec);
 
-        const vector3_type pos = free_param.pos();
-        const vector3_type dir = free_param.dir();
+        const vector3_type& pos = free_param.pos();
+        const vector3_type& dir = free_param.dir();
 
         // Set d(x,y,z)/d(loc0, loc1)
         jacobian_t::set_bound_pos_to_free_pos_derivative(jac_to_global, trf3,
@@ -111,8 +111,8 @@ struct jacobian_engine {
             matrix_operator().template zero<e_bound_size, e_free_size>();
 
         // Global position and direction
-        const vector3_type pos = free_param.pos();
-        const vector3_type dir = free_param.dir();
+        const vector3_type& pos = free_param.pos();
+        const vector3_type& dir = free_param.dir();
 
         const scalar_type theta{getter::theta(dir)};
         const scalar_type phi{getter::phi(dir)};

@@ -86,7 +86,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
     n_tracks = 0u;
     for (const auto r : generator_t(phi_steps, theta_steps)) {
         vector3& expected = momenta[n_tracks];
-        vector3 result = r.dir();
+        const vector3& result = r.dir();
 
         // Compare with for loop
         EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
@@ -194,7 +194,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator_with_range) {
     trk_gen_cfg.theta_range(1.f, 2.f).theta_steps(2u);
 
     for (const auto track : generator_t{trk_gen_cfg}) {
-        const auto dir = track.dir();
+        const auto& dir = track.dir();
         theta_phi.push_back({getter::theta(dir), getter::phi(dir)});
     }
 
@@ -255,7 +255,7 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
     std::array<scalar_t, n_gen_tracks> theta{};
 
     for (const auto track : trk_generator_t{trk_gen_cfg}) {
-        const auto pos = track.pos();
+        const auto& pos = track.pos();
         x[n_tracks] = pos[0];
         y[n_tracks] = pos[1];
         z[n_tracks] = pos[2];
@@ -339,7 +339,7 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
     std::array<scalar_t, n_gen_tracks> theta{};
 
     for (const auto track : trk_generator_t{trk_gen_cfg}) {
-        const auto pos = track.pos();
+        const auto& pos = track.pos();
         x[n_tracks] = pos[0];
         y[n_tracks] = pos[1];
         z[n_tracks] = pos[2];

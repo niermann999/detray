@@ -86,7 +86,7 @@ struct helix_inspector : actor {
         const auto free_params =
             sf.bound_to_free_param(ctx, stepping._bound_params);
 
-        const auto last_pos = free_params.pos();
+        const auto& last_pos = free_params.pos();
 
         const auto bvec =
             stepping._magnetic_field.at(last_pos[0], last_pos[1], last_pos[2]);

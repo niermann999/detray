@@ -30,7 +30,7 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
     scalar time = 0.1f;
     vector3 mom = {10.f, 20.f, 30.f};
 
-    typename free_track_parameters<algebra_t>::vector_type free_vec =
+    free_vector<algebra_t> free_vec =
         matrix_operator().template zero<e_free_size, 1>();
     getter::element(free_vec, e_free_pos0, 0u) = pos[0];
     getter::element(free_vec, e_free_pos1, 0u) = pos[1];

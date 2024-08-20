@@ -29,7 +29,7 @@ free_to_bound_vector(
     const free_track_parameters<typename local_frame_t::algebra_type>&
         free_param) {
 
-    const auto dir = free_param.dir();
+    const auto& dir = free_param.dir();
 
     const auto bound_local =
         local_frame_t::global_to_local(trf3, free_param.pos(), dir);
@@ -79,7 +79,7 @@ bound_to_free_param(
 
     using local_frame_t = typename mask_t::local_frame_type;
 
-    const auto dir = bound_vec.dir();
+    const auto& dir = bound_vec.dir();
 
     const auto pos = local_frame_t::local_to_global(
         trf3, mask, bound_vec.bound_local(), dir);

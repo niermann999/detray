@@ -319,7 +319,7 @@ struct print_inspector {
                 break;
         };
 
-        auto pos = state().pos();
+        auto &pos = state().pos();
 
         debug_stream << "Pos:\t[r = " << math::hypot(pos[0], pos[1])
                      << ", z = " << pos[2] << "]" << std::endl;

@@ -650,8 +650,8 @@ inline std::string print_trace(const truth_trace_t &truth_trace,
 
         out_stream << " -> volume " << record.vol_idx << std::endl;
 
-        const auto pos = record.track_param.pos();
-        const auto dir = record.track_param.dir();
+        const auto &pos = record.track_param.pos();
+        const auto &dir = record.track_param.dir();
         out_stream << " -> track pos: [" << pos[0] << ", " << pos[1] << ", "
                    << pos[2] << std::endl;
         out_stream << " -> track dir: [" << dir[0] << ", " << dir[1] << ", "
