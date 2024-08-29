@@ -170,7 +170,7 @@ def plot_intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out
     plotFactory.write_plot(hist_data, f"{detector_name}_{scan_type}_scan_rz",  out_format)
 
 
-""" Plot the data gathered during the navigaiton validation """
+""" Plot the data gathered during the navigation validation """
 def plot_detector_scan_data(args, det_name, plot_factory, data_type, df, name, out_format = "png"):
 
     # Plot truth scan

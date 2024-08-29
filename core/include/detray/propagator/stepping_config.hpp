@@ -17,18 +17,15 @@
 
 namespace detray::stepping {
 
-enum class id {
-    // False for non-charged tracks
-    e_linear = 0,
-    // True for charged tracks
-    e_rk = 1,
-};
-
 struct config {
     /// Minimum step size
     float min_stepsize{1e-4f * unit<float>::mm};
     /// Runge-Kutta numeric error tolerance
     float rk_error_tol{1e-4f * unit<float>::mm};
+    /// Allows the step size to oscillate around error tolerance "rk_error_tol"
+    /// Should be greater than one to allow the step size to increase
+    /// The default is 4, as per ATL-SOFT-PUB-2009-001
+    float rk_error_mode{4.f};
     /// Step size constraint
     float step_constraint{std::numeric_limits<float>::max()};
     /// Maximal path length of track

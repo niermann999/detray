@@ -87,7 +87,7 @@ def read_navigation_data(inputdir, det_name, momentum, read_cuda, logging):
     return ray_df, ray_truth_df, ray_cuda_df, helix_df, helix_truth_df, helix_cuda_df
 
 
-""" Plot the data gathered during the navigaiton validation """
+""" Plot the data gathered during the navigation validation """
 def plot_navigation_data(args, det_name, plot_factory, data_type, df_truth, truth_name, df_ref, ref_name, out_format = "png"):
 
     # xy

@@ -15,11 +15,11 @@
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/io/utils/file_handle.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
-#include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/inspectors.hpp"
 
 // System include(s)
 #include <memory>
@@ -70,6 +70,8 @@ struct nav_state {
 
     scalar operator()() const { return m_step_size; }
     inline auto current_object() const -> dindex { return dindex_invalid; }
+    inline auto is_on_module() const -> bool { return false; }
+    inline auto is_on_portal() const -> bool { return false; }
     inline auto tolerance() const -> scalar { return tol; }
     inline auto detector() const -> const detray::detector<> & {
         return *(m_det.get());
@@ -151,7 +153,9 @@ GTEST_TEST(detray_propagator, rk_stepper) {
 
         // Reset step size in the navigation state to a positive value
         propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
+        propagation._stepping.set_direction(step::direction::e_forward);
         c_propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
+        c_propagation._stepping.set_direction(step::direction::e_forward);
 
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation, step_cfg);
@@ -250,7 +254,10 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
                     0.5f * unit<scalar>::mm, tol);
 
         propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
+        propagation._stepping.set_direction(step::direction::e_forward);
         c_propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
+        c_propagation._stepping.set_direction(step::direction::e_forward);
+
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation, step_cfg);
             crk_stepper.step(c_propagation, step_cfg);
@@ -332,7 +339,6 @@ TEST(detray_propagator, qop_derivative) {
             const scalar dqopds1 = rk_state.dqopds(qop1);
 
             rk_state.set_step_size(ds);
-            rk_state._initialized = false;
             rk_stepper.step(propagation, step_cfg);
 
             const scalar qop2 = rk_state().qop();

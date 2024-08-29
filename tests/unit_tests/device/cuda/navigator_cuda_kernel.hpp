@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,6 +13,7 @@
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
+#include "detray/propagator/propagation_config.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 
 using namespace detray;
@@ -24,9 +25,6 @@ using scalar_t = dscalar<algebra_t>;
 // some useful type declarations
 using detector_host_t = detector<toy_metadata, host_container_types>;
 using detector_device_t = detector<toy_metadata, device_container_types>;
-
-using intersection_t =
-    intersection2D<typename detector_device_t::surface_type, algebra_t>;
 
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;
@@ -53,7 +51,7 @@ namespace detray {
 
 /// test function for navigator with single state
 void navigator_test(
-    typename detector_host_t::view_type det_data, navigation::config& cfg,
+    typename detector_host_t::view_type det_data, propagation::config& cfg,
     vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data);

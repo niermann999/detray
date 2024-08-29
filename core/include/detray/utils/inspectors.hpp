@@ -374,15 +374,23 @@ struct print_inspector {
     std::stringstream debug_stream{};
 
     /// Inspector interface. Gathers detailed information during stepping
+    ///
+    /// @param state the stepper state
+    /// @param message pointer to a custom header for this printout
+    /// @param error If the stepper provides it, print the integration error
     template <typename state_type>
     void operator()(const state_type &state, const stepping::config &,
-                    const char *message) {
+                    const char *message,
+                    const scalar error = detail::invalid_value<scalar>()) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
 
         debug_stream << msg << std::endl;
 
         debug_stream << "Step size" << tabs << state.step_size() << std::endl;
+        if (!detail::is_invalid_value(error)) {
+            debug_stream << "Error est." << tabs << error << std::endl;
+        }
         debug_stream << "Path length" << tabs << state.path_length()
                      << std::endl;
 
@@ -400,7 +408,7 @@ struct print_inspector {
 
         auto pos = state().pos();
 
-        debug_stream << "Pos:\t[r = " << math::hypot(pos[0], pos[1])
+        debug_stream << "Pos:\t\t[r = " << math::hypot(pos[0], pos[1])
                      << ", z = " << pos[2] << "]" << std::endl;
         debug_stream << "Tangent:\t"
                      << detail::ray<ALGEBRA_PLUGIN<detray::scalar>>(state())
@@ -408,22 +416,30 @@ struct print_inspector {
         debug_stream << std::endl;
     }
 
-    /// Inspector interface. Gathers detailed information during stepping
+    /// Inspector interface. Gathers detailed information during RKN step size
+    /// adjustment
+    ///
+    /// @param state the stepper state
+    /// @param message pointer to a custom header for this printout
+    /// @param n_trials number of steps that were tried
+    /// @param scale_factor how the step size was scaled
+    /// @param error the integration error of the previous trial
     template <typename state_type>
     void operator()(const state_type &state, const stepping::config &,
                     const char *message, const std::size_t n_trials,
-                    const scalar step_scalor) {
+                    const scalar step_scalor, const scalar error) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
 
         debug_stream << msg << std::endl;
 
         // Remove trailing newlines
+        debug_stream << "Error was" << tabs << error << std::endl;
         debug_stream << "Step size" << tabs << state.step_size() << std::endl;
         debug_stream << "no. RK adjustments"
-                     << "\t\t" << n_trials << std::endl;
+                     << "\t\t\t" << n_trials << std::endl;
         debug_stream << "Step size scale factor"
-                     << "\t\t" << step_scalor << std::endl;
+                     << "\t\t\t" << step_scalor << std::endl;
 
         debug_stream << "Bfield points:" << std::endl;
         const auto &f = state._step_data.b_first;

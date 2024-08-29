@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -29,10 +29,11 @@ TEST(navigator_cuda, navigator) {
     // Create detector
     auto [det, names] = build_toy_detector(mng_mr);
 
+    propagation::config prop_cfg{};
+
     // Create navigator
     navigator_host_t nav;
-    navigation::config cfg{};
-    cfg.search_window = {1u, 1u};
+    prop_cfg.navigation.search_window = {1u, 1u};
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters<algebra_t>> tracks_host(&mng_mr);
@@ -69,14 +70,14 @@ TEST(navigator_cuda, navigator) {
         stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
-        bool heartbeat = nav.init(propagation, cfg);
+        bool heartbeat = nav.init(propagation, prop_cfg.navigation);
         while (heartbeat) {
 
-            heartbeat &= stepper.step(propagation);
+            heartbeat &= stepper.step(propagation, prop_cfg.stepping);
 
             navigation.set_high_trust();
 
-            heartbeat &= nav.update(propagation, cfg);
+            heartbeat &= nav.update(propagation, prop_cfg.navigation);
 
             // Record volume
             volume_records_host[i].push_back(navigation.volume());
@@ -113,7 +114,7 @@ TEST(navigator_cuda, navigator) {
     auto tracks_data = vecmem::get_data(tracks_device);
 
     // Run navigator test
-    navigator_test(det_data, cfg, tracks_data, volume_records_buffer,
+    navigator_test(det_data, prop_cfg, tracks_data, volume_records_buffer,
                    position_records_buffer);
 
     // Copy volume record buffer into volume & position records device

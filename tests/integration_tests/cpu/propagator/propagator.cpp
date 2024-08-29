@@ -192,8 +192,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     using track_t = free_track_parameters<algebra_t>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_rk_policy;
-    using stepper_t =
-        rk_stepper<bfield_t::view_t, algebra_t, constraints_t, policy_t>;
+    using stepper_t = rk_stepper<bfield_t::view_t, algebra_t, constraints_t,
+                                 policy_t, stepping::print_inspector>;
     // Include helix actor to check track position/covariance
     using actor_chain_t =
         actor_chain<dtuple, helix_inspector, pathlimit_aborter,
@@ -256,14 +256,16 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states))
             //<< state.debug_stream.str() << std::endl;
-            << state._navigation.inspector().to_string() << std::endl;
+            << state._navigation.inspector().to_string()
+            << state._stepping.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
         lim_state.do_debug = true;
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
             //<< lim_state.debug_stream.str() << std::endl;
-            << lim_state._navigation.inspector().to_string() << std::endl;
+            << lim_state._navigation.inspector().to_string()
+            << lim_state._stepping.inspector().to_string() << std::endl;
 
         ASSERT_GE(std::abs(path_limit), lim_state._stepping._abs_path_length)
             << "Absolute path length: " << lim_state._stepping._abs_path_length
@@ -297,8 +299,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     using track_t = free_track_parameters<algebra_t>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_rk_policy;
-    using stepper_t =
-        rk_stepper<bfield_t::view_t, algebra_t, constraints_t, policy_t>;
+    using stepper_t = rk_stepper<bfield_t::view_t, algebra_t, constraints_t,
+                                 policy_t, stepping::print_inspector>;
     // Include helix actor to check track position/covariance
     using actor_chain_t =
         actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
@@ -351,14 +353,16 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states))
             //<< state.debug_stream.str() << std::endl;
-            << state._navigation.inspector().to_string() << std::endl;
+            //<< state._navigation.inspector().to_string()
+            << state._stepping.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
         lim_state.do_debug = true;
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
             //<< lim_state.debug_stream.str() << std::endl;
-            << lim_state._navigation.inspector().to_string() << std::endl;
+            //<< lim_state._navigation.inspector().to_string()
+            << lim_state._stepping.inspector().to_string() << std::endl;
 
         ASSERT_TRUE(lim_state._stepping.path_length() <
                     std::abs(path_limit) + tol)
@@ -371,7 +375,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 // No step size constraint
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation1, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::mm,
+    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::um,
                                       std::numeric_limits<scalar_t>::max(),
                                       vector3{0.f * unit<scalar_t>::T,
                                               0.f * unit<scalar_t>::T,
@@ -397,8 +401,8 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation4, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-600.f * unit<scalar_t>::um,
-                                      35.f * unit<scalar_t>::mm,
+    ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
+                                      40.f * unit<scalar_t>::mm,
                                       vector3{1.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T})));

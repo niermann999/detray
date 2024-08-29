@@ -381,7 +381,7 @@ struct bound_getter : actor {
     using free_track_parameters_type = free_track_parameters<algebra_t>;
 
     struct state {
-
+        scalar prev_step_size{0.f};
         scalar m_min_path_length;
         scalar m_path_length;
         scalar m_abs_path_length;
@@ -405,7 +405,7 @@ struct bound_getter : actor {
         const scalar N = static_cast<scalar>(actor_state.step_count);
 
         actor_state.m_avg_step_size = ((N - 1.f) * actor_state.m_avg_step_size +
-                                       stepping._prev_step_size) /
+                                       actor_state.prev_step_size) /
                                       N;
 
         // Warning for too many step counts
@@ -444,6 +444,9 @@ struct bound_getter : actor {
         if (stepping._path_length > actor_state.m_min_path_length) {
             propagation._navigation.set_no_trust();
         }
+
+        // Update the previous step size with the current step size
+        actor_state.prev_step_size = stepping.step_size();
 
         return;
     }

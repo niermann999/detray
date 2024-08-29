@@ -404,6 +404,12 @@ class navigator {
             return m_heartbeat;
         }
 
+        /// Set the next surface that we want to reach (update target)
+        DETRAY_HOST_DEVICE
+        inline auto print_next() const { return m_next; }
+        DETRAY_HOST_DEVICE
+        inline auto print_last() const { return m_last; }
+
         private:
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
@@ -643,10 +649,6 @@ class navigator {
             navigation.m_heartbeat = false;
         }
 
-        auto &stepping = propagation._stepping;
-        stepping._step_size = navigation();
-        stepping._initialized = true;
-
         navigation.run_inspector(cfg, track.pos(), track.dir(),
                                  "Init complete: ");
 
@@ -699,7 +701,7 @@ class navigator {
 
             // Fresh initialization, reset trust and hearbeat
             navigation.m_trust_level = navigation::trust_level::e_full;
-            navigation.m_heartbeat = true;
+            navigation.m_heartbeat = !navigation.is_exhausted();
 
             return navigation.m_heartbeat;
         }
@@ -829,7 +831,7 @@ class navigator {
         const navigation::config &cfg, propagator_state_t &propagation) const {
 
         auto &navigation = propagation._navigation;
-        auto &stepping = propagation._stepping;
+        // auto &stepping = propagation._stepping;
 
         // Check whether the track reached the current candidate. Might be a
         // portal, in which case the navigation needs to be re-initialized
@@ -843,8 +845,8 @@ class navigator {
                                       ? navigation::status::e_on_portal
                                       : navigation::status::e_on_module;
 
-            stepping._step_size = navigation();
-            stepping._initialized = true;
+            // stepping._step_size = navigation();
+            // stepping._initialized = true;
         } else {
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -23,13 +23,14 @@ namespace detray {
 /// Runge-Kutta-Nystrom 4th order stepper implementation
 ///
 /// @tparam magnetic_field_t the type of magnetic field
-/// @tparam track_t the type of track that is being advanced by the stepper
+/// @tparam algebra_t the linear algebra implementation
 /// @tparam constraint_ the type of constraints on the stepper
+/// @tparam policy_t how to reduce the trust level for the navigation
+/// @tparam inspector_t collect information from within the stepper
 template <typename magnetic_field_t, typename algebra_t,
           typename constraint_t = unconstrained_step,
           typename policy_t = stepper_rk_policy,
-          typename inspector_t = stepping::void_inspector,
-          template <typename, std::size_t> class array_t = darray>
+          typename inspector_t = stepping::void_inspector>
 class rk_stepper final
     : public base_stepper<algebra_t, constraint_t, policy_t, inspector_t> {
 
@@ -54,15 +55,19 @@ class rk_stepper final
 
     rk_stepper() = default;
 
+    /// Data state of the RKN stepper
     struct state : public base_type::state {
 
-        static constexpr const stepping::id id = stepping::id::e_rk;
+        /// The RKN stepper state cannot be constructed without a magnetic field
+        state() = delete;
 
+        /// Construct from free track parameters
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,
               const magnetic_field_t& mag_field)
             : base_type::state(t), _magnetic_field(mag_field) {}
 
+        /// Construct from bound track parameters
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
@@ -87,7 +92,7 @@ class rk_stepper final
         /// Magnetic field view
         const magnetic_field_t _magnetic_field;
 
-        /// Material that track is passing through. Usually a volume material
+        /// Access to volume material that the track is passing through.
         const detray::material<scalar_type>* _mat{nullptr};
 
         /// Access the current volume material
@@ -96,33 +101,6 @@ class rk_stepper final
             assert(_mat != nullptr);
             return *_mat;
         }
-
-        /// Update the track state by Runge-Kutta-Nystrom integration.
-        DETRAY_HOST_DEVICE
-        inline void advance_track();
-
-        /// Update the jacobian transport from free propagation
-        DETRAY_HOST_DEVICE
-        inline void advance_jacobian(const stepping::config& cfg = {});
-
-        /// evaulate dqopds for a given step size and material
-        DETRAY_HOST_DEVICE
-        inline scalar_type evaluate_dqopds(const std::size_t i,
-                                           const scalar_type h,
-                                           const scalar_type dqopds_prev,
-                                           const detray::stepping::config& cfg);
-
-        /// evaulate dtds for runge kutta stepping
-        DETRAY_HOST_DEVICE
-        inline vector3_type evaluate_dtds(const vector3_type& b_field,
-                                          const std::size_t i,
-                                          const scalar_type h,
-                                          const vector3_type& dtds_prev,
-                                          const scalar_type qop);
-
-        DETRAY_HOST_DEVICE
-        inline matrix_type<3, 3> evaluate_field_gradient(
-            const point3_type& pos);
 
         /// Evaluate dtds, where t is the unit tangential direction
         DETRAY_HOST_DEVICE
@@ -159,6 +137,42 @@ class rk_stepper final
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
                                  const stepping::config& cfg) const;
+
+    /// Update the track state by Runge-Kutta-Nystrom integration.
+    DETRAY_HOST_DEVICE
+    inline void advance_track(state& stepping) const;
+
+    /// Update the jacobian transport from free propagation
+    DETRAY_HOST_DEVICE
+    inline void advance_jacobian(state& stepping,
+                                 const stepping::config& cfg) const;
+
+    /// Calculate a RKN step and the associated numerical error
+    DETRAY_HOST_DEVICE
+    inline scalar_type try_rk_step(state& stepping, const scalar_type h,
+                                   const point3_type& pos,
+                                   const stepping::config& cfg) const;
+
+    /// Calculate the field gradient at position @param pos
+    DETRAY_HOST_DEVICE
+    inline matrix_type<3, 3> evaluate_field_gradient(
+        state& stepping, const point3_type& pos) const;
+
+    private:
+    /// Evaulate dqopds for a given step size and material
+    DETRAY_HOST_DEVICE
+    inline scalar_type evaluate_dqopds(
+        state& stepping, const std::size_t i, const scalar_type h,
+        const scalar_type dqopds_prev,
+        const detray::stepping::config& cfg) const;
+
+    /// Evaulate dtds for runge kutta stepping
+    DETRAY_HOST_DEVICE
+    inline vector3_type evaluate_dtds(state& stepping,
+                                      const vector3_type& b_field,
+                                      const std::size_t i, const scalar_type h,
+                                      const vector3_type& dtds_prev,
+                                      const scalar_type qop) const;
 };
 
 }  // namespace detray

@@ -295,8 +295,9 @@ struct propagator {
             propagation.debug_stream << "undefined";
         }
 
-        propagation.debug_stream << "step_size: " << std::setw(10)
-                                 << stepping._prev_step_size << std::endl;
+        propagation.debug_stream
+            << "step_size (after update): " << std::setw(10)
+            << stepping.step_size() << std::endl;
 
         propagation.debug_stream << std::setw(10)
                                  << detail::ray<algebra_type>(stepping())

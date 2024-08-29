@@ -12,6 +12,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
+#include "detray/propagator/stepping_config.hpp"
 #include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -31,6 +32,7 @@ using transform3 = test::transform3;
 namespace {
 
 constexpr scalar tol{1e-3f};
+stepping::config step_cfg{};
 
 vecmem::host_memory_resource host_mr;
 
@@ -119,10 +121,10 @@ GTEST_TEST(detray_propagator, line_stepper) {
                 0.5f * unit<scalar>::mm, tol);
 
     // Run a few steps
-    ASSERT_TRUE(l_stepper.step(propagation));
+    ASSERT_TRUE(l_stepper.step(propagation, step_cfg));
     // Step constraint to half step size
-    ASSERT_TRUE(cl_stepper.step(c_propagation));
-    ASSERT_TRUE(cl_stepper.step(c_propagation));
+    ASSERT_TRUE(cl_stepper.step(c_propagation, step_cfg));
+    ASSERT_TRUE(cl_stepper.step(c_propagation, step_cfg));
 
     track = propagation._stepping();
     ASSERT_NEAR(track.pos()[0], constant<scalar>::inv_sqrt2, tol);
@@ -134,7 +136,7 @@ GTEST_TEST(detray_propagator, line_stepper) {
     ASSERT_NEAR(c_track.pos()[1], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(c_track.pos()[2], 0.f, tol);
 
-    ASSERT_TRUE(l_stepper.step(propagation));
+    ASSERT_TRUE(l_stepper.step(propagation, step_cfg));
 
     track = propagation._stepping();
     ASSERT_NEAR(track.pos()[0], constant<scalar>::sqrt2, tol);

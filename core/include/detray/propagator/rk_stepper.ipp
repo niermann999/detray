@@ -6,19 +6,22 @@
  */
 
 // Project include(s).
+#include <iostream>
+
 #include "detray/geometry/tracking_volume.hpp"
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE void
-detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::advance_track() {
+          typename policy_t, typename inspector_t>
+DETRAY_HOST_DEVICE void detray::rk_stepper<
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::
+    advance_track(
+        detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
+                           inspector_t>::state& stepping) const {
 
-    const auto& sd = this->_step_data;
-    const scalar_type h{this->_step_size};
+    const auto& sd = stepping._step_data;
+    const scalar_type h{stepping.step_size()};
     const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
-    auto& track = this->_track;
+    auto& track = stepping();
     auto pos = track.pos();
     auto dir = track.dir();
 
@@ -34,7 +37,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     track.set_dir(dir);
 
     auto qop = track.qop();
-    if (!(this->_mat == nullptr)) {
+    if (!(stepping._mat == nullptr)) {
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
         qop =
             qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
@@ -43,17 +46,19 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
     track.set_qop(qop);
 
     // Update path length
-    this->_path_length += h;
-    this->_abs_path_length += math::fabs(h);
-    this->_s += h;
+    stepping._path_length += h;
+    stepping._abs_path_length += math::fabs(h);
+    stepping._s += h;
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE void detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::advance_jacobian(const detray::stepping::config& cfg) {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::
+    advance_jacobian(
+        detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
+                           inspector_t>::state& stepping,
+        const detray::stepping::config& cfg) const {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
     /// Since the terms of eq. 18 are currently 0, this matrix is not needed
@@ -77,10 +82,9 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
     //( JacTransport = D * JacTransport )
     auto D = matrix_operator().template identity<e_free_size, e_free_size>();
 
-    const auto& sd = this->_step_data;
-    const scalar_type h{this->_step_size};
-    // const auto& mass = this->_mass;
-    auto& track = this->_track;
+    const auto& sd = stepping._step_data;
+    const scalar_type h{stepping.step_size()};
+    auto& track = stepping();
 
     // Half step length
     const scalar_type h2{h * h};
@@ -189,21 +193,21 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
         getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
     } else {
         // Pre-calculate dqop_n/dqop1
-        const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop[0u]);
+        const scalar_type d2qop1dsdqop1 = stepping.d2qopdsdqop(sd.qop[0u]);
 
         dqopn_dqop[0u] = 1.f;
         dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
 
         const scalar_type d2qop2dsdqop1 =
-            this->d2qopdsdqop(sd.qop[1u]) * dqopn_dqop[1u];
+            stepping.d2qopdsdqop(sd.qop[1u]) * dqopn_dqop[1u];
         dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
 
         const scalar_type d2qop3dsdqop1 =
-            this->d2qopdsdqop(sd.qop[2u]) * dqopn_dqop[2u];
+            stepping.d2qopdsdqop(sd.qop[2u]) * dqopn_dqop[2u];
         dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
 
         const scalar_type d2qop4dsdqop1 =
-            this->d2qopdsdqop(sd.qop[3u]) * dqopn_dqop[3u];
+            stepping.d2qopdsdqop(sd.qop[3u]) * dqopn_dqop[3u];
 
         /*-----------------------------------------------------------------
          * Calculate the first terms of d(dqop_n/ds)/dqop1
@@ -269,10 +273,10 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
 
         // Field gradients at four stages
         std::array<matrix_type<3, 3>, 4u> dBdr;
-        dBdr[0u] = evaluate_field_gradient(r[0u]);
-        dBdr[1u] = evaluate_field_gradient(r[1u]);
+        dBdr[0u] = evaluate_field_gradient(stepping, r[0u]);
+        dBdr[1u] = evaluate_field_gradient(stepping, r[1u]);
         dBdr[2u] = dBdr[1u];
-        dBdr[3u] = evaluate_field_gradient(r[3u]);
+        dBdr[3u] = evaluate_field_gradient(stepping, r[3u]);
 
         // Temporary variable for dBdt and dBdr
         matrix_type<3u, 3u> dBdt_tmp;
@@ -396,77 +400,125 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
     matrix_operator().set_block(D, dFdqop, 0u, 7u);
     matrix_operator().set_block(D, dGdqop, 4u, 7u);
 
-    this->_jac_transport = D * this->_jac_transport;
+    stepping._jac_transport = D * stepping._jac_transport;
+}
+
+/// Run the RKN step and integrated error estimation
+template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
+          typename policy_t, typename inspector_t>
+DETRAY_HOST_DEVICE auto detray::rk_stepper<
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::
+    try_rk_step(detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t,
+                                   policy_t, inspector_t>::state& stepping,
+                const scalar_type h, const point3_type& pos,
+                const detray::stepping::config& cfg) const -> scalar_type {
+
+    auto& sd = stepping._step_data;
+    auto& magnetic_field = stepping._magnetic_field;
+
+    // State the square and half of the step size
+    const scalar_type h2{h * h};
+    const scalar_type half_h{h * 0.5f};
+
+    // Second Runge-Kutta point
+    // qop should be recalcuated at every point
+    // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
+    const point3_type pos1 =
+        pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
+    const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
+    sd.b_middle[0] = bvec1[0];
+    sd.b_middle[1] = bvec1[1];
+    sd.b_middle[2] = bvec1[2];
+
+    sd.dqopds[1u] = evaluate_dqopds(stepping, 1u, half_h, sd.dqopds[0u], cfg);
+    sd.dtds[1u] = evaluate_dtds(stepping, sd.b_middle, 1u, half_h, sd.dtds[0u],
+                                sd.qop[1u]);
+
+    // Third Runge-Kutta point
+    // qop should be recalcuated at every point
+    // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
+    sd.dqopds[2u] = evaluate_dqopds(stepping, 2u, half_h, sd.dqopds[1u], cfg);
+    sd.dtds[2u] = evaluate_dtds(stepping, sd.b_middle, 2u, half_h, sd.dtds[1u],
+                                sd.qop[2u]);
+
+    // Last Runge-Kutta point
+    // qop should be recalcuated at every point
+    // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
+    const point3_type pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
+    const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
+    sd.b_last[0] = bvec2[0];
+    sd.b_last[1] = bvec2[1];
+    sd.b_last[2] = bvec2[2];
+
+    sd.dqopds[3u] = evaluate_dqopds(stepping, 3u, h, sd.dqopds[2u], cfg);
+    sd.dtds[3u] =
+        evaluate_dtds(stepping, sd.b_last, 3u, h, sd.dtds[2u], sd.qop[3u]);
+
+    // Compute and check the local integration error estimate
+    constexpr const auto one_sixth{static_cast<scalar_type>(1. / 6.)};
+    const vector3_type err_vec =
+        one_sixth * h2 *
+        (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
+
+    return getter::norm(err_vec);
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::evaluate_dqopds(const std::size_t i, const scalar_type h,
-                                     const scalar_type dqopds_prev,
-                                     const detray::stepping::config& cfg)
-    -> scalar_type {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::
+    evaluate_dqopds(
+        detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
+                           inspector_t>::state& stepping,
+        const std::size_t i, const scalar_type h, const scalar_type dqopds_prev,
+        const detray::stepping::config& cfg) const -> scalar_type {
 
-    const auto& track = this->_track;
-    const scalar_type qop = track.qop();
-    auto& sd = this->_step_data;
+    const scalar_type qop = stepping().qop();
+    auto& sd = stepping._step_data;
 
-    if (this->_mat == nullptr) {
+    if (stepping._mat == nullptr) {
         sd.qop[i] = qop;
         return 0.f;
-    } else {
-
-        if (cfg.use_mean_loss) {
-            if (i == 0u) {
-                sd.qop[i] = qop;
-            } else {
-
-                // qop_n is calculated recursively like the direction of
-                // evaluate_dtds.
-                //
-                // https://doi.org/10.1016/0029-554X(81)90063-X says:
-                // "For y  we  have  similar  formulae  as  for x, for y' and
-                // \lambda similar  formulae as for  x'"
-                sd.qop[i] = qop + h * dqopds_prev;
-            }
-        }
-        return this->dqopds(sd.qop[i]);
+    } else if (cfg.use_mean_loss) {
+        // qop_n is calculated recursively like the direction of
+        // evaluate_dtds.
+        //
+        // https://doi.org/10.1016/0029-554X(81)90063-X says:
+        // "For y  we  have  similar  formulae  as  for x, for y' and
+        // \lambda similar  formulae as for  x'"
+        sd.qop[i] = (i == 0u) ? qop : qop + h * dqopds_prev;
     }
+
+    return stepping.dqopds(sd.qop[i]);
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::evaluate_dtds(const vector3_type& b_field,
-                                   const std::size_t i, const scalar_type h,
-                                   const vector3_type& dtds_prev,
-                                   const scalar_type qop) -> vector3_type {
-    auto& track = this->_track;
-    const auto dir = track.dir();
-    auto& sd = this->_step_data;
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::
+    evaluate_dtds(detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t,
+                                     policy_t, inspector_t>::state& stepping,
+                  const vector3_type& b_field, const std::size_t i,
+                  const scalar_type h, const vector3_type& dtds_prev,
+                  const scalar_type qop) const -> vector3_type {
+    auto& sd = stepping._step_data;
+    const auto& dir = stepping().dir();
 
-    if (i == 0u) {
-        sd.t[i] = dir;
-    } else {
-        // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        sd.t[i] = dir + h * dtds_prev;
-    }
+    // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
+    sd.t[i] = (i == 0u) ? dir : dir + h * dtds_prev;
 
     // dtds = qop * (t X B) from Lorentz force
     return qop * vector::cross(sd.t[i], b_field);
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::evaluate_field_gradient(const point3_type& pos)
-    -> matrix_type<3, 3> {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t>::
+    evaluate_field_gradient(
+        detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
+                           inspector_t>::state& stepping,
+        const point3_type& pos) const -> matrix_type<3, 3> {
 
     matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
 
@@ -477,7 +529,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
         point3_type dpos1 = pos;
         dpos1[i] += delta;
         const auto bvec1_tmp =
-            this->_magnetic_field.at(dpos1[0], dpos1[1], dpos1[2]);
+            stepping._magnetic_field.at(dpos1[0], dpos1[1], dpos1[2]);
         vector3_type bvec1;
         bvec1[0u] = bvec1_tmp[0u];
         bvec1[1u] = bvec1_tmp[1u];
@@ -486,7 +538,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
         point3_type dpos2 = pos;
         dpos2[i] -= delta;
         const auto bvec2_tmp =
-            this->_magnetic_field.at(dpos2[0], dpos2[1], dpos2[2]);
+            stepping._magnetic_field.at(dpos2[0], dpos2[1], dpos2[2]);
         vector3_type bvec2;
         bvec2[0u] = bvec2_tmp[0u];
         bvec2[1u] = bvec2_tmp[1u];
@@ -503,11 +555,10 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE auto
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::dtds() const -> vector3_type {
+                   inspector_t>::state::dtds() const -> vector3_type {
 
     // In case there was no step before
     if (this->_path_length == 0.f) {
@@ -525,11 +576,10 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename policy_t, typename inspector_t>
 DETRAY_HOST_DEVICE auto
 detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::dqopds() const -> scalar_type {
+                   inspector_t>::state::dqopds() const -> scalar_type {
 
     // In case there was no step before
     if (this->_path_length == 0.f) {
@@ -540,11 +590,11 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::dqopds(const scalar_type qop) const -> scalar_type {
+          typename policy_t, typename inspector_t>
+DETRAY_HOST_DEVICE auto
+detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
+                   inspector_t>::state::dqopds(const scalar_type qop) const
+    -> scalar_type {
 
     // d(qop)ds is zero for empty space
     if (this->_mat == nullptr) {
@@ -572,11 +622,11 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::d2qopdsdqop(const scalar_type qop) const -> scalar_type {
+          typename policy_t, typename inspector_t>
+DETRAY_HOST_DEVICE auto
+detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
+                   inspector_t>::state::d2qopdsdqop(const scalar_type qop) const
+    -> scalar_type {
 
     if (this->_mat == nullptr) {
         return 0.f;
@@ -610,39 +660,54 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
-          typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename policy_t, typename inspector_t>
 template <typename propagation_state_t>
 DETRAY_HOST_DEVICE bool detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
-    array_t>::step(propagation_state_t& propagation,
-                   const detray::stepping::config& cfg) const {
+    magnetic_field_t, algebra_t, constraint_t, policy_t,
+    inspector_t>::step(propagation_state_t& propagation,
+                       const detray::stepping::config& cfg) const {
 
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
     auto& magnetic_field = stepping._magnetic_field;
     auto& navigation = propagation._navigation;
 
-    if (stepping._step_size == 0.f) {
-        stepping._step_size = cfg.min_stepsize;
-    } else if (stepping._step_size > 0) {
-        stepping._step_size = math::min(stepping._step_size, navigation());
-    } else {
-        stepping._step_size = math::max(stepping._step_size, navigation());
+    // Run inspection
+    stepping.run_inspector(cfg, "New step: ");
+
+    // Get the first step length
+    const bool init_stepper{detail::is_invalid_value(stepping.step_size())};
+    // Reset the step if surface was reached (step size might have been
+    // clipped to arrive on surface)
+    const bool nav_reached_sf{navigation.is_on_module() ||
+                              navigation.is_on_portal()};
+    // Navigator switched direction: Likely overstepping has occured
+    const bool nav_dir_switch{
+        std::signbit(stepping.step_size() * navigation())};
+
+    if (nav_reached_sf || nav_dir_switch || init_stepper) {
+        // Set the step size to the distance to next
+        stepping.set_step_size(navigation());
+
+        // Update navigation direction
+        const step::direction step_dir = std::signbit(stepping.step_size())
+                                             ? step::direction::e_backward
+                                             : step::direction::e_forward;
+        stepping.set_direction(step_dir);
+
+        // Re-run inspection
+        stepping.run_inspector(cfg, "Reset step size: ");
     }
 
+    // Current track position and direction
     const point3_type pos = stepping().pos();
 
+    // Get pointer to material in volume at current position
     auto vol = navigation.get_volume();
-    if (vol.has_material()) {
-        stepping._mat = vol.material_parameters(pos);
-    } else {
-        stepping._mat = nullptr;
-    }
+    stepping._mat = vol.has_material() ? vol.material_parameters(pos) : nullptr;
 
+    // Calculate RKN stages
     auto& sd = stepping._step_data;
-
-    scalar_type error_estimate{0.f};
 
     // First Runge-Kutta point
     const auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
@@ -652,147 +717,94 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    sd.dqopds[0u] = stepping.evaluate_dqopds(0u, 0.f, 0.f, cfg);
-    sd.dtds[0u] = stepping.evaluate_dtds(
-        sd.b_first, 0u, 0.f, vector3_type{0.f, 0.f, 0.f}, sd.qop[0u]);
+    sd.dqopds[0u] = evaluate_dqopds(stepping, 0u, 0.f, 0.f, cfg);
+    sd.dtds[0u] = evaluate_dtds(stepping, sd.b_first, 0u, 0.f,
+                                vector3_type{0.f, 0.f, 0.f}, sd.qop[0u]);
 
-    const auto estimate_error = [&](const scalar_type& h) -> scalar {
-        // State the square and half of the step size
-        const scalar_type h2{h * h};
-        const scalar_type half_h{h * 0.5f};
+    /// Get the scale factor for the step size adjustment
+    const auto calculate_scale_factor =
+        [&cfg](const scalar_type& error) -> scalar_type {
+        // Trimm the step size update to: 1/4*h_n <= h_n+1 <= 4*h_n
+        constexpr scalar_type lower_bound{0.25f};
+        constexpr scalar_type upper_bound{4.f};
 
-        // Second Runge-Kutta point
-        // qop should be recalcuated at every point
-        // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        const point3_type pos1 =
-            pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
-        const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
-        sd.b_middle[0] = bvec1[0];
-        sd.b_middle[1] = bvec1[1];
-        sd.b_middle[2] = bvec1[2];
-
-        sd.dqopds[1u] =
-            stepping.evaluate_dqopds(1u, half_h, sd.dqopds[0u], cfg);
-        sd.dtds[1u] = stepping.evaluate_dtds(sd.b_middle, 1u, half_h,
-                                             sd.dtds[0u], sd.qop[1u]);
-
-        // Third Runge-Kutta point
-        // qop should be recalcuated at every point
-        // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        sd.dqopds[2u] =
-            stepping.evaluate_dqopds(2u, half_h, sd.dqopds[1u], cfg);
-        sd.dtds[2u] = stepping.evaluate_dtds(sd.b_middle, 2u, half_h,
-                                             sd.dtds[1u], sd.qop[2u]);
-
-        // Last Runge-Kutta point
-        // qop should be recalcuated at every point
-        // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        const point3_type pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
-        const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
-        sd.b_last[0] = bvec2[0];
-        sd.b_last[1] = bvec2[1];
-        sd.b_last[2] = bvec2[2];
-
-        sd.dqopds[3u] = stepping.evaluate_dqopds(3u, h, sd.dqopds[2u], cfg);
-        sd.dtds[3u] =
-            stepping.evaluate_dtds(sd.b_last, 3u, h, sd.dtds[2u], sd.qop[3u]);
-
-        // Compute and check the local integration error estimate
-        // @Todo
-        constexpr const scalar_type one_sixth{
-            static_cast<scalar_type>(1. / 6.)};
-        const vector3_type err_vec =
-            one_sixth * h2 *
-            (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
-        error_estimate = getter::norm(err_vec);
-
-        return error_estimate;
+        return static_cast<scalar_type>(math::min(
+            math::max(
+                math::sqrt(math::sqrt(cfg.rk_error_tol / math::fabs(error))),
+                lower_bound),
+            upper_bound));
     };
 
-    scalar_type error{1e20f};
+    // Integration error that would be achieved with the current step size
+    scalar_type error_estimate{
+        try_rk_step(stepping, stepping.step_size(), pos, cfg)};
 
-    // Whenever navigator::init() is called the step size is set to navigation
-    // path length (navigation()). We need to reduce it down to make error small
-    // enough
-    if (stepping._initialized) {
-        for (unsigned int i_t = 0u; i_t < cfg.max_rk_updates; i_t++) {
+    // Reduce step size if it results in too much error
+    std::size_t i{0u};
+    while (
+        (math::fabs(error_estimate) >= cfg.rk_error_mode * cfg.rk_error_tol) &&
+        (i < cfg.max_rk_updates)) {
 
-            error = math::max(estimate_error(stepping._step_size),
-                              static_cast<scalar_type>(1e-20));
+        // Calculate scale factor (error is larger than mode * tol)
+        const scalar_type step_size_scaling{
+            calculate_scale_factor(error_estimate)};
 
-            // Error is small enough
-            // ---> break and advance track
-            if (error <= cfg.rk_error_tol) {
-                stepping._initialized = false;
-                break;
-            }
-            // Error estimate is too big
-            // ---> Make step size smaller and esimate error again
-            else {
+        // Update step size: scale factor < 1 => Reduce step size
+        stepping.set_step_size(stepping.step_size() * step_size_scaling);
 
-                scalar_type step_size_scaling =
-                    math::sqrt(math::sqrt(cfg.rk_error_tol / error));
+        // Try the step again with the smaller step size
+        error_estimate = try_rk_step(stepping, stepping.step_size(), pos, cfg);
 
-                stepping._step_size *= step_size_scaling;
-
-                // Run inspection while the stepsize is getting adjusted
-                stepping.run_inspector(cfg, "Adjust stepsize: ", i_t + 1,
-                                       step_size_scaling);
-            }
+        // Stop, if step size gets too small
+        if (math::fabs(stepping.step_size()) < cfg.min_stepsize) {
+            stepping.set_step_size(cfg.min_stepsize);
+            break;
         }
+        ++i;
+        // Run inspection while the stepsize is getting adjusted
+        stepping.run_inspector(cfg, "Adjust stepsize: ", i, step_size_scaling,
+                               error_estimate);
+    }
+
+    // Clip to navigation distance to prevent stepping through the next surface
+    if (std::signbit(stepping.step_size())) {
+        stepping.set_step_size(math::max(stepping.step_size(), navigation()));
     } else {
-        stepping._initialized = false;
-        error = math::max(estimate_error(stepping._step_size),
-                          static_cast<scalar_type>(1e-20));
+        stepping.set_step_size(math::min(stepping.step_size(), navigation()));
     }
 
-    // If the stepper state is still in the initialized state, abort.
-    if (stepping._initialized == true) {
-        return navigation.abort();
-    }
-
-    // Update navigation direction
-    const step::direction step_dir = stepping._step_size >= 0.f
-                                         ? step::direction::e_forward
-                                         : step::direction::e_backward;
-    stepping.set_direction(step_dir);
-
-    // Check constraints
-    if (math::fabs(stepping._step_size) >
+    // Check external step size constraints
+    if (math::fabs(stepping.step_size()) >
         math::fabs(
             stepping.constraints().template size<>(stepping.direction()))) {
 
-        // Run inspection before step size is cut
-        stepping.run_inspector(cfg, "Before constraint: ");
+        // Run inspection before step size is constrained
+        stepping.run_inspector(cfg, "Before constraint: ", error_estimate);
 
         stepping.set_step_size(
             stepping.constraints().template size<>(stepping.direction()));
     }
 
+    // Should have equal sign
+    assert(stepping.step_size() * navigation() > 0.f);
+
     // Advance track state
-    stepping.advance_track();
+    advance_track(stepping);
 
     // Advance jacobian transport
     if (cfg.do_covariance_transport) {
-        stepping.advance_jacobian(cfg);
+        advance_jacobian(stepping, cfg);
     }
+
+    // Run final inspection
+    stepping.run_inspector(cfg, "Step complete: ", error_estimate);
+
+    // Update step size for next step (error is smaller or close to tolerance)
+    stepping.set_step_size(stepping.step_size() *
+                           calculate_scale_factor(error_estimate));
 
     // Call navigation update policy
     typename rk_stepper::policy_type{}(stepping.policy_state(), propagation);
-
-    const scalar_type step_size_scaling = static_cast<scalar_type>(
-        math::min(math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / error)),
-                            static_cast<scalar_type>(0.25)),
-                  static_cast<scalar_type>(4.)));
-
-    // Save the current step size
-    stepping._prev_step_size = stepping._step_size;
-
-    // Update the step size
-    stepping._step_size *= step_size_scaling;
-
-    // Run final inspection
-    stepping.run_inspector(cfg, "Step complete: ");
 
     return true;
 }

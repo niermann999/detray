@@ -61,6 +61,8 @@ class base_stepper {
     /// @note It has to cast into a const track via the call operation.
     struct state {
 
+        state() = default;
+
         /// Sets track parameters.
         DETRAY_HOST_DEVICE
         explicit state(const free_track_parameters_type &free_params)
@@ -106,7 +108,7 @@ class base_stepper {
         }
 
         /// free track parameter
-        free_track_parameters_type _track;
+        free_track_parameters_type _track{};
 
         /// Full jacobian
         bound_matrix_type _full_jacobian =
@@ -121,7 +123,7 @@ class base_stepper {
             matrix_operator().template zero<e_free_size, e_bound_size>();
 
         /// bound covariance
-        bound_track_parameters_type _bound_params;
+        bound_track_parameters_type _bound_params{};
 
         /// @returns track parameters - const access
         DETRAY_HOST_DEVICE
@@ -131,7 +133,10 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         const free_track_parameters_type &operator()() const { return _track; }
 
-        step::direction _direction{step::direction::e_forward};
+        step::direction _direction{step::direction::e_unknown};
+
+        /// The default particle hypothesis is muon
+        pdg_particle<scalar_type> _ptc = muon<scalar_type>();
 
         // Stepping constraints
         constraint_t _constraint = {};
@@ -140,7 +145,7 @@ class base_stepper {
         typename policy_t::state _policy_state = {};
 
         /// The inspector type of the stepping
-        inspector_type _inspector;
+        inspector_type _inspector{};
 
         /// Track path length
         scalar_type _path_length{0.f};
@@ -153,16 +158,11 @@ class base_stepper {
         scalar_type _s{0.f};
 
         /// Current step size
-        scalar_type _step_size{0.f};
+        scalar_type _step_size{detail::invalid_value<scalar_type>()};
 
-        /// Previous step size (DEBUG purpose only)
-        scalar_type _prev_step_size{0.f};
-
-        /// The default particle hypothesis is muon
-        pdg_particle<scalar_type> _ptc = muon<scalar_type>();
-
-        /// is step size just initialized
-        bool _initialized = true;
+        /// Set the particle hypothesis
+        DETRAY_HOST_DEVICE
+        void set_particle(const pdg_particle<scalar_type> &ptc) { _ptc = ptc; }
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
