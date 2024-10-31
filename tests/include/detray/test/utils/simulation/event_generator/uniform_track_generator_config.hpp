@@ -53,7 +53,7 @@ struct uniform_track_generator_config {
 
     /// Magnitude of momentum: Default is one to keep directions normalized
     /// if no momentum information is needed (e.g. for a ray)
-    scalar m_p_mag{1.f * unit<scalar>::GeV};
+    scalar m_p_mag{0.1f * unit<scalar>::GeV};
     /// Whether to interpret the momentum @c m_p_mag as p_T
     bool m_is_pT{false};
 
