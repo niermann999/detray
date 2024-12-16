@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
+#include "detray/navigation/intersection/intersector_base.hpp"
 #include "detray/navigation/intersection/ray_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_cylinder_portal_intersector.hpp"
 #include "detray/navigation/intersection/ray_line_intersector.hpp"
@@ -25,12 +26,16 @@ namespace detray {
 ///
 /// @note specialized into the concrete intersectors for the different local
 /// geometries in the respective header files
-template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
+template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl {};
 
+template <typename frame_t, typename algebra_t, bool do_debug>
+using ray_intersector_impl_t =
+    typename ray_intersector_impl<frame_t, algebra_t, do_debug>::type;
+
 template <typename shape_t, concepts::algebra algebra_t, bool do_debug = false>
-using ray_intersector =
-    ray_intersector_impl<typename shape_t::template local_frame_type<algebra_t>,
-                         algebra_t, do_debug>;
+using ray_intersector = intersector_base<ray_intersector_impl_t<
+    typename shape_t::template local_frame_type<algebra_t>, algebra_t,
+    do_debug>>;
 
 }  // namespace detray

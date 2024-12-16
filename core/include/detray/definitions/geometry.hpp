@@ -41,4 +41,17 @@ enum class surface_id : std::uint_least8_t {
     e_all = e_unknown
 };
 
+/// Currently known coordinate systems in detray
+enum class coordinates : std::uint_least8_t {
+    e_cartesian2D = 0u,
+    e_cartesian3D = 0u,
+    e_polar2D = 0u,
+    e_concentric_cylindrical2D = 1u,
+    e_cylindrical2D = 1u,
+    e_cylindrical3D = 1u,
+    e_line2D = 2u,
+    e_size = 3u,
+    e_unknown = 4u,
+};
+
 }  // namespace detray

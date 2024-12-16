@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/detail/type_traits.hpp"
 
 namespace detray {
 
@@ -77,5 +78,12 @@ struct cartesian2D {
     }
 
 };  // struct cartesian2D
+
+namespace detail {
+
+template <typename algebra_t>
+struct is_planar<cartesian2D<algebra_t>> : std::true_type {};
+
+}  // namespace detail
 
 }  // namespace detray

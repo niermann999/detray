@@ -149,7 +149,8 @@ GTEST_TEST(detray_intersection, concentric_cylinders) {
                                                                  hz};
 
     ray_intersector<cylinder2D, test_algebra, true> ci;
-    ray_concentric_cylinder_intersector<test_algebra, true> cci;
+    intersector_base<ray_concentric_cylinder_intersector<test_algebra, true>>
+        cci;
 
     // Intersect
     const auto hits_cylinrical =

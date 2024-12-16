@@ -23,15 +23,12 @@
 
 namespace detray {
 
-template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
-struct ray_intersector_impl;
-
 /// A functor to find intersections between a ray and a 2D cylinder mask
 template <algebra::concepts::aos algebra_t, bool do_debug>
-struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
-
+struct ray_cylinder_intersector {
     /// Linear algebra types
     /// @{
+    using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
@@ -42,6 +39,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     using intersection_type =
         intersection2D<surface_descr_t, algebra_t, do_debug>;
     using ray_type = detail::ray<algebra_t>;
+    template <typename other_algebra_t>
+    using trajectory_type = detail::ray<other_algebra_t>;
 
     /// Operator function to find intersections between a ray and a 2D cylinder
     ///
@@ -94,17 +93,6 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
         // might not be passed on if it is below the overstepping tolerance:
         // see 'build_candidate'
         return ret;
-    }
-
-    /// Interface to use fixed mask tolerance
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline darray<intersection_type<surface_descr_t>, 2>
-    operator()(const ray_type &ray, const surface_descr_t &sf,
-               const mask_t &mask, const transform3_type &trf,
-               const scalar_type mask_tolerance,
-               const scalar_type overstep_tol = 0.f) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
-                                overstep_tol);
     }
 
     /// Operator function to find intersections between a ray and a 2D cylinder
@@ -208,6 +196,14 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
 
         return is;
     }
+};
+
+template <typename frame_t, typename algebra_t, bool do_debug>
+struct ray_intersector_impl;
+
+template <algebra::concepts::aos algebra_t, bool do_debug>
+struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
+    using type = ray_cylinder_intersector<algebra_t, do_debug>;
 };
 
 }  // namespace detray

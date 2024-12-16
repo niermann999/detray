@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/detail/type_traits.hpp"
 
 namespace detray {
 
@@ -82,5 +83,12 @@ struct polar2D {
         return trf.z();
     }
 };
+
+namespace detail {
+
+template <typename algebra_t>
+struct is_planar<polar2D<algebra_t>> : std::true_type {};
+
+}  // namespace detail
 
 }  // namespace detray

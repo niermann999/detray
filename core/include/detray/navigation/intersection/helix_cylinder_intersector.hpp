@@ -37,8 +37,9 @@ struct helix_intersector_impl;
 /// @note Don't use for low p_t tracks!
 template <algebra::concepts::aos algebra_t>
 struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
+    : public ray_cylinder_intersector<algebra_t, true> {
 
+    using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
@@ -47,6 +48,8 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t, true>;
     using helix_type = detail::helix<algebra_t>;
+    template <typename other_algebra_t>
+    using trajectory_type = detail::helix<other_algebra_t>;
 
     /// Operator function to find intersections between helix and cylinder mask
     ///
@@ -269,17 +272,6 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
 
             return ret;
         }
-    }
-
-    /// Interface to use fixed mask tolerance
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline darray<intersection_type<surface_descr_t>, 2>
-    operator()(const helix_type &h, const surface_descr_t &sf_desc,
-               const mask_t &mask, const transform3_type &trf,
-               const scalar_type mask_tolerance, const scalar_type = 0.f,
-               const scalar_type = 0.f) const {
-        return this->operator()(h, sf_desc, mask, trf,
-                                {mask_tolerance, mask_tolerance}, 0.f);
     }
 
     /// Tolerance for convergence

@@ -21,7 +21,7 @@
 
 namespace detray {
 
-template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
+template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
@@ -30,6 +30,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 
     /// Linear algebra types
     /// @{
+    using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
@@ -39,6 +40,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
     template <typename surface_descr_t>
     using intersection_type =
         intersection2D<surface_descr_t, algebra_t, do_debug>;
+    template <typename other_algebra_t>
+    using trajectory_type = detail::ray<other_algebra_t>;
 
     /// Operator function to find intersections between ray and planar mask
     ///

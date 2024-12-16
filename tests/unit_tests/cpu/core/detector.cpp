@@ -10,6 +10,8 @@
 
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
+#include "detray/utils/type_list.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/prefill_detector.hpp"
@@ -20,6 +22,39 @@
 
 // GTest include(s)
 #include <gtest/gtest.h>
+
+namespace detray {
+
+template <typename detector_t, std::size_t I = 0, typename... Fs>
+consteval auto make_frame_type_set(
+    const types::list<Fs...>& list = {},
+    std::array<dindex, detector_t::masks::n_types> id_array = {0}) {
+    using frame_list_t = types::list<Fs...>;
+
+    if constexpr (I == detector_t::masks::n_types) {
+        return std::make_tuple(list, id_array);
+    } else {
+        using algebra_t = typename detector_t::algebra_type;
+        using next_mask_t =
+            typename detector_t::mask_container::template get_type<
+                static_cast<typename detector_t::masks::id>(I)>;
+        using frame_t = ray_intersector<typename next_mask_t::shape, algebra_t>;
+
+        // Map mask position in mask store to frame type id
+
+        // Coordinate frame type already registered?
+        if constexpr (types::contains<frame_t, frame_list_t>) {
+            id_array[I] = types::position<frame_t, frame_list_t>;
+            return make_frame_type_set<detector_t, I + 1u>(list, id_array);
+        } else {
+            id_array[I] = sizeof...(Fs);
+            return make_frame_type_set<detector_t, I + 1u>(
+                types::push_back<frame_list_t, frame_t>{}, id_array);
+        }
+    }
+}
+
+}  // namespace detray
 
 /// This tests the functionality of a detector as a data store manager
 GTEST_TEST(detray_core, detector) {
@@ -35,6 +70,16 @@ GTEST_TEST(detray_core, detector) {
     vecmem::host_memory_resource host_mr;
     detector_t d1(host_mr);
     auto geo_ctx = typename detector_t::geometry_context{};
+
+    auto [type_list, id_array] =
+        make_frame_type_set<detector_t>(types::list<>{});
+
+    for (std::size_t i = 0; i < id_array.size(); ++i) {
+        std::cout << "i: " << i << ", id: " << id_array[i] << std::endl;
+    }
+
+    types::print<typename detector_t::masks::types>();
+    types::print<decltype(type_list)>();
 
     // Helper lambda for checking the contents of an "empty" detector object.
     auto check_empty_detector = [](auto& d) {

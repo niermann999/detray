@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/detail/type_traits.hpp"
 
 namespace detray {
 
@@ -99,5 +100,12 @@ struct cylindrical2D {
     }
 
 };  // struct cylindrical2D
+
+namespace detail {
+
+template <typename algebra_t>
+struct is_cylindrical<cylindrical2D<algebra_t>> : std::true_type {};
+
+}  // namespace detail
 
 }  // namespace detray

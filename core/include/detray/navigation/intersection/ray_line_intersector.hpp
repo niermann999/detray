@@ -21,13 +21,10 @@
 
 namespace detray {
 
-template <typename frame_t, concepts::algebra algebra_t, bool do_debug>
-struct ray_intersector_impl;
-
 /// A functor to find intersections between trajectory and line mask
 template <algebra::concepts::aos algebra_t, bool do_debug>
-struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
-
+struct ray_line_intersector {
+    using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
@@ -37,6 +34,8 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
     using intersection_type =
         intersection2D<surface_descr_t, algebra_t, do_debug>;
     using ray_type = detail::ray<algebra_t>;
+    template <typename other_algebra_t>
+    using trajectory_type = detail::ray<other_algebra_t>;
 
     /// Operator function to find intersections between ray and line mask
     ///
@@ -120,39 +119,14 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
         }
         return is;
     }
+};
 
-    /// Interface to use fixed mask tolerance
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
-        const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
-        const transform3_type &trf, const scalar_type mask_tolerance,
-        const scalar_type overstep_tol = 0.f) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
-                                overstep_tol);
-    }
+template <typename frame_t, typename algebra_t, bool do_debug>
+struct ray_intersector_impl;
 
-    /// Operator function to find intersections between a ray and a line.
-    ///
-    /// @tparam mask_t is the input mask type
-    ///
-    /// @param ray is the input ray trajectory
-    /// @param sfi the intersection to be updated
-    /// @param mask is the input mask that defines the surface extent
-    /// @param trf is the surface placement transform
-    /// @param mask_tolerance is the tolerance for mask edges
-    /// @param overstep_tol negative cutoff for the path
-    template <typename surface_descr_t, typename mask_t>
-    DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray, intersection_type<surface_descr_t> &sfi,
-        const mask_t &mask, const transform3_type &trf,
-        const darray<scalar_type, 2u> &mask_tolerance =
-            {0.f, 1.f * unit<scalar_type>::mm},
-        const scalar_type mask_tol_scalor = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
-
-        sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
-                               mask_tol_scalor, overstep_tol);
-    }
+template <algebra::concepts::aos algebra_t, bool do_debug>
+struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
+    using type = ray_line_intersector<algebra_t, do_debug>;
 };
 
 }  // namespace detray

@@ -25,8 +25,10 @@ namespace detray {
 template <class ID, typename... registered_types>
 class type_registry {
     public:
-    // Make the type IDs accessible
+    /// Make the type IDs accessible
     using id = ID;
+    /// Make the registered types accessible
+    using types = detray::types::list<registered_types...>;
 
     /// Conventions for some basic info
     enum : std::size_t {
@@ -125,8 +127,8 @@ class type_registry {
     /// a compiler error.
     template <ID type_id>
     struct get_type {
-        using type = types::at<types::list<registered_types...>,
-                               static_cast<int>(to_index(type_id))>;
+        using type = detray::types::at<detray::types::list<registered_types...>,
+                                       static_cast<int>(to_index(type_id))>;
     };
 
     private:
