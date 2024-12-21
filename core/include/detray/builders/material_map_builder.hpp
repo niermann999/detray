@@ -246,7 +246,7 @@ struct add_sf_material_map {
             // The detector only knows the non-owning grid types
             using non_owning_t =
                 typename decltype(mat_grid)::template type<false>;
-            static_assert(materials_t::template is_defined<non_owning_t>());
+            static_assert(materials_t::template contains<non_owning_t>());
 
             // Add the material slabs to the grid
             for (const auto& bin : bin_data) {

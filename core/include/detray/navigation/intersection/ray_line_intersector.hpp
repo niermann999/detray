@@ -12,7 +12,7 @@
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/coordinates/line2D.hpp"
+#include "detray/geometry/detail/concepts.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
@@ -124,8 +124,9 @@ struct ray_line_intersector {
 template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
-template <algebra::concepts::aos algebra_t, bool do_debug>
-struct ray_intersector_impl<line2D<algebra_t>, algebra_t, do_debug> {
+template <concepts::linear shape_t, algebra::concepts::aos algebra_t,
+          bool do_debug>
+struct ray_intersector_impl<shape_t, algebra_t, do_debug> {
     using type = ray_line_intersector<algebra_t, do_debug>;
 };
 

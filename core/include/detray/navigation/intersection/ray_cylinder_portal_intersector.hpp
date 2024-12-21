@@ -13,11 +13,9 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
-#include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_cylinder_intersector.hpp"
-#include "detray/utils/quadratic_equation.hpp"
 
 // System include(s)
 #include <type_traits>

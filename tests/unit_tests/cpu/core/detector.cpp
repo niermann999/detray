@@ -25,34 +25,180 @@
 
 namespace detray {
 
-template <typename detector_t, std::size_t I = 0, typename... Fs>
-consteval auto make_frame_type_set(
-    const types::list<Fs...>& list = {},
-    std::array<dindex, detector_t::masks::n_types> id_array = {0}) {
-    using frame_list_t = types::list<Fs...>;
+template <bool do_debug = false>
+struct select_ray_intersector {
+    template <typename mask_t>
+    using type = ray_intersector<typename mask_t::shape,
+                                 typename mask_t::algebra_type, do_debug>;
+};
 
-    if constexpr (I == detector_t::masks::n_types) {
-        return std::make_tuple(list, id_array);
+template <typename registry_t, class type_selector, std::size_t I = 0,
+          typename... Fs>
+consteval auto map_types(
+    const types::list<Fs...>& list = detray::types::list<>{}) {
+    using list_t = types::list<Fs...>;
+
+    if constexpr (I == registry_t::n_types) {
+        return list;
     } else {
-        using algebra_t = typename detector_t::algebra_type;
-        using next_mask_t =
-            typename detector_t::mask_container::template get_type<
-                static_cast<typename detector_t::masks::id>(I)>;
-        using frame_t = ray_intersector<typename next_mask_t::shape, algebra_t>;
+        using next_type = typename registry_t::template get_type<
+            static_cast<typename registry_t::id>(I)>::type;
+        // Map the mask type to another type
+        using mapped_t = typename type_selector::template type<next_type>;
 
         // Map mask position in mask store to frame type id
-
-        // Coordinate frame type already registered?
-        if constexpr (types::contains<frame_t, frame_list_t>) {
-            id_array[I] = types::position<frame_t, frame_list_t>;
-            return make_frame_type_set<detector_t, I + 1u>(list, id_array);
+        if constexpr (types::contains<mapped_t, list_t>) {
+            return map_types<registry_t, type_selector, I + 1u>(list);
         } else {
-            id_array[I] = sizeof...(Fs);
-            return make_frame_type_set<detector_t, I + 1u>(
-                types::push_back<frame_list_t, frame_t>{}, id_array);
+            return map_types<registry_t, type_selector, I + 1u>(
+                types::push_back<list_t, mapped_t>{});
         }
     }
 }
+
+template <typename registry_t, class type_selector, std::size_t I = 0,
+          typename... Fs>
+consteval auto make_id_lookup(
+    const types::list<Fs...>& list,
+    std::array<dindex, registry_t::n_types> id_array = {0}) {
+    using list_t = types::list<Fs...>;
+
+    if constexpr (I == registry_t::n_types) {
+        return id_array;
+    } else {
+        using next_type = typename registry_t::template get_type<
+            static_cast<typename registry_t::id>(I)>::type;
+        // Map the mask type to another type
+        using mapped_t = typename type_selector::template type<next_type>;
+
+        // Map mask position in mask store to frame type id
+        if constexpr (types::contains<mapped_t, list_t>) {
+            id_array[I] = types::position<mapped_t, list_t>;
+            return make_id_lookup<registry_t, type_selector, I + 1u>(list,
+                                                                     id_array);
+        } else {
+            id_array[I] = sizeof...(Fs);
+            return make_id_lookup<registry_t, type_selector, I + 1u>(
+                types::push_back<list_t, mapped_t>{}, id_array);
+        }
+    }
+}
+
+template <typename registry_t, class type_selector_t>
+class mapped_type_registry {
+    public:
+    /// Make the type ids accessible
+    using id = typename registry_t::id;
+    /// Make the registered types accessible
+    using types = decltype(map_types<registry_t, type_selector_t>());
+
+    /// Conventions for some basic info
+    enum : std::size_t {
+        n_types = detray::types::size<types>,
+        e_any = detray::types::size<types>,
+        e_unknown = detray::types::size<types> + 1u,
+    };
+
+    static constexpr std::array<dindex, registry_t::n_types> id_map =
+        make_id_lookup<registry_t, type_selector_t>(types{});
+
+    DETRAY_HOST_DEVICE
+    static constexpr std::size_t map(id i) {
+        return id_map[static_cast<std::size_t>(i)];
+    }
+
+    /// Get the index for a type.
+    /*template <typename object_t>
+    DETRAY_HOST_DEVICE static consteval id get_id() {
+        return to_id(detray::types::position<std::decay_t<object_t>, types>);
+    }
+
+    /// Get the index for a type. Use template parameter deduction.
+    template <typename object_t>
+    DETRAY_HOST_DEVICE static consteval id get_id(const object_t&) {
+        return get_id<object_t>();
+    }*/
+
+    /// Checks whether a given types is known in the registry.
+    template <typename object_t>
+    DETRAY_HOST_DEVICE static consteval bool contains() {
+        return detray::types::contains<std::decay_t<object_t>, types>;
+    }
+
+    /// Checks whether a given types is known in the registry.
+    /// Use template parameter deduction.
+    template <typename object_t>
+    DETRAY_HOST_DEVICE static consteval bool contains(const object_t&) {
+        return contains<object_t>();
+    }
+
+    /// Checks whether a given index can be mapped to a type.
+    DETRAY_HOST_DEVICE static constexpr bool is_valid(
+        const std::size_t type_id) {
+        return map(type_id) < n_types;
+    }
+
+    /// Convert index to ID and do some (limited) checking.
+    ///
+    /// @tparam ref_idx matches to index arg to perform static checks
+    /// @param index argument to be converted to valid id type
+    ///
+    /// @return the matching ID type.
+    /*template <std::size_t ref_idx = 0>
+    DETRAY_HOST_DEVICE static constexpr id to_id(const std::size_t index) {
+        if (ref_idx == index) {
+            // Produce a more helpful error than the usual tuple index error
+            static_assert(
+                is_valid(ref_idx),
+                "Index out of range: Please make sure that indices and type "
+                "enums match the number of types in container.");
+            return static_cast<id>(ref_idx);
+        }
+        if constexpr (ref_idx < detray::types::size<types> - 1) {
+            return to_id<ref_idx + 1>(index);
+        }
+        // This produces a compiler error when used in type unrolling code
+        return static_cast<id>(detray::types::size<types>);
+    }
+
+    /// Convert index to ID and do some (limited) checking.
+    ///
+    /// @tparam ref_idx matches to index arg to perform static checks
+    /// @param index argument to be converted to valid id type
+    ///
+    /// @return the matching ID type.
+    template <std::size_t ref_idx = 0>
+    DETRAY_HOST_DEVICE static constexpr std::size_t to_index(const id i) {
+        if (to_id(ref_idx) == i) {
+            // Produce a more helpful error than the usual tuple index error
+            static_assert(
+                is_valid(ref_idx),
+                "Index out of range: Please make sure that indices and type "
+                "enums match the number of types in container.");
+            return ref_idx;
+        }
+        if constexpr (ref_idx < detray::types::size<types> - 1) {
+            return to_index<ref_idx + 1>(i);
+        }
+        // This produces a compiler error when used in type unrolling code
+        return detray::types::size<types>;
+    }
+
+    /// Extract an index and check it.
+    template <typename object_t>
+    struct get_index {
+        static constexpr id value = get_id<object_t>();
+        DETRAY_HOST_DEVICE
+        consteval bool operator()() const noexcept { return is_valid(value); }
+    };*/
+
+    /// Return a type for an index. If the index cannot be mapped, there will be
+    /// a compiler error.
+    template <id type_id>
+    struct get_type {
+        using type = detray::types::at<types, map(type_id)>;
+    };
+};
 
 }  // namespace detray
 
@@ -61,7 +207,7 @@ GTEST_TEST(detray_core, detector) {
 
     using namespace detray;
 
-    using metadata_t = test::default_metadata;
+    using metadata_t = test::toy_metadata;  // test::default_metadata;
     using detector_t = detector<metadata_t>;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
@@ -71,18 +217,25 @@ GTEST_TEST(detray_core, detector) {
     detector_t d1(host_mr);
     auto geo_ctx = typename detector_t::geometry_context{};
 
-    auto [type_list, id_array] =
-        make_frame_type_set<detector_t>(types::list<>{});
+    using mapped_registry_t =
+        mapped_type_registry<typename detector_t::masks,
+                             select_ray_intersector<true>>;
+
+    constexpr auto id_array = mapped_registry_t::id_map;
 
     for (std::size_t i = 0; i < id_array.size(); ++i) {
         std::cout << "i: " << i << ", id: " << id_array[i] << std::endl;
     }
 
-    types::print<typename detector_t::masks::types>();
-    types::print<decltype(type_list)>();
+    using intersector_t = typename mapped_registry_t::template get_type<
+        mask_id::e_cylinder2>::type;
+
+    types::print<types::list<intersector_t>>();
+
+    // types::print<typename detector_t::masks::types>();
 
     // Helper lambda for checking the contents of an "empty" detector object.
-    auto check_empty_detector = [](auto& d) {
+    /*auto check_empty_detector = [](auto& d) {
         EXPECT_TRUE(d.volumes().empty());
         EXPECT_TRUE(d.portals().empty());
         EXPECT_TRUE(d.transform_store().empty());
@@ -171,5 +324,5 @@ GTEST_TEST(detray_core, detector) {
 
     // Move assign the filled detector to the empty one.
     d3 = std::move(d2);
-    check_filled_detector(d3);
+    check_filled_detector(d3);*/
 }

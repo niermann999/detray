@@ -37,30 +37,29 @@ class type_registry {
         e_unknown = sizeof...(registered_types) + 1,
     };
 
-    /// Get the index for a type. Needs to be unrolled in case of thrust tuple.
+    /// Get the index for a type.
     template <typename object_t>
-    DETRAY_HOST_DEVICE static constexpr ID get_id() {
-        return unroll_ids<std::decay_t<object_t>, registered_types...>();
+    DETRAY_HOST_DEVICE static consteval ID get_id() {
+        return to_id(detray::types::position<std::decay_t<object_t>, types>);
     }
 
     /// Get the index for a type. Use template parameter deduction.
     template <typename object_t>
-    DETRAY_HOST_DEVICE static constexpr ID get_id(const object_t& /*obj*/) {
+    DETRAY_HOST_DEVICE static consteval ID get_id(const object_t&) {
         return get_id<object_t>();
+    }
+
+    /// Checks whether a given types is known in the registry.
+    template <typename object_t>
+    DETRAY_HOST_DEVICE static consteval bool contains() {
+        return detray::types::contains<std::decay_t<object_t>, types>;
     }
 
     /// Checks whether a given types is known in the registry.
     /// Use template parameter deduction.
     template <typename object_t>
-    DETRAY_HOST_DEVICE static constexpr bool is_defined(
-        const object_t& /*obj*/) {
-        return (get_id<object_t>() != static_cast<ID>(e_unknown));
-    }
-
-    /// Checks whether a given types is known in the registry.
-    template <typename object_t>
-    DETRAY_HOST_DEVICE static constexpr bool is_defined() {
-        return (get_id<object_t>() != static_cast<ID>(e_unknown));
+    DETRAY_HOST_DEVICE static consteval bool contains(const object_t&) {
+        return contains<object_t>();
     }
 
     /// Checks whether a given index can be mapped to a type.
@@ -120,34 +119,15 @@ class type_registry {
     struct get_index {
         static constexpr ID value = get_id<object_t>();
         DETRAY_HOST_DEVICE
-        constexpr bool operator()() const noexcept { return is_valid(value); }
+        consteval bool operator()() const noexcept { return is_valid(value); }
     };
 
     /// Return a type for an index. If the index cannot be mapped, there will be
     /// a compiler error.
     template <ID type_id>
     struct get_type {
-        using type = detray::types::at<detray::types::list<registered_types...>,
-                                       static_cast<int>(to_index(type_id))>;
+        using type = detray::types::at<types, to_index(type_id)>;
     };
-
-    private:
-    /// dummy type
-    struct empty_type {};
-
-    /// Gets the position of a type in a parameter pack, without using tuples.
-    template <typename object_t, typename first_t = empty_type,
-              typename... remaining_types>
-    DETRAY_HOST_DEVICE static constexpr ID unroll_ids() {
-        if constexpr (!std::is_same_v<first_t, empty_type> &&
-                      !std::is_same_v<object_t, first_t>) {
-            return unroll_ids<object_t, remaining_types...>();
-        }
-        if constexpr (std::is_same_v<object_t, first_t>) {
-            return static_cast<ID>(n_types - sizeof...(remaining_types) - 1);
-        }
-        return static_cast<ID>(e_unknown);
-    }
 };
 
 }  // namespace detray
