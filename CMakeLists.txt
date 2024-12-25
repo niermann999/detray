@@ -67,6 +67,7 @@ option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF)
 option(DETRAY_VC_AOS_PLUGIN "Build Vc based AoS math plugin" OFF)
 option(DETRAY_VC_SOA_PLUGIN "Build Vc based SoA math plugin" OFF)
 option(DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
+option(DETRAY_BUILD_TRACER "Build ray tracer plugin" OFF)
 option(DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF)
 option(
     DETRAY_BUILD_CUDA

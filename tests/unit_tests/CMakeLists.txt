@@ -11,7 +11,14 @@ if(DETRAY_BUILD_HOST)
     add_subdirectory(covfie)
     add_subdirectory(cpu)
     add_subdirectory(io)
-    add_subdirectory(svgtools)
+
+    if(DETRAY_SVG_DISPLAY)
+        add_subdirectory(svgtools)
+    endif()
+
+    if(DETRAY_BUILD_TRACER)
+        add_subdirectory(tracer)
+    endif()
 endif()
 
 # Set up all of the "device" tests.

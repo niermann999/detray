@@ -26,6 +26,8 @@ file(
     "include/detray/io/frontend/*.hpp"
     "include/detray/io/frontend/detail/*.hpp"
     "include/detray/io/frontend/implementation/*.hpp"
+    "include/detray/io/image/*.hpp"
+    "include/detray/io/image/detail/*.hpp"
     "include/detray/io/json/*.hpp"
 )
 detray_add_library( detray_io io
