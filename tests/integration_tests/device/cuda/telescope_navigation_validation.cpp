@@ -46,6 +46,8 @@ int main(int argc, char **argv) {
     using tel_detector_t = detector<telescope_metadata<rectangle2D>>;
     using scalar_t = typename tel_detector_t::scalar_type;
 
+    tel_detector_t::geometry_context gctx{};
+
     tel_det_config<rectangle2D> tel_cfg{20.f * unit<scalar_t>::mm,
                                         20.f * unit<scalar_t>::mm};
     tel_cfg.n_surfaces(10u)
@@ -69,7 +71,8 @@ int main(int argc, char **argv) {
     cfg_ray_scan.track_generator().theta_range(
         0.f, 0.25f * constant<scalar_t>::pi_4);
 
-    detail::register_checks<test::ray_scan>(tel_det, tel_names, cfg_ray_scan);
+    detail::register_checks<test::ray_scan>(tel_det, tel_names, cfg_ray_scan,
+                                            gctx);
 
     // Comparison of straight line navigation with ray scan
     detray::cuda::straight_line_navigation<tel_detector_t>::config
@@ -83,7 +86,7 @@ int main(int argc, char **argv) {
         static_cast<float>(mask_tolerance[1]);
 
     detail::register_checks<detray::cuda::straight_line_navigation>(
-        tel_det, tel_names, cfg_str_nav);
+        tel_det, tel_names, cfg_str_nav, gctx);
 
     // Navigation link consistency, discovered by helix intersection
     test::helix_scan<tel_detector_t>::config cfg_hel_scan{};
@@ -98,7 +101,8 @@ int main(int argc, char **argv) {
     cfg_hel_scan.track_generator().theta_range(
         0.f, 0.25f * constant<scalar_t>::pi_4);
 
-    detail::register_checks<test::helix_scan>(tel_det, tel_names, cfg_hel_scan);
+    detail::register_checks<test::helix_scan>(tel_det, tel_names, cfg_hel_scan,
+                                              gctx);
 
     // Comparison of navigation in a constant B-field with helix
     detray::cuda::helix_navigation<tel_detector_t>::config cfg_hel_nav{};
@@ -108,7 +112,7 @@ int main(int argc, char **argv) {
         -100.f * unit<float>::um;
 
     detail::register_checks<detray::cuda::helix_navigation>(tel_det, tel_names,
-                                                            cfg_hel_nav);
+                                                            cfg_hel_nav, gctx);
 
     // Run the material validation
     test::material_scan<tel_detector_t>::config mat_scan_cfg{};
@@ -120,7 +124,7 @@ int main(int argc, char **argv) {
 
     // Record the material using a ray scan
     detail::register_checks<test::material_scan>(tel_det, tel_names,
-                                                 mat_scan_cfg);
+                                                 mat_scan_cfg, gctx);
 
     // Now trace the material during navigation and compare
     detray::cuda::material_validation<tel_detector_t>::config mat_val_cfg{};
@@ -130,7 +134,7 @@ int main(int argc, char **argv) {
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
     detail::register_checks<detray::cuda::material_validation>(
-        tel_det, tel_names, mat_val_cfg);
+        tel_det, tel_names, mat_val_cfg, gctx);
 
     // Run the checks
     return RUN_ALL_TESTS();

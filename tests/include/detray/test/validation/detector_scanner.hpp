@@ -21,6 +21,7 @@
 
 // System include(s)
 #include <algorithm>
+#include <sstream>
 #include <type_traits>
 
 namespace detray {
@@ -56,7 +57,7 @@ struct brute_force_scan {
     using trajectory_type = trajectory_t;
 
     template <typename detector_t>
-    inline auto operator()(const typename detector_t::geometry_context ctx,
+    inline auto operator()(const typename detector_t::geometry_context &ctx,
                            const detector_t &detector, const trajectory_t &traj,
                            const std::array<typename detector_t::scalar_type, 2>
                                mask_tolerance = {0.f, 0.f},
@@ -64,13 +65,12 @@ struct brute_force_scan {
                                1.f *
                                unit<typename detector_t::scalar_type>::GeV) {
 
-        using algebra_t = typename detector_t::scalar_type;
+        using algebra_t = typename detector_t::algebra_type;
         using scalar_t = dscalar<algebra_t>;
         using sf_desc_t = typename detector_t::surface_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
-        using intersection_t =
-            intersection2D<sf_desc_t, typename detector_t::algebra_type, true>;
+        using intersection_t = intersection2D<sf_desc_t, algebra_t, true>;
 
         using intersection_kernel_t = intersection_initialize<intersector>;
 
@@ -106,6 +106,14 @@ struct brute_force_scan {
                 }
             }
             intersections.clear();
+        }
+
+        // Should not happen, unless intersector fails
+        if (intersection_trace.empty()) {
+            std::stringstream err_stream;
+            err_stream << traj;
+            throw std::runtime_error("No intersection found for track: " +
+                                     err_stream.str());
         }
 
         // Save initial track position as dummy intersection record

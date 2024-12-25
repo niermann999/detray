@@ -47,6 +47,8 @@ int main(int argc, char** argv) {
     using detector_t = detray::detector<>;
     using scalar_t = typename detector_t::scalar_type;
 
+    detector_t::geometry_context gctx{};
+
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
 
@@ -115,11 +117,11 @@ int main(int argc, char** argv) {
 
     // General data consistency of the detector
     detray::detail::register_checks<detray::test::consistency_check>(
-        det, names, con_chk_cfg);
+        det, names, con_chk_cfg, gctx);
 
     // Navigation link consistency, discovered by ray intersection
     detray::detail::register_checks<detray::test::ray_scan>(det, names,
-                                                            ray_scan_cfg);
+                                                            ray_scan_cfg, gctx);
 
     // Comparison of straight line navigation with ray scan
     str_nav_cfg.name(det_name + "_straight_line_navigation");
@@ -135,11 +137,11 @@ int main(int argc, char** argv) {
     str_nav_cfg.track_param_file(ray_scan_cfg.track_param_file());
 
     detray::detail::register_checks<detray::test::straight_line_navigation>(
-        det, names, str_nav_cfg);
+        det, names, str_nav_cfg, gctx);
 
     // Navigation link consistency, discovered by helix intersection
-    detray::detail::register_checks<detray::test::helix_scan>(det, names,
-                                                              hel_scan_cfg);
+    detray::detail::register_checks<detray::test::helix_scan>(
+        det, names, hel_scan_cfg, gctx);
 
     // Comparison of navigation in a constant B-field with helix
     hel_nav_cfg.name(det_name + "_helix_navigation");
@@ -149,7 +151,7 @@ int main(int argc, char** argv) {
     hel_nav_cfg.track_param_file(hel_scan_cfg.track_param_file());
 
     detray::detail::register_checks<detray::test::helix_navigation>(
-        det, names, hel_nav_cfg);
+        det, names, hel_nav_cfg, gctx);
 
     // Run the checks
     return RUN_ALL_TESTS();

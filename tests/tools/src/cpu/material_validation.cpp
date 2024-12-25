@@ -45,6 +45,8 @@ int main(int argc, char **argv) {
     // Use the most general type to be able to read in all detector files
     using detector_t = detray::detector<>;
 
+    detector_t::geometry_context gctx{};
+
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
 
@@ -80,13 +82,13 @@ int main(int argc, char **argv) {
     mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true);
     detray::detail::register_checks<test::material_scan>(det, names,
-                                                         mat_scan_cfg);
+                                                         mat_scan_cfg, gctx);
 
     // Now trace the material during navigation and compare
     mat_val_cfg.whiteboard(white_board);
 
-    detail::register_checks<detray::test::material_validation>(det, names,
-                                                               mat_val_cfg);
+    detail::register_checks<detray::test::material_validation>(
+        det, names, mat_val_cfg, gctx);
 
     // Run the checks
     return RUN_ALL_TESTS();

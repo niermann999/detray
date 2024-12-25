@@ -39,6 +39,8 @@ int main(int argc, char **argv) {
     using wire_chamber_t = detector<>;
     using scalar_t = typename wire_chamber_t::scalar_type;
 
+    wire_chamber_t::geometry_context gctx{};
+
     wire_chamber_config<> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
@@ -51,7 +53,7 @@ int main(int argc, char **argv) {
     // General data consistency of the detector
     test::consistency_check<wire_chamber_t>::config cfg_cons{};
     detail::register_checks<test::consistency_check>(
-        det, names, cfg_cons.name("wire_chamber_consistency"));
+        det, names, cfg_cons.name("wire_chamber_consistency"), gctx);
 
     // Navigation link consistency, discovered by ray intersection
     test::ray_scan<wire_chamber_t>::config cfg_ray_scan{};
@@ -60,7 +62,7 @@ int main(int argc, char **argv) {
     cfg_ray_scan.track_generator().seed(42u);
     cfg_ray_scan.track_generator().n_tracks(10000u);
 
-    detail::register_checks<test::ray_scan>(det, names, cfg_ray_scan);
+    detail::register_checks<test::ray_scan>(det, names, cfg_ray_scan, gctx);
 
     // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<wire_chamber_t>::config cfg_str_nav{};
@@ -74,7 +76,7 @@ int main(int argc, char **argv) {
         static_cast<float>(mask_tolerance[1]);
 
     detail::register_checks<test::straight_line_navigation>(det, names,
-                                                            cfg_str_nav);
+                                                            cfg_str_nav, gctx);
 
     // Navigation link consistency, discovered by helix intersection
     test::helix_scan<wire_chamber_t>::config cfg_hel_scan{};
@@ -89,7 +91,7 @@ int main(int argc, char **argv) {
     // TODO: Fails for smaller momenta
     cfg_hel_scan.track_generator().p_T(4.f * unit<scalar_t>::GeV);
 
-    detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
+    detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan, gctx);
 
     // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
@@ -98,7 +100,8 @@ int main(int argc, char **argv) {
     cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 12.f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
-    detail::register_checks<test::helix_navigation>(det, names, cfg_hel_nav);
+    detail::register_checks<test::helix_navigation>(det, names, cfg_hel_nav,
+                                                    gctx);
 
     // Run the material validation
     test::material_scan<wire_chamber_t>::config mat_scan_cfg{};
@@ -108,7 +111,8 @@ int main(int argc, char **argv) {
     mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
 
     // Record the material using a ray scan
-    detail::register_checks<test::material_scan>(det, names, mat_scan_cfg);
+    detail::register_checks<test::material_scan>(det, names, mat_scan_cfg,
+                                                 gctx);
 
     // Now trace the material during navigation and compare
     test::material_validation<wire_chamber_t>::config mat_val_cfg{};
@@ -120,7 +124,8 @@ int main(int argc, char **argv) {
     }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
-    detail::register_checks<test::material_validation>(det, names, mat_val_cfg);
+    detail::register_checks<test::material_validation>(det, names, mat_val_cfg,
+                                                       gctx);
 
     // Run the checks
     return RUN_ALL_TESTS();
