@@ -64,7 +64,7 @@ struct color {
     /// and @param alpha values
     DETRAY_HOST_DEVICE
     constexpr color(const depth r, const depth g, const depth b,
-                    const depth alpha = {channel_max - 1u})
+                    const depth alpha = channel_max)
         : m_data{r, g, b, alpha} {}
 
     /// Broadcast constructor
@@ -92,6 +92,31 @@ struct color {
                                     static_cast<other_depth_t>(tmp[1]),
                                     static_cast<other_depth_t>(tmp[2]),
                                     static_cast<other_depth_t>(tmp[3])};
+    }
+
+    /// Mix two colors with alpha values: This color over @param other
+    DETRAY_HOST_DEVICE
+    constexpr color alpha_over(const color& right) {
+        const auto r{static_cast<color<T>>(right)};
+        const auto l{static_cast<color<T>>(*this)};
+
+        constexpr auto n{1.f / color<T>::channel_max};
+
+        const auto alpha_fraction{r[3] * (1.f - l[3] * n)};
+        const auto alpha{l[3] + alpha_fraction};
+        const auto inv_alpha{1.f / alpha};
+
+        color<T> res;
+        std::array<T, 4> tmp1;
+        std::array<T, 4> tmp2;
+        for (std::size_t i = 0u; i < 4u; ++i) {
+            tmp1[i] = l[i] * l[3];
+            tmp2[i] = r[i] * alpha_fraction;
+            res[i] = (tmp1[i] + tmp2[i]) * inv_alpha;
+        }
+        res[3] = alpha;
+
+        return static_cast<color<depth_t>>(res);
     }
 
     /// Equality operator: Only considers exact match
@@ -165,28 +190,12 @@ std::ostream& operator<<(std::ostream& os, const color<std::uint8_t>& c) {
 template <concepts::arithmetic depth_t>
 constexpr color<depth_t> operator+(const color<depth_t>& left,
                                    const color<depth_t>& right) {
-    using T = typename color<depth_t>::T;
-    const auto r{static_cast<color<T>>(right)};
-    const auto l{static_cast<color<T>>(left)};
-
-    constexpr auto n{1.f / static_cast<T>(color<depth_t>::channel_max)};
-
-    const auto alpha_fraction{r[3] * (1.f - l[3] * n)};
-    const auto alpha{l[3] + alpha_fraction};
-    const auto inv_alpha{1.f / alpha};
-
-    std::array<T, 4> res;
-    std::array<T, 4> tmp1;
-    std::array<T, 4> tmp2;
+    color<depth_t> res;
     for (std::size_t i = 0u; i < 4u; ++i) {
-        tmp1[i] = l[i] * l[3];
-        tmp2[i] = r[i] * alpha_fraction;
-        res[i] = (tmp1[i] + tmp2[i]) * inv_alpha;
+        res[i] = left[i] + right[i];
     }
 
-    return color<depth_t>{
-        static_cast<depth_t>(res[0]), static_cast<depth_t>(res[1]),
-        static_cast<depth_t>(res[2]), static_cast<depth_t>(alpha)};
+    return res;
 }
 
 template <concepts::arithmetic depth_t>
@@ -195,16 +204,12 @@ constexpr color<depth_t> operator*(const color<depth_t>& col,
     using T = typename color<depth_t>::T;
     const auto c{static_cast<color<T>>(col)};
 
-    constexpr auto n{factor / static_cast<T>(color<depth_t>::channel_max)};
-
-    std::array<T, 4> res;
+    color<T> res;
     for (std::size_t i = 0u; i < 4u; ++i) {
-        res[i] = c[i] * n;
+        res[i] = c[i] * factor;
     }
 
-    return color<depth_t>{
-        static_cast<depth_t>(res[0]), static_cast<depth_t>(res[1]),
-        static_cast<depth_t>(res[2]), static_cast<depth_t>(res[3])};
+    return static_cast<color<depth_t>>(res);
 }
 
 template <concepts::arithmetic depth_t>
@@ -214,16 +219,14 @@ constexpr color<depth_t> operator*(const color<depth_t>& left,
     const auto l{static_cast<color<T>>(left)};
     const auto r{static_cast<color<T>>(right)};
 
-    constexpr auto n{1.f / static_cast<T>(color<depth_t>::channel_max)};
+    constexpr auto n{1.f / color<T>::channel_max};
 
-    std::array<T, 4> res;
+    color<T> res;
     for (std::size_t i = 0u; i < 4u; ++i) {
         res[i] = l[i] * r[i] * n;
     }
 
-    return color<depth_t>{
-        static_cast<depth_t>(res[0]), static_cast<depth_t>(res[1]),
-        static_cast<depth_t>(res[2]), static_cast<depth_t>(res[3])};
+    return static_cast<color<depth_t>>(res);
 }
 
 }  // namespace detray::texture

@@ -9,9 +9,11 @@
 
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/concepts.hpp"
+
+// Detray tracer include(s)
 #include "detray/plugins/tracer/texture/color.hpp"
 #include "detray/plugins/tracer/texture/pixel.hpp"
-#include "detray/utils/concepts.hpp"
 
 // System include(s).
 #include <ratio>
@@ -63,14 +65,14 @@ class raw_image {
 
     /// Set a particular pixel in the image
     DETRAY_HOST_DEVICE
-    constexpr void set_pixel(std::uint64_t x, std::uint64_t y, color c) {
+    constexpr void set_pixel(std::size_t x, std::size_t y, color c) {
         std::size_t px_idx{x + m_width * y};
         m_data.at(px_idx) = c;
     }
 
     /// Set a particular pixel in the image to @param px
     DETRAY_HOST_DEVICE
-    constexpr void set_pixel(texture::pixel<std::uint64_t, depth> px) {
+    constexpr void set_pixel(texture::pixel<depth, std::size_t> px) {
         set_pixel(px[0], px[1], px.color());
     }
 

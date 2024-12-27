@@ -11,6 +11,8 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/detail/ray.hpp"
+
+// Detray tracer include(s)
 #include "detray/plugins/tracer/renderer/raw_image.hpp"
 
 // System include(s)
@@ -60,15 +62,17 @@ class camera {
     DETRAY_HOST_DEVICE
     template <concepts::arithmetic color_depth>
     constexpr detail::ray<algebra_t> generate_ray(
-        const scalar_t x, const scalar_t y,
+        const std::size_t x, const std::size_t y,
         const raw_image<color_depth, aspect_ratio> &image) const {
 
         // percentage of pixel position of the width/height of the image
-        const scalar_t u = x * (1.f / static_cast<T>(image.width() - 1u));
-        const scalar_t v = y * (1.f / static_cast<T>(image.height() - 1u));
+        const scalar_t u = static_cast<scalar_t>(x) *
+                           (1.f / static_cast<T>(image.width() - 1u));
+        const scalar_t v = static_cast<scalar_t>(y) *
+                           (1.f / static_cast<T>(image.height() - 1u));
 
-        return {m_origin, m_lower_left_corner + u * m_horizontal +
-                              v * m_vertical - m_origin};
+        return {point3_t{m_origin}, m_lower_left_corner + u * m_horizontal +
+                                        v * m_vertical - m_origin};
     }
 
     /// @brief Shoot multiple rays to shade a single pixel
@@ -83,27 +87,31 @@ class camera {
     template <std::size_t SAMPLES, concepts::arithmetic color_depth,
               typename generator_t>
     constexpr std::array<detail::ray<algebra_t>, SAMPLES> generate_rays(
-        const scalar_t x, const scalar_t y, generator_t &rand_gen,
+        const std::size_t x, const std::size_t y, generator_t &rand_gen,
         const raw_image<color_depth, aspect_ratio> &image) const {
 
-        vector3_t pitch_x = m_horizontal;
-        vector3_t pitch_y = m_vertical;
-        pitch_x[0] /= image.width();
-        pitch_y[1] /= image.height();
+        if constexpr (SAMPLES == 1ul) {
+            return {generate_ray(x, y, image)};
+        } else {
+            vector3_t pitch_x = m_horizontal;
+            vector3_t pitch_y = m_vertical;
+            pitch_x[0] /= image.width();
+            pitch_y[1] /= image.height();
 
-        std::array<detail::ray<transform3_t>, SAMPLES> rays;
-        for (std::size_t i = 0u; i < SAMPLES; ++i) {
-            rays[i] = generate_ray(x, y, image);
-            auto &ray = rays[i];
+            std::array<detail::ray<algebra_t>, SAMPLES> rays;
+            for (std::size_t i = 0u; i < SAMPLES; ++i) {
+                rays[i] = generate_ray(x, y, image);
+                auto &ray = rays[i];
 
-            // Random modification of the ray direction
-            const scalar_t px{-0.5f + rand_gen(0.f, 1.f)};
-            const scalar_t py{-0.5f + rand_gen(0.f, 1.f)};
+                // Random modification of the ray direction
+                const scalar_t px{-0.5f + rand_gen({0.f, 1.f})};
+                const scalar_t py{-0.5f + rand_gen({0.f, 1.f})};
 
-            ray.set_dir(ray.dir() + px * pitch_x + py * pitch_y);
+                ray.set_dir(ray.dir() + px * pitch_x + py * pitch_y);
+            }
+
+            return rays;
         }
-
-        return rays;
     }
 
     private:

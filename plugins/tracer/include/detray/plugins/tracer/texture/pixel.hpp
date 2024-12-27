@@ -9,8 +9,10 @@
 
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/plugins/tracer/texture/color.hpp"
 #include "detray/utils/concepts.hpp"
+
+// Detray tracer include(s)
+#include "detray/plugins/tracer/texture/color.hpp"
 
 // System include(s)
 #include <array>
@@ -25,8 +27,8 @@ namespace detail {
 ///
 /// @tparam data_t pixel coordinate type
 template <unsigned int D, concepts::arithmetic depth = std::uint8_t,
-          std::integral data_t = unsigned int>
-struct pixelD {
+          std::integral data_t = std::size_t>
+struct pixelND {
 
     using color_t = texture::color<depth>;
     using color_depth = depth;
@@ -34,37 +36,38 @@ struct pixelD {
     static constexpr unsigned int Dim{D};
 
     /// Default constructor
-    constexpr pixelD() = default;
+    constexpr pixelND() = default;
 
     /// Construct from an array of coordinates @param coord
     DETRAY_HOST_DEVICE
-    constexpr pixelD(const std::array<data_t, D>& coord) : m_coord{coord} {}
+    constexpr pixelND(const std::array<data_t, D>& coord) : m_coord{coord} {}
 
     /// Construct from its coordinates @param coord
     template <std::integral... C>
-    DETRAY_HOST_DEVICE constexpr pixelD(const C... coord) : m_coord{coord...} {}
+    DETRAY_HOST_DEVICE constexpr pixelND(const C... coord)
+        : m_coord{coord...} {}
 
     /// Construct from an array of coordinates @param coord and a color @param c
     DETRAY_HOST_DEVICE
-    constexpr pixelD(const color_t& c, const std::array<data_t, D>& coord)
+    constexpr pixelND(const color_t& c, const std::array<data_t, D>& coord)
         : m_coord{coord}, m_color{c} {}
 
     /// Construct from its coordinates @param coord and a color @param c
     template <std::integral... C>
-    constexpr pixelD(const color_t& c, const C... coord)
+    constexpr pixelND(const color_t& c, const C... coord)
         : m_coord{coord...}, m_color{c} {}
 
     template <concepts::arithmetic other_depth_t>
     requires std::is_convertible_v<depth, other_depth_t>
-        DETRAY_HOST_DEVICE constexpr operator pixelD<D, data_t, other_depth_t>()
-            const {
-        return pixelD<D, data_t, other_depth_t>{
+        DETRAY_HOST_DEVICE constexpr
+        operator pixelND<D, data_t, other_depth_t>() const {
+        return pixelND<D, data_t, other_depth_t>{
             m_coord, static_cast<texture::color<other_depth_t>>(m_color)};
     }
 
     /// Equality operator: Only considers exact match
     DETRAY_HOST_DEVICE
-    constexpr data_t operator==(const pixelD& other) {
+    constexpr data_t operator==(const pixelND& other) {
         return (m_coord == other.m_coord) && (m_color == other.m_color);
     }
 
@@ -94,22 +97,23 @@ struct pixelD {
 
     /// Mixes the pixel color by addition
     DETRAY_HOST_DEVICE
-    constexpr pixelD operator+=(const color_t& c) {
+    constexpr pixelND operator+=(const color_t& c) {
         m_color += c;
         return *this;
     }
 
     /// Scale the pixel color
     DETRAY_HOST_DEVICE
-    template <concepts::arithmetic scalar_t>
-    constexpr pixelD operator*=(const scalar_t factor) {
+    template <typename scalar_t>
+    requires std::is_fundamental_v<scalar_t> constexpr pixelND operator*=(
+        const scalar_t factor) {
         m_color *= factor;
         return *this;
     }
 
     /// Mixes the pixel color by multiplication
     DETRAY_HOST_DEVICE
-    constexpr pixelD operator*=(const color_t& c) {
+    constexpr pixelND operator*=(const color_t& c) {
         m_color *= c;
         return *this;
     }
@@ -117,24 +121,25 @@ struct pixelD {
     /// Print the pixel data to stdout
     DETRAY_HOST
     template <unsigned int, typename, typename>
-    friend std::ostream& operator<<(std::ostream&, const pixelD&);
+    friend std::ostream& operator<<(std::ostream&, const pixelND&);
 
     std::array<data_t, D> m_coord{};
     color_t m_color{};
 };
 
 template <unsigned int D, typename depth, typename data_t>
-std::ostream& operator<<(std::ostream& os, const pixelD<D, depth, data_t>& px) {
+std::ostream& operator<<(std::ostream& os,
+                         const pixelND<D, depth, data_t>& px) {
     return os << "pix: " << static_cast<unsigned int>(px[0]) << ", "
               << static_cast<unsigned int>(px[1]) << ", " << px.color();
 }
 
 }  // namespace detail
 
-template <typename depth = std::uint8_t, typename data_t = unsigned int>
-using pixel = detail::pixelD<2, depth, data_t>;
+template <typename depth = std::uint8_t, typename data_t = std::size_t>
+using pixel = detail::pixelND<2, depth, data_t>;
 
-template <typename depth = std::uint8_t, typename data_t = unsigned int>
-using voxel = detail::pixelD<3, depth, data_t>;
+template <typename depth = std::uint8_t, typename data_t = std::size_t>
+using voxel = detail::pixelND<3, depth, data_t>;
 
 }  // namespace detray::texture

@@ -56,7 +56,7 @@ struct random_numbers {
                                     std::numeric_limits<scalar_t>::max()}) {
         const scalar_t min{range[0]};
         const scalar_t max{range[1]};
-        assert(min <= max);
+        assert(detail::all_of(min <= max));
 
         // Uniform
         if constexpr (std::is_same_v<

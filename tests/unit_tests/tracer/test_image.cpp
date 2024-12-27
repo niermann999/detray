@@ -38,11 +38,12 @@ inline void generate_test_image(raw_image<color_depth> &im) {
 }  // namespace
 
 int main() {
+    using image_t = raw_image<unsigned int>;
 
-    io::ppm_writer<raw_image<unsigned int>> ppm{};
+    io::ppm_writer<image_t> ppm{};
 
     // write a test image
-    raw_image<unsigned int> image{500u};
+    image_t image{500u};
     generate_test_image(image);
 
     ppm.write(image, "test");

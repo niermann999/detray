@@ -15,13 +15,14 @@ file(
     "include/detray/plugins/tracer/shaders/detail/*.hpp"
     "include/detray/plugins/tracer/shaders/*.hpp"
     "include/detray/plugins/tracer/texture/*.hpp"
+    "include/detray/plugins/tracer/texture/detail/*.hpp"
 )
 detray_add_library( detray_tracer tracer
     ${_detray_tracer_public_headers}
 )
 target_link_libraries(
     detray_tracer
-    INTERFACE vecmem::core detray::core detray::io
+    INTERFACE vecmem::core detray::core detray::io detray::test_utils
 )
 
 # Set up the libraries that use specific algebra plugins.

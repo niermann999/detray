@@ -12,10 +12,14 @@ detray_add_unit_test(image
    LINK_LIBRARIES detray::tracer detray::io
 )
 
-#detray_add_executable(render_masks
-#   "single_shapes.cpp"
-#   LINK_LIBRARIES detray_algebra_array detray_algebra_vc_soa detray::tracer detray::io)
+detray_add_unit_test(render_masks
+   "render_masks.cpp"
+   LINK_LIBRARIES detray::algebra_vc_aos detray::algebra_vc_soa detray::tracer detray::io
+)
 
-#if( OpenMP_CXX_FOUND )
-#  target_link_libraries( detray_render_masks PRIVATE OpenMP::OpenMP_CXX )
-#endif()
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(
+        detray_unit_test_render_masks
+        PRIVATE OpenMP::OpenMP_CXX
+    )
+endif()

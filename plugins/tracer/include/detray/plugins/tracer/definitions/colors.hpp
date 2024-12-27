@@ -7,7 +7,7 @@
 
 #pragma once
 
-// Project include(s)
+// Detray tracer include(s)
 #include "detray/plugins/tracer/texture/color.hpp"
 
 namespace detray::texture {
@@ -17,14 +17,14 @@ namespace detray::texture {
 
 // Macro for declaring rgb colors
 #define DETRAY_DECLARE_COLOR(COLOR_NAME, R, G, B)                            \
-    template <typename color_depth = std::uint8_t>                           \
+    template <typename color_depth>                                          \
     inline constexpr auto COLOR_NAME = texture::color<color_depth>{R, G, B}; \
     template <>                                                              \
     inline constexpr auto COLOR_NAME<float> =                                \
-        texture::color<float>{R / 256.f, G / 256.f, B / 256.f, 1.f};         \
+        texture::color<float>{R / 255.f, G / 255.f, B / 255.f};              \
     template <>                                                              \
     inline constexpr auto COLOR_NAME<double> =                               \
-        texture::color<double>{R / 256., G / 256., B / 256., 1.};
+        texture::color<double>{R / 255., G / 255., B / 255.};
 
 // https://www.w3schools.com/colors/color_tryit.asp?hex=F0F8FF
 DETRAY_DECLARE_COLOR(black, 0, 0, 0);
