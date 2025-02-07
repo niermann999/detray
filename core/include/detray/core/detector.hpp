@@ -75,11 +75,11 @@ class detector {
         detector<metadata_t, container_t> &,
         const dtransform3D<typename metadata_t::algebra_type> &, unsigned int);
 
+    public:
     /// Raw container types
     template <typename T>
     using vector_type = typename container_t::template vector_type<T>;
 
-    public:
     /// Main definition of geometry types
     using metadata = metadata_t;
 

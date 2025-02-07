@@ -83,9 +83,8 @@ struct random_numbers {
         // specific set of tracks pass the test, so detray needs to make sure
         // that these tracks are generated in the random_track_generator. This
         // means that the correct number of draws from the random number engine
-        // needs to be done in order to arrive at the SAME track directions. The
-        // latter  are drawn from the same 'm_engine'. TODO: Remove once the
-        // test are stable
+        // needs to be done in order to arrive at the SAME internal state of
+        // 'm_engine'. TODO: Remove once the test are stable
         if (is_zero_stddev) {
             std::normal_distribution<scalar_t>(mean, 1.f)(m_engine);
         }
