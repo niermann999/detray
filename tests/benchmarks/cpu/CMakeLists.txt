@@ -27,11 +27,6 @@ macro(detray_add_cpu_benchmark algebra)
                       detray::core_${algebra} detray::test_utils
     )
 
-    target_compile_options(
-        detray_benchmark_cpu_${algebra}
-        PRIVATE "-march=native"
-    )
-
     # Set the benchmark specific compilation options.
     if(DETRAY_BENCHMARKS_MULTITHREAD)
         target_compile_definitions(
@@ -54,10 +49,13 @@ macro(detray_add_cpu_benchmark algebra)
                      vecmem::core detray::core_${algebra} detray::test_utils
     )
 
-    target_compile_options(
-        detray_benchmark_cpu_propagation_${algebra}
-        PRIVATE "-march=native" "-ftree-vectorize"
-    )
+    # Add Vc specific flags
+    if(algebra STREQUAL "vc_aos")
+        target_compile_options(
+            benchmark_cpu_propagation_vc_aos
+            INTERFACE ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS}
+        )
+    endif()
 
     if(OpenMP_CXX_FOUND)
         target_link_libraries(
@@ -92,11 +90,6 @@ if(DETRAY_VC_SOA_PLUGIN)
          "intersectors.cpp"
            LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_vc_aos detray::core_${algebra}
            detray::test_utils
-        )
-
-        target_compile_options(
-            detray_benchmark_cpu_vc_soa_vs_${algebra}
-            PRIVATE "-march=native"
         )
 
         # Add Vc specific flags

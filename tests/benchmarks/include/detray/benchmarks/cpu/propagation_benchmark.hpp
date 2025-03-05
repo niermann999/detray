@@ -74,6 +74,8 @@ struct host_propagation_bm : public benchmark_base {
         assert(bfield != nullptr);
         assert(input_actor_states != nullptr);
 
+        std::cout << m_cfg.name() << "\n" << m_cfg.benchmark() << std::endl;
+
         const int n_samples{m_cfg.benchmark().n_samples()};
         const int n_warmup{m_cfg.benchmark().n_warmup()};
 

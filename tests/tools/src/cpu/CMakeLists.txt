@@ -71,6 +71,14 @@ if(DETRAY_BUILD_BENCHMARKS)
                 PRIVATE OpenMP::OpenMP_CXX
             )
         endif()
+
+        # Add Vc specific flags
+        if(algebra STREQUAL "vc_aos")
+            target_compile_options(
+                benchmark_cpu_propagation_vc_aos
+                INTERFACE ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS}
+            )
+        endif()
     endmacro()
 
     # Build the array benchmark.

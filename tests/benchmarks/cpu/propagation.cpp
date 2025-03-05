@@ -17,7 +17,7 @@
 
 // Detray test include(s).
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
-#include "detray/test/utils/detectors/build_wire_chamber.hpp"
+//#include "detray/test/utils/detectors/build_wire_chamber.hpp"
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 #include "detray/test/utils/types.hpp"
 
@@ -67,16 +67,14 @@ int main(int argc, char** argv) {
     std::cout << toy_cfg << std::endl;
 
     // Configure wire chamber
-    wire_chamber_config<scalar> wire_chamber_cfg{};
-    wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
+    // wire_chamber_config<scalar> wire_chamber_cfg{};
+    // wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
-    std::cout << wire_chamber_cfg << std::endl;
+    // std::cout << wire_chamber_cfg << std::endl;
 
     // Configure propagation
     propagation::config prop_cfg{};
     prop_cfg.navigation.search_window = {3u, 3u};
-
-    std::cout << prop_cfg << std::endl;
 
     // Benchmark config
     detray::benchmarks::benchmark_base::configuration bench_cfg{};
@@ -96,6 +94,9 @@ int main(int argc, char** argv) {
         std::ceil(0.1f * static_cast<float>(trk_cfg.n_tracks()))));
     bench_cfg.do_warmup(true);
 
+    std::cout << trk_cfg << std::endl;
+    std::cout << prop_cfg << std::endl;
+
     //
     // Prepare data
     //
@@ -105,8 +106,8 @@ int main(int argc, char** argv) {
 
     const auto [toy_det, names] =
         build_toy_detector<test_algebra>(host_mr, toy_cfg);
-    const auto [wire_chamber, _] =
-        build_wire_chamber<test_algebra>(host_mr, wire_chamber_cfg);
+    /*const auto [wire_chamber, _] =
+        build_wire_chamber<test_algebra>(host_mr, wire_chamber_cfg);*/
 
     auto bfield = bfield::create_const_field<scalar>(B);
 
@@ -122,11 +123,11 @@ int main(int argc, char** argv) {
     std::cout << "Propagation Benchmarks\n"
               << "----------------------\n\n";
 
-    prop_cfg.stepping.do_covariance_transport = true;
+    /*prop_cfg.stepping.do_covariance_transport = true;
     detray::benchmarks::register_benchmark<
         detray::benchmarks::host_propagation_bm, stepper_t, default_chain>(
         "TOY_DETECTOR_W_COV_TRANSPORT", bench_cfg, prop_cfg, toy_det, bfield,
-        &actor_states, track_samples, n_tracks);
+        &actor_states, track_samples, n_tracks);*/
 
     prop_cfg.stepping.do_covariance_transport = false;
     detray::benchmarks::register_benchmark<
@@ -134,7 +135,7 @@ int main(int argc, char** argv) {
         "TOY_DETECTOR", bench_cfg, prop_cfg, toy_det, bfield, &empty_state,
         track_samples, n_tracks);
 
-    prop_cfg.stepping.do_covariance_transport = true;
+    /*prop_cfg.stepping.do_covariance_transport = true;
     detray::benchmarks::register_benchmark<
         detray::benchmarks::host_propagation_bm, stepper_t, default_chain>(
         "WIRE_CHAMBER_W_COV_TRANSPORT", bench_cfg, prop_cfg, wire_chamber,
@@ -144,7 +145,7 @@ int main(int argc, char** argv) {
     detray::benchmarks::register_benchmark<
         detray::benchmarks::host_propagation_bm, stepper_t, empty_chain_t>(
         "WIRE_CHAMBER", bench_cfg, prop_cfg, wire_chamber, bfield, &empty_state,
-        track_samples, n_tracks);
+        track_samples, n_tracks);*/
 
     // Run benchmarks
     ::benchmark::Initialize(&argc, argv);

@@ -32,9 +32,4 @@ foreach(algebra ${algebra_plugins})
         detray_benchmark_cuda_propagation_${algebra}
         PRIVATE ${algebra}=${algebra}
     )
-
-    target_compile_options(
-        detray_benchmark_cuda_propagation_${algebra}
-        PRIVATE "-march=native" "-ftree-vectorize"
-    )
 endforeach()

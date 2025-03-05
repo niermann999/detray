@@ -53,6 +53,7 @@ inline typename track_generator_t::configuration get_default_trk_gen_config(
     trk_cfg.mom_range(1.f * unit<scalar_t>::GeV, 100.f * unit<scalar_t>::GeV);
     trk_cfg.origin(0.f, 0.f, 0.f);
     trk_cfg.origin_stddev(0.f, 0.f, 0.f);
+    trk_cfg.do_vertex_smearing(false);
 
     return trk_cfg;
 }
@@ -187,7 +188,7 @@ inline void register_benchmark(
         std::string bench_name = prop_benchmark.config().name() + "_" + name +
                                  "_" + std::to_string(n) + "_TRACKS";
 
-        std::cout << bench_name << "\n" << bench_cfg;
+        // std::cout << bench_name << "\n" << bench_cfg;
 
         if constexpr (std::is_invocable_v<
                           decltype(prop_benchmark), ::benchmark::State &,

@@ -71,8 +71,6 @@ int main(int argc, char** argv) {
     propagation::config prop_cfg{};
     prop_cfg.navigation.search_window = {3u, 3u};
 
-    std::cout << prop_cfg << std::endl;
-
     // Benchmark config
     detray::benchmarks::benchmark_base::configuration bench_cfg{};
 
@@ -90,6 +88,9 @@ int main(int argc, char** argv) {
     bench_cfg.n_warmup(static_cast<int>(
         std::ceil(0.1f * static_cast<float>(trk_cfg.n_tracks()))));
     bench_cfg.do_warmup(true);
+
+    std::cout << trk_cfg << std::endl;
+    std::cout << prop_cfg << std::endl;
 
     //
     // Prepare data
@@ -117,14 +118,14 @@ int main(int argc, char** argv) {
     std::cout << "Propagation Benchmarks\n"
               << "----------------------\n\n";
 
-    prop_cfg.stepping.do_covariance_transport = true;
+    /*prop_cfg.stepping.do_covariance_transport = true;
     detray::benchmarks::register_benchmark<
         detray::benchmarks::cuda_propagation_bm,
         detray::benchmarks::cuda_propagator_type<
             test::toy_metadata, field_bknd_t,
             detray::benchmarks::default_chain>>(
         "TOY_DETECTOR_W_COV_TRANSPORT", bench_cfg, prop_cfg, toy_det, bfield,
-        &actor_states, track_samples, n_tracks, &dev_mr);
+        &actor_states, track_samples, n_tracks, &dev_mr);*/
 
     prop_cfg.stepping.do_covariance_transport = false;
     detray::benchmarks::register_benchmark<
@@ -134,7 +135,7 @@ int main(int argc, char** argv) {
         "TOY_DETECTOR", bench_cfg, prop_cfg, toy_det, bfield, &empty_state,
         track_samples, n_tracks, &dev_mr);
 
-    prop_cfg.stepping.do_covariance_transport = true;
+    /*prop_cfg.stepping.do_covariance_transport = true;
     detray::benchmarks::register_benchmark<
         detray::benchmarks::cuda_propagation_bm,
         detray::benchmarks::cuda_propagator_type<
@@ -150,7 +151,7 @@ int main(int argc, char** argv) {
             test::default_metadata, field_bknd_t,
             detray::benchmarks::empty_chain>>(
         "WIRE_CHAMBER", bench_cfg, prop_cfg, wire_chamber, bfield, &empty_state,
-        track_samples, n_tracks, &dev_mr);
+        track_samples, n_tracks, &dev_mr);*/
 
     // Run benchmarks
     ::benchmark::Initialize(&argc, argv);

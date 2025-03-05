@@ -24,6 +24,7 @@
 #include "detray/benchmarks/device/cuda/propagation_benchmark.hpp"
 
 // Detray test include(s).
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 #include "detray/test/utils/types.hpp"
 
@@ -47,7 +48,8 @@ using namespace detray;
 int main(int argc, char** argv) {
 
     // Use the most general type to be able to read in all detector files
-    using detector_t = detray::detector<test::default_metadata>;
+    // using detector_t = detray::detector<test::default_metadata>;
+    using detector_t = detector<test::toy_metadata>;
     using test_algebra = typename detector_t::algebra_type;
     using scalar = dscalar<test_algebra>;
     using vector3 = dvector3D<test_algebra>;
@@ -68,8 +70,10 @@ int main(int argc, char** argv) {
     vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
 
     // Number of tracks in the different benchmark cases
-    std::vector<int> n_tracks{10,     100,    500,     1000,   5000,
-                              10'000, 50'000, 100'000, 250'000};
+    /*std::vector<int> n_tracks{10,     100,    500,     1000,   5000,
+                              10'000, 50'000, 100'000, 250'000};*/
+    std::vector<int> n_tracks{8 * 8,     16 * 16,   32 * 32,  64 * 64,
+                              128 * 128, 256 * 256, 512 * 512};
 
     //
     // Configuration
@@ -129,8 +133,14 @@ int main(int argc, char** argv) {
     // Read the detector geometry
     reader_cfg.do_check(true);
 
+    /*const auto [det, names] =
+        detray::io::read_detector<detector_t>(host_mr, reader_cfg);*/
+
+    // Configure toy detector
+    toy_det_config<scalar> toy_cfg{};
+    toy_cfg.use_material_maps(false).n_brl_layers(4u).n_edc_layers(7u);
     const auto [det, names] =
-        detray::io::read_detector<detector_t>(host_mr, reader_cfg);
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
     const std::string& det_name = det.name(names);
 
     // Generate the track samples
@@ -161,7 +171,7 @@ int main(int argc, char** argv) {
         detray::benchmarks::register_benchmark<
             detray::benchmarks::cuda_propagation_bm,
             detray::benchmarks::cuda_propagator_type<
-                test::default_metadata, field_bknd_t,
+                test::toy_metadata, field_bknd_t,
                 detray::benchmarks::default_chain>>(
             det_name + "_W_COV_TRANSPORT", bench_cfg, prop_cfg, det, bfield,
             &actor_states, track_samples, n_tracks, &dev_mr);
@@ -169,7 +179,7 @@ int main(int argc, char** argv) {
         detray::benchmarks::register_benchmark<
             detray::benchmarks::cuda_propagation_bm,
             detray::benchmarks::cuda_propagator_type<
-                test::default_metadata, field_bknd_t,
+                test::toy_metadata, field_bknd_t,
                 detray::benchmarks::empty_chain>>(
             det_name, bench_cfg, prop_cfg, det, bfield, &empty_state,
             track_samples, n_tracks, &dev_mr);

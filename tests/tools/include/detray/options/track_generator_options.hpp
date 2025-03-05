@@ -115,7 +115,7 @@ void configure_uniform_track_gen_options(
         }
     } else {
         auto p_range = std::vector<scalar_t>{};
-        if (vm.count("pT_range")) {
+        if (vm.count("p_range")) {
             p_range = vm["p_range"].as<std::vector<scalar_t>>();
         }
 
@@ -243,7 +243,7 @@ void configure_rnd_track_gen_options(
     } else {
 
         auto p_range = std::vector<scalar_t>();
-        if (vm.count("pT_range")) {
+        if (vm.count("p_range")) {
             p_range = vm["p_range"].as<std::vector<scalar_t>>();
         }
 

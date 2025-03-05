@@ -138,6 +138,8 @@ struct cuda_propagation_bm : public benchmark_base {
         const int n_samples{m_cfg.benchmark().n_samples()};
         const int n_warmup{m_cfg.benchmark().n_warmup()};
 
+        std::cout << m_cfg.name() << "\n" << m_cfg.benchmark() << std::endl;
+
         assert(static_cast<std::size_t>(n_samples) <= tracks->size());
 
         // Copy the track collection to device
