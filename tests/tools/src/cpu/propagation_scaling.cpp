@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
         n_tracks_weak_sc.push_back(n * chunk_size);
     }
 
-    /// Maximum number of tracks to be assigned to thread (invlaid:
+    /// Maximum number of tracks to be assigned to thread (if invalid:
     /// set per benchmark case as strong_sc_sample_size/#threads)
     constexpr int max_chunk_size{detail::invalid_value<int>()};
     /// Strong scaling sample size
