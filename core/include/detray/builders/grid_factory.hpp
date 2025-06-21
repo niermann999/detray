@@ -101,26 +101,26 @@ class grid_factory {
 
         auto b_values = grid_bounds.values();
         // Overwrite the mask values if axis spans are provided
-        if (!axis_spans[0UL].empty()) {
-            assert(axis_spans[0UL].size() == 2UL);
-            b_values[boundary::e_min_r] = axis_spans[0UL].at(0UL);
-            b_values[boundary::e_max_r] = axis_spans[0UL].at(1UL);
+        if (!axis_spans.at(0UL).empty()) {
+            assert(axis_spans.at(0UL).size() == 2UL);
+            b_values.at(boundary::e_min_r) = axis_spans.at(0UL).at(0UL);
+            b_values.at(boundary::e_max_r) = axis_spans.at(0UL).at(1UL);
         }
-        scalar_type min_phi = b_values[boundary::e_average_phi] -
-                              b_values[boundary::e_min_phi_rel];
-        scalar_type max_phi = b_values[boundary::e_average_phi] +
-                              b_values[boundary::e_max_phi_rel];
-        if (!axis_spans[1UL].empty()) {
-            assert(axis_spans[1UL].size() == 2UL);
-            min_phi = axis_spans[1UL].at(0UL);
-            max_phi = axis_spans[1UL].at(1UL);
+        scalar_type min_phi = b_values.at(boundary::e_average_phi) -
+                              b_values.at(boundary::e_min_phi_rel);
+        scalar_type max_phi = b_values.at(boundary::e_average_phi) +
+                              b_values.at(boundary::e_max_phi_rel);
+        if (!axis_spans.at(1UL).empty()) {
+            assert(axis_spans.at(1UL).size() == 2UL);
+            min_phi = axis_spans.at(1UL).at(0UL);
+            max_phi = axis_spans.at(1UL).at(1UL);
         }
 
         return new_grid<local_frame>(
-            {b_values[boundary::e_min_r], b_values[boundary::e_max_r], min_phi,
-             max_phi},
-            {n_bins[e_r_axis], n_bins[e_phi_axis]}, bin_capacities,
-            {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
+            {b_values.at(boundary::e_min_r), b_values.at(boundary::e_max_r),
+             min_phi, max_phi},
+            {n_bins.at(e_r_axis), n_bins.at(e_phi_axis)}, bin_capacities,
+            {bin_edges.at(e_r_axis), bin_edges.at(e_phi_axis)},
             types::list<r_bounds, phi_bounds>{},
             types::list<r_binning, phi_binning>{});
     }
@@ -155,29 +155,30 @@ class grid_factory {
 
         // Overwrite the mask values if axis spans are provided
         auto b_values = grid_bounds.values();
-        if (!axis_spans[0UL].empty()) {
-            assert(axis_spans[0UL].size() == 2UL);
-            b_values[boundary::e_min_x] = axis_spans[0UL].at(0UL);
-            b_values[boundary::e_max_x] = axis_spans[0UL].at(1UL);
+        if (!axis_spans.at(0UL).empty()) {
+            assert(axis_spans.at(0UL).size() == 2UL);
+            b_values.at(boundary::e_min_x) = axis_spans.at(0UL).at(0UL);
+            b_values.at(boundary::e_max_x) = axis_spans.at(0UL).at(1UL);
         }
-        if (!axis_spans[1UL].empty()) {
-            assert(axis_spans[1UL].size() == 2UL);
-            b_values[boundary::e_min_y] = axis_spans[1UL].at(0UL);
-            b_values[boundary::e_max_y] = axis_spans[1UL].at(1UL);
+        if (!axis_spans.at(1UL).empty()) {
+            assert(axis_spans.at(1UL).size() == 2UL);
+            b_values.at(boundary::e_min_y) = axis_spans.at(1UL).at(0UL);
+            b_values.at(boundary::e_max_y) = axis_spans.at(1UL).at(1UL);
         }
-        if (!axis_spans[2UL].empty()) {
-            assert(axis_spans[2UL].size() == 2UL);
-            b_values[boundary::e_min_z] = axis_spans[2UL].at(0UL);
-            b_values[boundary::e_max_z] = axis_spans[2UL].at(1UL);
+        if (!axis_spans.at(2UL).empty()) {
+            assert(axis_spans.at(2UL).size() == 2UL);
+            b_values.at(boundary::e_min_z) = axis_spans.at(2UL).at(0UL);
+            b_values.at(boundary::e_max_z) = axis_spans.at(2UL).at(1UL);
         }
 
         return new_grid<local_frame>(
-            {b_values[boundary::e_min_x], b_values[boundary::e_max_x],
-             b_values[boundary::e_min_y], b_values[boundary::e_max_y],
-             b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
-            {n_bins[e_x_axis], n_bins[e_y_axis], n_bins[e_z_axis]},
+            {b_values.at(boundary::e_min_x), b_values.at(boundary::e_max_x),
+             b_values.at(boundary::e_min_y), b_values.at(boundary::e_max_y),
+             b_values.at(boundary::e_min_z), b_values.at(boundary::e_max_z)},
+            {n_bins.at(e_x_axis), n_bins.at(e_y_axis), n_bins.at(e_z_axis)},
             bin_capacities,
-            {bin_edges[e_x_axis], bin_edges[e_y_axis], bin_edges[e_z_axis]},
+            {bin_edges.at(e_x_axis), bin_edges.at(e_y_axis),
+             bin_edges.at(e_z_axis)},
             types::list<x_bounds, y_bounds, z_bounds>{},
             types::list<x_binning, y_binning, z_binning>{});
     }
@@ -214,16 +215,17 @@ class grid_factory {
         constexpr auto e_z_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
-        if (!axis_spans[1UL].empty()) {
-            assert(axis_spans[1UL].size() == 2UL);
-            b_values[boundary::e_lower_z] = axis_spans[1UL].at(0UL);
-            b_values[boundary::e_upper_z] = axis_spans[1UL].at(1UL);
+        if (!axis_spans.at(1UL).empty()) {
+            assert(axis_spans.at(1UL).size() == 2UL);
+            b_values.at(boundary::e_lower_z) = axis_spans.at(1UL).at(0UL);
+            b_values.at(boundary::e_upper_z) = axis_spans.at(1UL).at(1UL);
         }
         return new_grid<local_frame>(
             {-constant<scalar_type>::pi, constant<scalar_type>::pi,
-             b_values[boundary::e_lower_z], b_values[boundary::e_upper_z]},
-            {n_bins[e_rphi_axis], n_bins[e_z_axis]}, bin_capacities,
-            {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
+             b_values.at(boundary::e_lower_z),
+             b_values.at(boundary::e_upper_z)},
+            {n_bins.at(e_rphi_axis), n_bins.at(e_z_axis)}, bin_capacities,
+            {bin_edges.at(e_rphi_axis), bin_edges.at(e_z_axis)},
             types::list<rphi_bounds, z_bounds>{},
             types::list<rphi_binning, z_binning>{});
     }
@@ -260,17 +262,18 @@ class grid_factory {
         constexpr auto e_z_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
-        if (!axis_spans[1UL].empty()) {
-            assert(axis_spans[1UL].size() == 2UL);
-            b_values[boundary::e_lower_z] = axis_spans[1UL].at(0UL);
-            b_values[boundary::e_upper_z] = axis_spans[1UL].at(1UL);
+        if (!axis_spans.at(1UL).empty()) {
+            assert(axis_spans.at(1UL).size() == 2UL);
+            b_values.at(boundary::e_lower_z) = axis_spans.at(1UL).at(0UL);
+            b_values.at(boundary::e_upper_z) = axis_spans.at(1UL).at(1UL);
         }
 
         return new_grid<local_frame>(
             {-constant<scalar_type>::pi, constant<scalar_type>::pi,
-             b_values[boundary::e_lower_z], b_values[boundary::e_upper_z]},
-            {n_bins[e_rphi_axis], n_bins[e_z_axis]}, bin_capacities,
-            {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
+             b_values.at(boundary::e_lower_z),
+             b_values.at(boundary::e_upper_z)},
+            {n_bins.at(e_rphi_axis), n_bins.at(e_z_axis)}, bin_capacities,
+            {bin_edges.at(e_rphi_axis), bin_edges.at(e_z_axis)},
             types::list<rphi_bounds, z_bounds>{},
             types::list<rphi_binning, z_binning>{});
     }
@@ -311,31 +314,32 @@ class grid_factory {
         auto b_values = grid_bounds.values();
 
         // Overwrite the mask values if axis spans are provided
-        if (!axis_spans[0UL].empty()) {
-            assert(axis_spans[0UL].size() == 2UL);
-            b_values[boundary::e_min_r] = axis_spans[0UL].at(0UL);
-            b_values[boundary::e_max_r] = axis_spans[0UL].at(1UL);
+        if (!axis_spans.at(0UL).empty()) {
+            assert(axis_spans.at(0UL).size() == 2UL);
+            b_values.at(boundary::e_min_r) = axis_spans.at(0UL).at(0UL);
+            b_values.at(boundary::e_max_r) = axis_spans.at(0UL).at(1UL);
         }
         scalar_type min_phi = -constant<scalar_type>::pi;
         scalar_type max_phi = constant<scalar_type>::pi;
-        if (!axis_spans[1UL].empty()) {
-            assert(axis_spans[1UL].size() == 2UL);
-            min_phi = axis_spans[1UL].at(0UL);
-            max_phi = axis_spans[1UL].at(1UL);
+        if (!axis_spans.at(1UL).empty()) {
+            assert(axis_spans.at(1UL).size() == 2UL);
+            min_phi = axis_spans.at(1UL).at(0UL);
+            max_phi = axis_spans.at(1UL).at(1UL);
         }
-        if (!axis_spans[2UL].empty()) {
-            assert(axis_spans[2UL].size() == 2UL);
-            b_values[boundary::e_min_z] = axis_spans[2UL].at(0UL);
-            b_values[boundary::e_max_z] = axis_spans[2UL].at(1UL);
+        if (!axis_spans.at(2UL).empty()) {
+            assert(axis_spans.at(2UL).size() == 2UL);
+            b_values.at(boundary::e_min_z) = axis_spans.at(2UL).at(0UL);
+            b_values.at(boundary::e_max_z) = axis_spans.at(2UL).at(1UL);
         }
 
         return new_grid<local_frame>(
-            {b_values[boundary::e_min_r], b_values[boundary::e_max_r], min_phi,
-             max_phi, -b_values[boundary::e_min_z],
-             b_values[boundary::e_max_z]},
-            {n_bins[e_r_axis], n_bins[e_phi_axis], n_bins[e_z_axis]},
+            {b_values.at(boundary::e_min_r), b_values.at(boundary::e_max_r),
+             min_phi, max_phi, -b_values.at(boundary::e_min_z),
+             b_values.at(boundary::e_max_z)},
+            {n_bins.at(e_r_axis), n_bins.at(e_phi_axis), n_bins.at(e_z_axis)},
             bin_capacities,
-            {bin_edges[e_r_axis], bin_edges[e_phi_axis], bin_edges[e_z_axis]},
+            {bin_edges.at(e_r_axis), bin_edges.at(e_phi_axis),
+             bin_edges.at(e_z_axis)},
             types::list<r_bounds, phi_bounds, z_bounds>{},
             types::list<r_binning, phi_binning, z_binning>{});
     }
@@ -371,17 +375,17 @@ class grid_factory {
 
         auto b_values = grid_bounds.values();
         // Overwrite the mask values if axis spans are provided
-        if (!axis_spans[0UL].empty()) {
-            assert(axis_spans[0UL].size() == 2UL);
-            b_values[boundary::e_inner_r] = axis_spans[0UL].at(0UL);
-            b_values[boundary::e_outer_r] = axis_spans[0UL].at(1UL);
+        if (!axis_spans.at(0UL).empty()) {
+            assert(axis_spans.at(0UL).size() == 2UL);
+            b_values.at(boundary::e_inner_r) = axis_spans.at(0UL).at(0UL);
+            b_values.at(boundary::e_outer_r) = axis_spans.at(0UL).at(1UL);
         }
 
         return new_grid<local_frame>(
-            {b_values[boundary::e_inner_r], b_values[boundary::e_outer_r],
+            {b_values.at(boundary::e_inner_r), b_values.at(boundary::e_outer_r),
              -constant<scalar_type>::pi, constant<scalar_type>::pi},
-            {n_bins[e_r_axis], n_bins[e_phi_axis]}, bin_capacities,
-            {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
+            {n_bins.at(e_r_axis), n_bins.at(e_phi_axis)}, bin_capacities,
+            {bin_edges.at(e_r_axis), bin_edges.at(e_phi_axis)},
             types::list<r_bounds, phi_bounds>{},
             types::list<r_binning, phi_binning>{});
     }
@@ -413,20 +417,20 @@ class grid_factory {
 
         auto b_values = grid_bounds.values();
         // Overwrite the mask values if axis spans are provided
-        if (!axis_spans[0UL].empty()) {
-            assert(axis_spans[0UL].size() == 2UL);
-            b_values[boundary::e_half_x] = axis_spans[0UL].at(1UL);
+        if (!axis_spans.at(0UL).empty()) {
+            assert(axis_spans.at(0UL).size() == 2UL);
+            b_values.at(boundary::e_half_x) = axis_spans.at(0UL).at(1UL);
         }
-        if (!axis_spans[1UL].empty()) {
-            assert(axis_spans[1UL].size() == 2UL);
-            b_values[boundary::e_half_y] = axis_spans[1UL].at(1UL);
+        if (!axis_spans.at(1UL).empty()) {
+            assert(axis_spans.at(1UL).size() == 2UL);
+            b_values.at(boundary::e_half_y) = axis_spans.at(1UL).at(1UL);
         }
 
         return new_grid<local_frame>(
-            {-b_values[boundary::e_half_x], b_values[boundary::e_half_x],
-             -b_values[boundary::e_half_y], b_values[boundary::e_half_y]},
-            {n_bins[e_x_axis], n_bins[e_y_axis]}, bin_capacities,
-            {bin_edges[e_x_axis], bin_edges[e_y_axis]},
+            {-b_values.at(boundary::e_half_x), b_values.at(boundary::e_half_x),
+             -b_values.at(boundary::e_half_y), b_values.at(boundary::e_half_y)},
+            {n_bins.at(e_x_axis), n_bins.at(e_y_axis)}, bin_capacities,
+            {bin_edges.at(e_x_axis), bin_edges.at(e_y_axis)},
             types::list<x_bounds, y_bounds>{},
             types::list<x_binning, y_binning>{});
     }
@@ -458,24 +462,24 @@ class grid_factory {
 
         auto b_values = grid_bounds.values();
         // Overwrite the mask values if axis spans are provided
-        if (!axis_spans[0UL].empty()) {
-            assert(axis_spans[0UL].size() == 2UL);
-            b_values[boundary::e_half_length_1] = axis_spans[0UL].at(1UL);
+        if (!axis_spans.at(0UL).empty()) {
+            assert(axis_spans.at(0UL).size() == 2UL);
+            b_values.at(boundary::e_half_length_1) = axis_spans.at(0UL).at(1UL);
         }
-        if (!axis_spans[1UL].empty()) {
-            assert(axis_spans[1UL].size() == 2UL);
-            b_values[boundary::e_half_length_2] = axis_spans[1UL].at(1UL);
+        if (!axis_spans.at(1UL).empty()) {
+            assert(axis_spans.at(1UL).size() == 2UL);
+            b_values.at(boundary::e_half_length_2) = axis_spans.at(1UL).at(1UL);
         }
 
-        return new_grid<local_frame>({-b_values[boundary::e_half_length_1],
-                                      b_values[boundary::e_half_length_1],
-                                      -b_values[boundary::e_half_length_2],
-                                      b_values[boundary::e_half_length_2]},
-                                     {n_bins[e_x_axis], n_bins[e_y_axis]},
-                                     bin_capacities,
-                                     {bin_edges[e_x_axis], bin_edges[e_y_axis]},
-                                     types::list<x_bounds, y_bounds>{},
-                                     types::list<x_binning, y_binning>{});
+        return new_grid<local_frame>(
+            {-b_values.at(boundary::e_half_length_1),
+             b_values.at(boundary::e_half_length_1),
+             -b_values.at(boundary::e_half_length_2),
+             b_values.at(boundary::e_half_length_2)},
+            {n_bins.at(e_x_axis), n_bins.at(e_y_axis)}, bin_capacities,
+            {bin_edges.at(e_x_axis), bin_edges.at(e_y_axis)},
+            types::list<x_bounds, y_bounds>{},
+            types::list<x_binning, y_binning>{});
     }
 
     /// @brief Create and empty grid with fully initialized axes.
@@ -621,7 +625,7 @@ class grid_factory {
                 for (const auto &capacity : bin_capacities) {
                     // Get the empty bin by its global index
                     auto &data =
-                        bin_data.bins[serializer(axes, capacity.first)];
+                        bin_data.bins.at(serializer(axes, capacity.first));
 
                     data.offset = total_cap;
                     data.capacity = capacity.second;

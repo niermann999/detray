@@ -186,18 +186,18 @@ class surface_factory : public surface_factory_interface<detector_t> {
 
                 // Append the surfaces relative to the current number of
                 // surfaces in the stores
-                const dindex sf_idx{detail::is_invalid_value(m_indices[idx])
+                const dindex sf_idx{detail::is_invalid_value(m_indices.at(idx))
                                         ? dindex_invalid
-                                        : m_indices[idx]};
+                                        : m_indices.at(idx)};
 
                 // Add transform
                 const dindex trf_idx = this->insert_in_container(
-                    transforms, m_transforms[idx], sf_idx, ctx);
+                    transforms, m_transforms.at(idx), sf_idx, ctx);
 
                 // Masks are simply appended, since they are distributed onto
                 // multiple containers, their ordering is different from the
                 // surfaces
-                auto v_links_per_mask = m_volume_links[idx];
+                auto v_links_per_mask = m_volume_links.at(idx);
                 assert(v_links_per_mask.size() == bounds_per_mask.size());
                 std::size_t n_masks = bounds_per_mask.size();
                 if constexpr (std::is_same_v<mask_shape_t,
@@ -208,8 +208,8 @@ class surface_factory : public surface_factory_interface<detector_t> {
                 } else {
                     for (std::size_t i = 0u; i < n_masks; ++i) {
                         masks.template emplace_back<mask_id>(
-                            empty_context{}, bounds_per_mask[i],
-                            v_links_per_mask[i]);
+                            empty_context{}, bounds_per_mask.at(i),
+                            v_links_per_mask.at(i));
                     }
                 }
 
@@ -233,8 +233,8 @@ class surface_factory : public surface_factory_interface<detector_t> {
                 this->insert_in_container(
                     surfaces,
                     {surface_t{trf_idx, mask_link, material_link,
-                               volume.index(), m_types[idx]},
-                     m_sources[idx]},
+                               volume.index(), m_types.at(idx)},
+                     m_sources.at(idx)},
                     sf_idx);
             }
         }

@@ -123,13 +123,13 @@ class homogeneous_material_reader {
     static auto from_payload(const material_payload& mat_data) {
 
         return material<scalar_t>{
-            static_cast<scalar_t>(mat_data.params[0]),
-            static_cast<scalar_t>(mat_data.params[1]),
-            static_cast<scalar_t>(mat_data.params[2]),
-            static_cast<scalar_t>(mat_data.params[3]),
-            static_cast<scalar_t>(mat_data.params[4]),
+            static_cast<scalar_t>(mat_data.params.at(0)),
+            static_cast<scalar_t>(mat_data.params.at(1)),
+            static_cast<scalar_t>(mat_data.params.at(2)),
+            static_cast<scalar_t>(mat_data.params.at(3)),
+            static_cast<scalar_t>(mat_data.params.at(4)),
             // The molar density is calculated on the fly
-            static_cast<material_state>(mat_data.params[6])};
+            static_cast<material_state>(mat_data.params.at(6))};
     }
 };
 

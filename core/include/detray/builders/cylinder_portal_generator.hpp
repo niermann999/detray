@@ -71,19 +71,19 @@ struct cylinder_portal_config {
         return *this;
     }
     constexpr cylinder_portal_config &link_north(const dindex l) {
-        m_volume_links[0] = l;
+        m_volume_links.at(0) = l;
         return *this;
     }
     constexpr cylinder_portal_config &link_south(const dindex l) {
-        m_volume_links[1] = l;
+        m_volume_links.at(1) = l;
         return *this;
     }
     constexpr cylinder_portal_config &link_east(const dindex l) {
-        m_volume_links[2] = l;
+        m_volume_links.at(2) = l;
         return *this;
     }
     constexpr cylinder_portal_config &link_west(const dindex l) {
-        m_volume_links[3] = l;
+        m_volume_links.at(3) = l;
         return *this;
     }
     /// @}
@@ -97,10 +97,10 @@ struct cylinder_portal_config {
     constexpr scalar_t fixed_outer_radius() const { return m_fixed_outer_r; }
     constexpr scalar_t fixed_half_length() const { return m_fixed_z; }
     constexpr const auto &volume_links() const { return m_volume_links; }
-    constexpr const auto &link_north() const { return m_volume_links[0]; }
-    constexpr const auto &link_south() const { return m_volume_links[1]; }
-    constexpr const auto &link_east() const { return m_volume_links[2]; }
-    constexpr const auto &link_west() const { return m_volume_links[3]; }
+    constexpr const auto &link_north() const { return m_volume_links.at(0); }
+    constexpr const auto &link_south() const { return m_volume_links.at(1); }
+    constexpr const auto &link_east() const { return m_volume_links.at(2); }
+    constexpr const auto &link_west() const { return m_volume_links.at(3); }
     /// @}
 };
 

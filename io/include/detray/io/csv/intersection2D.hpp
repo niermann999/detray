@@ -99,7 +99,7 @@ inline auto read_intersection2D(const std::string &file_name) {
         inters.status = static_cast<bool>(inters_data.status);
 
         // Add to collection
-        intersections_per_track[trk_index].push_back(inters);
+        intersections_per_track.at(trk_index).push_back(inters);
     }
 
     // Check the result

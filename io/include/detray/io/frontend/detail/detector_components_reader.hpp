@@ -44,7 +44,7 @@ class detector_components_reader final {
 
     /// Attach an existing reader via @param r_ptr to the readers
     void add(reader_ptr_t&& r_ptr, const std::string& file_name) {
-        m_readers[file_name] = std::move(r_ptr);
+        m_readers.emplace(file_name, std::move(r_ptr));
     }
 
     /// Create a new geometry reader of type @tparam reader_t

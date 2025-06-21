@@ -183,7 +183,7 @@ class homogeneous_material_writer {
 
             if constexpr (is_slab || is_rod) {
                 return homogeneous_material_writer::to_payload(
-                    material_group[index], sf_index);
+                    material_group.at(index), sf_index);
             } else {
                 return material_slab_payload{};
             }

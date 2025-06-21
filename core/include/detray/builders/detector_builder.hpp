@@ -85,7 +85,7 @@ class detector_builder {
             std::make_unique<builder_t>(std::move(m_volumes[volume_idx]));
 
         // Always works, we set it as this type in the line above
-        return dynamic_cast<builder_t*>(m_volumes[volume_idx].get());
+        return dynamic_cast<builder_t*>(m_volumes.at(volume_idx).get());
     }
 
     /// Decorate a volume builder @param v_builder with more functionality
@@ -102,7 +102,7 @@ class detector_builder {
     DETRAY_HOST
     auto operator[](dindex volume_idx)
         -> volume_builder_interface<detector_type>* {
-        return m_volumes[volume_idx].get();
+        return m_volumes.at(volume_idx).get();
     }
 
     /// Assembles the final detector from the volumes builders and allocates

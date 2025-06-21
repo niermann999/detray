@@ -100,9 +100,11 @@ class geometry_reader {
                 const auto key{shape_id};
                 if (auto search = factories.find(key);
                     search == factories.end()) {
-                    factories[key] = std::move(
-                        init_factory<io_shape_id::n_shapes, detector_t>(
-                            shape_id));
+                    factories.emplace(
+                        key,
+                        std::move(
+                            init_factory<io_shape_id::n_shapes, detector_t>(
+                                shape_id)));
                 }
 
                 // Add the data to the factory
@@ -131,18 +133,18 @@ class geometry_reader {
         using scalar_t = dscalar<algebra_t>;
         using vector3_t = dvector3D<algebra_t>;
 
-        vector3_t t{static_cast<scalar_t>(trf_data.tr[0]),
-                    static_cast<scalar_t>(trf_data.tr[1]),
-                    static_cast<scalar_t>(trf_data.tr[2])};
-        vector3_t x{static_cast<scalar_t>(trf_data.rot[0]),
-                    static_cast<scalar_t>(trf_data.rot[1]),
-                    static_cast<scalar_t>(trf_data.rot[2])};
-        vector3_t y{static_cast<scalar_t>(trf_data.rot[3]),
-                    static_cast<scalar_t>(trf_data.rot[4]),
-                    static_cast<scalar_t>(trf_data.rot[5])};
-        vector3_t z{static_cast<scalar_t>(trf_data.rot[6]),
-                    static_cast<scalar_t>(trf_data.rot[7]),
-                    static_cast<scalar_t>(trf_data.rot[8])};
+        vector3_t t{static_cast<scalar_t>(trf_data.tr.at(0)),
+                    static_cast<scalar_t>(trf_data.tr.at(1)),
+                    static_cast<scalar_t>(trf_data.tr.at(2))};
+        vector3_t x{static_cast<scalar_t>(trf_data.rot.at(0)),
+                    static_cast<scalar_t>(trf_data.rot.at(1)),
+                    static_cast<scalar_t>(trf_data.rot.at(2))};
+        vector3_t y{static_cast<scalar_t>(trf_data.rot.at(3)),
+                    static_cast<scalar_t>(trf_data.rot.at(4)),
+                    static_cast<scalar_t>(trf_data.rot.at(5))};
+        vector3_t z{static_cast<scalar_t>(trf_data.rot.at(6)),
+                    static_cast<scalar_t>(trf_data.rot.at(7)),
+                    static_cast<scalar_t>(trf_data.rot.at(8))};
 
         return dtransform3D<algebra_t>{t, x, y, z};
     }
@@ -173,11 +175,11 @@ class geometry_reader {
         if (sf_data.masks.front().shape == io_shape_id::portal_cylinder2 ||
             sf_data.masks.front().shape == io_shape_id::cylinder2) {
 
-            const auto z_shift{static_cast<scalar_t>(trf.translation()[2])};
+            const auto z_shift{static_cast<scalar_t>(trf.translation().at(2))};
 
             for (auto& mask_boundary : mask_boundaries) {
-                mask_boundary[concentric_cylinder2D::e_lower_z] += z_shift;
-                mask_boundary[concentric_cylinder2D::e_upper_z] += z_shift;
+                mask_boundary.at(concentric_cylinder2D::e_lower_z) += z_shift;
+                mask_boundary.at(concentric_cylinder2D::e_upper_z) += z_shift;
             }
 
             // Set the transform to identity afterwards

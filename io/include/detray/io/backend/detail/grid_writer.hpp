@@ -192,7 +192,10 @@ class grid_writer {
                 if (search != grids_map.end()) {
                     grids_map.at(vol_link).push_back(std::move(gr_pyload));
                 } else {
-                    grids_map[vol_link] = {std::move(gr_pyload)};
+                    grids_map.emplace(
+                        vol_link,
+                        std::vector<grid_payload<content_t, grid_id_t>>{
+                            std::move(gr_pyload)});
                 }
             }
         }

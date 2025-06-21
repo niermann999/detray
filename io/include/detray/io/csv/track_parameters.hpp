@@ -88,8 +88,8 @@ inline auto read_free_track_params(const std::string &file_name) {
                             static_cast<scalar_t>(track_param_data.q)};
 
         // Add to collection
-        track_params_per_track[trk_index].emplace_back(track_param_data.q,
-                                                       track_param);
+        track_params_per_track.at(trk_index).emplace_back(track_param_data.q,
+                                                          track_param);
     }
 
     // Check the result
